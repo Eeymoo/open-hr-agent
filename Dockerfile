@@ -19,7 +19,7 @@ RUN addgroup -S nodejs && adduser -S nodeuser -G nodejs
 
 COPY package.json pnpm-lock.yaml ./
 
-RUN corepack enable && pnpm install --prod --frozen-lockfile
+RUN corepack enable && pnpm install --prod --frozen-lockfile --ignore-scripts
 
 COPY --from=builder /app/dist ./dist
 
