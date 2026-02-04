@@ -2,12 +2,12 @@
 
 ## Project Overview
 
-This is a TypeScript Express API project that provides structured API responses with optional Toon format encoding. The project uses ES modules and targets Node.js >= 18.0.0.
+TypeScript Express API project providing structured responses with Toon format encoding. Uses ES modules, targets Node.js >= 18.0.0.
 
 ## Environment Detection
 
 - Project Type: TypeScript + Express (Node.js)
-- Package Manager: pnpm (detected from pnpm-lock.yaml)
+- Package Manager: pnpm
 - Module System: ES Modules (type: "module" in package.json)
 
 ## Primary Commands (run at repository root)
@@ -20,36 +20,35 @@ This is a TypeScript Express API project that provides structured API responses 
 
 - Build: `pnpm run build` (compiles TypeScript to dist/)
 - Type Check: `pnpm run typecheck` (tsc --noEmit)
+- Check: `pnpm run check` (typecheck + lint)
 
 ### Code Quality
 
 - Lint: `pnpm run lint` (ESLint with TypeScript support)
-- Format: `pnpm run format` (Prettier for formatting)
+- Format: `pnpm run format` (Prettier formatting)
 
 ### Running the Application
 
-- Development: `pnpm run dev` (tsx src/index.ts with hot reload)
+- Development: `pnpm run dev` (tsx src/index.ts)
 - Production: `pnpm start` (runs compiled dist/index.js)
 
 ### Testing
 
-Note: No test framework is currently configured in package.json. If tests are added, update this section.
+No test framework configured. Add test commands when tests are implemented.
 
 ## Code Style & Conventions
 
-### Import Ordering (enforced by ESLint)
+### Import Ordering
 
 1. Standard library imports (node:\*)
 2. Third-party package imports
 3. Internal module imports (from src/)
-4. Type imports can be grouped separately if using import type
-
-Example:
+4. Type imports: group separately if using import type
 
 ```typescript
-import fs from "node:fs";
-import express, { type Request, type Response } from "express";
-import Result from "./utils/Result.js";
+import fs from 'node:fs';
+import express, { type Request, type Response } from 'express';
+import Result from './utils/Result.js';
 ```
 
 ### TypeScript Configuration
@@ -72,31 +71,25 @@ import Result from "./utils/Result.js";
 
 ### Type Rules
 
-- Explicit types preferred for function returns (warn level)
-- No `any` type allowed (error level)
+- Explicit types preferred for function returns (warn)
+- No `any` type allowed (error)
 - Use `unknown` over `any` when type is truly unknown
 - Prefer optional chaining (?.) and nullish coalescing (??)
-- Non-null assertions discouraged (warn level)
+- Non-null assertions discouraged (warn)
 
 ### Error Handling
 
-- Use the `Result` class from src/utils/Result.ts for API responses
-- Constructor: `new Result(data, code?, message?)`
-- Error responses: `new Result().error(code, message, data?)`
-- Success responses: `new Result(data, 200, message)` or `new Result(data).success(data, message?)`
-- Avoid throwing literals; throw Error objects with descriptive messages
-- Handle errors with try-catch and return appropriate Result responses
+Use `Result` class from src/utils/Result.ts for API responses:
 
-### Express Route Patterns
+- Success: `new Result(data, 200, message)` or `new Result(data).success(data, message?)`
+- Error: `new Result().error(code, message, data?)`
+- Throw Error objects with descriptive messages, not literals
+- Handle errors with try-catch and return Result responses
 
 ```typescript
-app.get("/api/v1/endpoint", (_req: Request, res: Response) => {
+app.get('/api/v1/endpoint', (_req: Request, res: Response) => {
   const data = processData();
   res.json(new Result(data));
-});
-
-app.get("/api/v1/error", (_req: Request, res: Response) => {
-  res.json(new Result().error(400, "Error message"));
 });
 ```
 
@@ -109,40 +102,36 @@ app.get("/api/v1/error", (_req: Request, res: Response) => {
 - Complexity: C10 (warn)
 - Max nested callbacks: 3
 
-### Formatting Rules (ESLint enforced)
+### Formatting Rules
 
 - Indent: 2 spaces
 - Quotes: single quotes (avoid escape with double)
 - Semicolons: required
 - Trailing commas: never
-- Spaces: strict spacing around operators, braces, etc.
-- No multiple empty lines (max 1)
 - Arrow function parens: always `() => {}`
+- No multiple empty lines (max 1)
 
 ### Best Practices
 
 - Prefer const over let
 - Use template literals over string concatenation
-- Object shorthand preferred: `{ x }` over `{ x: x }`
-- Destructuring preferred for arrays and objects
+- Object shorthand: `{ x }` over `{ x: x }`
+- Destructuring preferred for arrays/objects
 - No magic numbers (warn) - use named constants
-- No console or debugger in production code
-- Avoid eval, new Function, and other dangerous patterns
-- Use async/await for asynchronous operations
+- No console/debugger in production code
+- Avoid eval, new Function
+- Use async/await for async operations
 
 ## Middleware & Special Features
 
 ### Toon Format Middleware
 
-The project includes `/src/middleware/responseFormat/toonMiddleware.ts` which:
-
-- Intercepts requests under `/toon` path prefix
-- Encodes JSON responses using Toon format (`@toon-format/toon`)
+- Location: `/src/middleware/responseFormat/toonMiddleware.ts`
+- Intercepts `/toon/*` path prefix
+- Encodes JSON responses using Toon format (`@to`-format/toon`)
 - Example: `/toon/api/v1/hello` returns Toon-encoded response
 
 ### Response Structure
-
-All API responses should use the `Result` class with structure:
 
 ```typescript
 {
@@ -152,41 +141,38 @@ All API responses should use the `Result` class with structure:
 }
 ```
 
-## Git Workflow (Critical)
+## Git Workflow
 
-1. Always create a new branch before any modifications
-2. No operations allowed on main/master without explicit instruction
-3. After completing partial work, commit to current branch with descriptive message
-4. After all work complete, push to remote repository
-5. If issues arise, provide clear error messages and suggestions
+1. Create new branch before modifications
+2. No operations on main/master without explicit instruction
+3. Commit to current branch with descriptive message
+4. Push to remote after work complete
 
 ## Agent Commit Strategy
 
 - Small, focused commits
-- Commit message format: `type(scope): description`
-- Types: feat, fix, refactor, style, docs, test, chore
-- Include context in commit messages
-- Never commit secrets or sensitive data
+- Format: `type(scope): description` (feat, fix, refactor, style, docs, test, chore)
 - Run format and lint before committing
+- Never commit secrets
 
 ## Safety Rules
 
 - Never modify git config
 - Never force push unless explicitly requested
-- Never push to remote main/master without user confirmation
-- Check for secrets before committing
-- Validate sensitive data is not logged
+- Never push to remote main/master without confirmation
+- Validate no secrets in commits/logs
 
 ## Troubleshooting
 
-- If build fails: Check TypeScript errors in output
-- If lint fails: Review ESLint messages and fix violations
-- If typecheck fails: Address type errors and ensure strict compliance
+- Build fails: Check TypeScript errors
+- Lint fails: Review ESLint messages
+- Typecheck fails: Ensure strict compliance
 - Always run typecheck before committing
 
 ## File Organization
 
 - `/src/index.ts` - Main entry point, Express app setup
-- `/src/middleware/` - Express middleware modules
-- `/src/utils/` - Utility classes and functions
-- `/dist/` - Compiled output (generated, ignore in version control)
+- `/src/routes/` - API route handlers
+- `/src/middleware/` - Express middleware
+- `/src/utils/` - Utility classes/functions
+- `/dist/` - Compiled output (gitignored)
