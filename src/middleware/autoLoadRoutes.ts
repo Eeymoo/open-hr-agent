@@ -2,6 +2,9 @@ import { readdirSync, statSync } from 'node:fs';
 import { join, basename, extname } from 'node:path';
 import type { Router } from 'express';
 
+const IS_TSX =
+  process.argv[1]?.includes('tsx') || process.execArgv.some((arg) => arg.includes('tsx'));
+
 function convertNextRouteName(name: string): string {
   return name.replace(/^\[(.+)\]$/, ':$1');
 }
@@ -41,7 +44,7 @@ async function processDirectory(
 
   try {
     statSync(indexTsPath);
-    const indexModule = await import(`${indexTsPath}.js`);
+    const indexModule = await import(IS_TSX ? indexTsPath : `${indexTsPath}.js`);
     const defaultExport = indexModule.default;
 
     if (typeof defaultExport === 'function') {
@@ -60,7 +63,7 @@ async function processFile(
   basePath: string
 ): Promise<void> {
   const routeName = basename(item, extname(item));
-  const modulePath = `${fullPath}.js`;
+  const modulePath = IS_TSX ? fullPath : `${fullPath}.js`;
   const routeModule = await import(modulePath);
   const defaultExport = routeModule.default;
 
