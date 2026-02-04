@@ -1,0 +1,72 @@
+import { readdirSync, statSync } from 'node:fs';
+import { join, basename, extname } from 'node:path';
+import type { Router } from 'express';
+
+function convertNextRouteName(name: string): string {
+  return name.replace(/^\[(.+)\]$/, ':$1');
+}
+
+function buildExpressPath(basePath: string, routePath: string): string {
+  return basePath ? `/${basePath}/${routePath}` : `/${routePath}`;
+}
+
+export default async function autoLoadRoutes(
+  router: Router,
+  routesDir: string,
+  basePath = ''
+): Promise<void> {
+  const items = readdirSync(routesDir);
+
+  for (const item of items) {
+    const fullPath = join(routesDir, item);
+    const stat = statSync(fullPath);
+
+    if (stat.isDirectory()) {
+      await processDirectory(router, item, fullPath, basePath);
+    } else if (stat.isFile() && item.endsWith('.ts') && item !== 'index.ts') {
+      await processFile(router, item, fullPath, basePath);
+    }
+  }
+}
+
+async function processDirectory(
+  router: Router,
+  item: string,
+  fullPath: string,
+  basePath: string
+): Promise<void> {
+  const routePath = convertNextRouteName(item);
+  const newBasePath = basePath ? `${basePath}/${routePath}` : routePath;
+  const indexTsPath = join(fullPath, 'index.ts');
+
+  try {
+    statSync(indexTsPath);
+    const indexModule = await import(`${indexTsPath}.js`);
+    const defaultExport = indexModule.default;
+
+    if (typeof defaultExport === 'function') {
+      const expressPath = `/${newBasePath}`;
+      router.get(expressPath, defaultExport);
+    }
+  } catch {
+    await autoLoadRoutes(router, fullPath, newBasePath);
+  }
+}
+
+async function processFile(
+  router: Router,
+  item: string,
+  fullPath: string,
+  basePath: string
+): Promise<void> {
+  const routeName = basename(item, extname(item));
+  const modulePath = `${fullPath}.js`;
+  const routeModule = await import(modulePath);
+  const defaultExport = routeModule.default;
+
+  if (typeof defaultExport === 'function') {
+    const routePath = convertNextRouteName(routeName);
+    const expressPath = buildExpressPath(basePath, routePath);
+    router.get(expressPath, defaultExport);
+  }
+}
