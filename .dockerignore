@@ -6,3 +6,8 @@ dist
 .env.*
 *.md
 .DS_Store
+.husky
+.prettierignore
+.prettierrc
+nodemon.json
+eslint.config.js
