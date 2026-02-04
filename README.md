@@ -4,14 +4,18 @@
 
 ## 快速开始
 
-### 自动设置（推荐）
-
-使用 setup 脚本自动配置环境：
-
-**macOS/Linux:**
-
 ```bash
-./scripts/setup.sh
+# NVM 会自动使用 .nvmrc 文件中的版本
+nvm use
+
+# 安装 pnpm（如果未安装）
+npm install -g pnpm
+
+# 安装依赖
+pnpm install
+
+# 启动开发服务器
+pnpm run dev
 ```
 
 **Windows:**
