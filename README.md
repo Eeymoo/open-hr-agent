@@ -41,6 +41,65 @@ pnpm install
 pnpm run dev
 ```
 
+## Docker 部署
+
+### 使用 GitHub Container Registry (ghcr.io)
+
+推荐使用预构建的 Docker 镜像。镜像会在每次推送到 main 分支或打 tag 时自动构建：
+
+```bash
+docker pull ghcr.io/eeymoo/open-hr-agent:latest
+
+docker run -d -p 3000:3000 \
+  --name open-hr-agent \
+  ghcr.io/eeymoo/open-hr-agent:latest
+```
+
+### 使用环境变量
+
+```bash
+docker run -d -p 3000:3000 \
+  --name open-hr-agent \
+  -e NODE_ENV=production \
+  -e PORT=3000 \
+  ghcr.io/eeymoo/open-hr-agent:latest
+```
+
+### 使用 Docker Compose
+
+创建 `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  open-hr-agent:
+    image: ghcr.io/eeymoo/open-hr-agent:latest
+    container_name: open-hr-agent
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+```
+
+启动服务：
+
+```bash
+docker-compose up -d
+```
+
+### 本地构建镜像
+
+如果需要本地构建：
+
+```bash
+docker build -t open-hr-agent .
+
+docker run -d -p 3000:3000 --name open-hr-agent open-hr-agent
+```
+
 ## API 端点
 
 - `GET /health` - 健康检查
