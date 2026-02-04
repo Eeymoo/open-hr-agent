@@ -29,7 +29,7 @@ TypeScript Express API project providing structured responses with Toon format e
 
 ### Running the Application
 
-- Development: `pnpm run dev` (tsx src/index.ts)
+- Development: `pnpm run dev` (nodemon with hot reload, watches src/ directory)
 - Production: `pnpm start` (runs compiled dist/index.js)
 
 ### Testing
