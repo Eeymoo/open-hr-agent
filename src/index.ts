@@ -2,7 +2,7 @@ import process from 'node:process';
 import express from 'express';
 import toonMiddleware from './middleware/responseFormat/toonMiddleware.js';
 import healthRoute from './routes/health.js';
-import v1Router from './v1/index.js';
+import v1Router from './routes/v1/index.js';
 
 const app = express();
 const DEFAULT_PORT = 3000;
