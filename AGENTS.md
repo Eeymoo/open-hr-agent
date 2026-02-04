@@ -23,8 +23,9 @@ This is a TypeScript Express API project that provides structured API responses 
 
 ### Code Quality
 
+- Format: `pnpm run format` (Prettier - run BEFORE fixing code and BEFORE committing)
 - Lint: `pnpm run lint` (ESLint with TypeScript support)
-- Format: `pnpm run format` (Prettier for formatting)
+- Check: `pnpm run check` (runs typecheck and lint together)
 
 ### Running the Application
 
@@ -47,9 +48,9 @@ Note: No test framework is currently configured in package.json. If tests are ad
 Example:
 
 ```typescript
-import fs from "node:fs";
-import express, { type Request, type Response } from "express";
-import Result from "./utils/Result.js";
+import fs from 'node:fs';
+import express, { type Request, type Response } from 'express';
+import Result from './utils/Result.js';
 ```
 
 ### TypeScript Configuration
@@ -90,13 +91,13 @@ import Result from "./utils/Result.js";
 ### Express Route Patterns
 
 ```typescript
-app.get("/api/v1/endpoint", (_req: Request, res: Response) => {
+app.get('/api/v1/endpoint', (_req: Request, res: Response) => {
   const data = processData();
   res.json(new Result(data));
 });
 
-app.get("/api/v1/error", (_req: Request, res: Response) => {
-  res.json(new Result().error(400, "Error message"));
+app.get('/api/v1/error', (_req: Request, res: Response) => {
+  res.json(new Result().error(400, 'Error message'));
 });
 ```
 
@@ -156,9 +157,11 @@ All API responses should use the `Result` class with structure:
 
 1. Always create a new branch before any modifications
 2. No operations allowed on main/master without explicit instruction
-3. After completing partial work, commit to current branch with descriptive message
-4. After all work complete, push to remote repository
-5. If issues arise, provide clear error messages and suggestions
+3. Format code BEFORE making any changes: `pnpm run format`
+4. Format code BEFORE committing: `pnpm run format`
+5. After completing partial work, commit to current branch with descriptive message
+6. After all work complete, push to remote repository
+7. If issues arise, provide clear error messages and suggestions
 
 ## Agent Commit Strategy
 
