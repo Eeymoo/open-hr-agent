@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build and Push Docker Images
 
 on:
   push:
@@ -57,11 +57,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
-        id: meta
+      - name: Extract metadata for hr-agent
+        id: meta-hr
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-hr-agent
           tags: |
             type=ref,event=branch
             type=ref,event=tag
@@ -69,12 +69,36 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
 
-      - name: Build and push Docker image
+      - name: Extract metadata for coding-agent
+        id: meta-ca
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-coding-agent
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+
+      - name: Build and push hr-agent image
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ./Dockerfile.hr-agent
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-hr.outputs.tags }}
+          labels: ${{ steps.meta-hr.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push coding-agent image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.coding-agent
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta-ca.outputs.tags }}
+          labels: ${{ steps.meta-ca.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
