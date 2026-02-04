@@ -12,7 +12,12 @@
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
     "check": "pnpm run typecheck && pnpm run lint",
-    "prepare": "husky"
+    "prepare": "husky",
+    "docker:build": "docker compose build",
+    "docker:build-hr": "docker build -f Dockerfile.hr-agent -t hr-agent:latest .",
+    "docker:build-ca": "docker build -f Dockerfile.coding-agent -t hra-coding-agent:latest .",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
   },
   "dependencies": {
     "@opencode-ai/sdk": "latest",

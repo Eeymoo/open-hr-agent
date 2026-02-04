@@ -1,12 +1,22 @@
-version: '3.8'
-
 services:
-  app:
+  hr-agent:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.hr-agent
+    image: hr-agent:latest
     ports:
       - '3000:3000'
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+
+  hra-coding-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.coding-agent
+    image: hra-coding-agent:latest
+    ports:
+      - '3001:3000'
     environment:
       - NODE_ENV=production
     restart: unless-stopped
