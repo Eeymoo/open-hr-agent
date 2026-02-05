@@ -2,12 +2,12 @@ FROM node:22.21.1-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+COPY packages/hr-agent/package.json packages/hr-agent/pnpm-lock.yaml ./
 
 RUN corepack enable && pnpm install --frozen-lockfile
 
-COPY src ./src
-COPY tsconfig.json ./
+COPY packages/hr-agent/src ./src
+COPY packages/hr-agent/tsconfig.json ./
 
 RUN pnpm run build
 
@@ -17,7 +17,7 @@ WORKDIR /app
 
 RUN addgroup -S nodejs && adduser -S nodeuser -G nodejs
 
-COPY package.json pnpm-lock.yaml ./
+COPY packages/hr-agent/package.json packages/hr-agent/pnpm-lock.yaml ./
 
 RUN corepack enable && pnpm install --prod --frozen-lockfile --ignore-scripts
 
