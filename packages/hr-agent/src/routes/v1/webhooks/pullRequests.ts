@@ -45,6 +45,15 @@ function logPullRequestDetails(action: string, repositoryName: string, pr: PullR
   console.log(`Labels: ${labelsText}`);
 }
 
+function logRequestDetails(req: Request, context: string): void {
+  console.log(`=== Request Details (${context}) ===`);
+  console.log('Method:', req.method);
+  console.log('URL:', req.url);
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('Body keys:', Object.keys(req.body ?? {}));
+  console.log('Body:', JSON.stringify(req.body, null, 2));
+}
+
 function handlePullRequestEvent(event: string, webhookData: PullRequestsWebhookPayload): void {
   if (event !== 'pull_request' && event !== 'pull_request_review') {
     return;
@@ -69,11 +78,15 @@ export default function pullRequestsWebhook(req: Request, res: Response): void {
     const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET;
 
     if (!verifyWebhookSignature(signatureHeader, webhookSecret ?? '', req.body)) {
+      console.error('=== Pull Requests Webhook Signature Verification Failed ===');
+      logRequestDetails(req, 'Signature Failed');
       sendUnauthorizedResponse(res);
       return;
     }
 
     if (!webhookSecret) {
+      console.error('=== Pull Requests Webhook Secret Not Configured ===');
+      logRequestDetails(req, 'Secret Not Configured');
       sendSecretNotConfiguredResponse(res);
       return;
     }
@@ -85,6 +98,9 @@ export default function pullRequestsWebhook(req: Request, res: Response): void {
     handlePullRequestEvent(event, req.body as PullRequestsWebhookPayload);
     sendSuccessResponse(res, event);
   } catch (error) {
+    console.error('=== Pull Requests Webhook Error ===');
+    logRequestDetails(req, 'Error');
+    console.error('Error details:', error);
     sendErrorResponse(res, error);
   }
 }

@@ -42,6 +42,15 @@ function logIssueDetails(action: string, repositoryName: string, issue: IssueDat
   console.log(`Labels: ${labelsText}`);
 }
 
+function logRequestDetails(req: Request, context: string): void {
+  console.log(`=== Request Details (${context}) ===`);
+  console.log('Method:', req.method);
+  console.log('URL:', req.url);
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('Body keys:', Object.keys(req.body ?? {}));
+  console.log('Body:', JSON.stringify(req.body, null, 2));
+}
+
 function handleIssuesEvent(event: string, webhookData: IssuesWebhookPayload): void {
   if (event !== 'issues' && event !== 'issue_comment') {
     return;
@@ -66,11 +75,15 @@ export default function issuesWebhook(req: Request, res: Response): void {
     const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET;
 
     if (!verifyWebhookSignature(signatureHeader, webhookSecret ?? '', req.body)) {
+      console.error('=== Issues Webhook Signature Verification Failed ===');
+      logRequestDetails(req, 'Signature Failed');
       sendUnauthorizedResponse(res);
       return;
     }
 
     if (!webhookSecret) {
+      console.error('=== Issues Webhook Secret Not Configured ===');
+      logRequestDetails(req, 'Secret Not Configured');
       sendSecretNotConfiguredResponse(res);
       return;
     }
@@ -82,6 +95,9 @@ export default function issuesWebhook(req: Request, res: Response): void {
     handleIssuesEvent(event, req.body as IssuesWebhookPayload);
     sendSuccessResponse(res, event);
   } catch (error) {
+    console.error('=== Issues Webhook Error ===');
+    logRequestDetails(req, 'Error');
+    console.error('Error details:', error);
     sendErrorResponse(res, error);
   }
 }
