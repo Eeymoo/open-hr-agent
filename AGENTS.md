@@ -2,13 +2,14 @@
 
 ## Project Overview
 
-TypeScript Express API project providing structured responses with Toon format encoding. Uses ES modules, targets Node.js >= 18.0.0.
+TypeScript Express API project providing structured responses with Toon format encoding. Uses ES modules, targets Node.js >= 22.0.0.
 
 ## Environment Detection
 
 - Project Type: TypeScript + Express (Node.js)
-- Package Manager: pnpm
+- Package Manager: pnpm (>=9.0.0)
 - Module System: ES Modules (type: "module" in package.json)
+- Runtime: Node.js >= 22.0.0
 
 ## Primary Commands (run at repository root)
 
@@ -47,7 +48,9 @@ No test framework configured. Add test commands when tests are implemented.
 
 ```typescript
 import fs from 'node:fs';
-import express, { type Request, type Response } from 'express';
+import crypto from 'node:crypto';
+import { Request, Response } from 'express';
+import { encode } from '@toon-format/toon';
 import Result from './utils/Result.js';
 ```
 
@@ -58,7 +61,7 @@ import Result from './utils/Result.js';
 - Module: ESNext with bundler resolution
 - Unused variables/parameters: error (ignored if prefixed with \_)
 - Implicit returns: error
-- No inferrable types: allowed
+- No inferrable types: allowed (off)
 
 ### Naming Conventions
 
@@ -68,6 +71,7 @@ import Result from './utils/Result.js';
 - Private members: \_leadingUnderscore
 - Files: camelCase.ts (matching exports)
 - Directories: camelCase
+- Dynamic routes: [id].ts → :id parameter
 
 ### Type Rules
 
@@ -90,7 +94,7 @@ Use `Result` class from src/utils/Result.ts for API responses:
 app.get('/api/v1/endpoint', (_req: Request, res: Response) => {
   const data = processData();
   res.json(new Result(data));
-});
+));
 ```
 
 ### Code Complexity (ESLint enforced)
@@ -124,12 +128,27 @@ app.get('/api/v1/endpoint', (_req: Request, res: Response) => {
 
 ## Middleware & Special Features
 
+### Auto-Load Routes Middleware
+
+- Location: `/src/middleware/autoLoadRoutes.ts`
+- Automatically loads routes from src/routes directory
+- Supports Next.js style dynamic routes: [id].ts → :id
+- Route structure: src/routes/v1/hello.ts → /v1/hello
+- Route structure: src/routes/v1/[id]/index.ts → /v1/:id
+
 ### Toon Format Middleware
 
 - Location: `/src/middleware/responseFormat/toonMiddleware.ts`
 - Intercepts `/toon/*` path prefix
 - Encodes JSON responses using Toon format (`@to`-format/toon`)
 - Example: `/toon/api/v1/hello` returns Toon-encoded response
+
+### GitHub Webhooks
+
+- Issues webhook: `/src/routes/v1/webhooks/issues.ts`
+- Pull requests webhook: `/src/routes/v1/webhooks/pullRequests.ts`
+- Includes HMAC signature verification using crypto.timingSafeEqual
+- Defensive programming with null checks and error boundaries
 
 ### Response Structure
 
@@ -172,7 +191,7 @@ app.get('/api/v1/endpoint', (_req: Request, res: Response) => {
 ## File Organization
 
 - `/src/index.ts` - Main entry point, Express app setup
-- `/src/routes/` - API route handlers
+- `/src/routes/` - API route handlers (auto-loaded)
 - `/src/middleware/` - Express middleware
 - `/src/utils/` - Utility classes/functions
 - `/dist/` - Compiled output (gitignored)
