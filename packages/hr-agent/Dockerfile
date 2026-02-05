@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/hr-agent/package.json ./packages/hr-agent/
 
-RUN corepack enable && pnpm install --frozen-lockfile
+RUN corepack enable && pnpm install
 
 COPY packages/hr-agent/src ./packages/hr-agent/src
 COPY packages/hr-agent/tsconfig.json ./packages/hr-agent/
@@ -21,7 +21,7 @@ RUN addgroup -S nodejs && adduser -S nodeuser -G nodejs
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/hr-agent/package.json ./packages/hr-agent/
 
-RUN corepack enable && pnpm install --prod --frozen-lockfile --ignore-scripts
+RUN corepack enable && pnpm install --prod --ignore-scripts
 
 COPY --from=builder /app/packages/hr-agent/dist ./dist
 
