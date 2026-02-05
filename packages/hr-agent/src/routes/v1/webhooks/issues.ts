@@ -8,7 +8,7 @@ import {
   logWebhookReceived,
   logWebhookPayload,
   formatLabels
-} from '../utils/webhook.js';
+} from '../../../utils/webhook.js';
 
 interface IssueData {
   number?: number;
