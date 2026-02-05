@@ -187,10 +187,15 @@ app.get('/api/v1/endpoint', (_req: Request, res: Response) => {
 
 ## Git Workflow
 
-1. Create new branch before modifications
-2. No operations on main/master without explicit instruction
-3. Commit to current branch with descriptive message
-4. Push to remote after work complete
+When developing new features, follow these steps:
+
+1. Switch to main branch: `git checkout main`
+2. Pull latest from remote: `git pull origin main`
+3. Create feature branch: `git checkout -b feature/your-feature-name`
+4. Develop the feature
+5. Format code: `pnpm run format`
+6. Type check: `pnpm run typecheck`
+7. Push to remote: `git push -u origin feature/your-feature-name`
 
 ## Agent Commit Strategy
 
