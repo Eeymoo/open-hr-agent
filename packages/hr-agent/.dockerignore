@@ -4,10 +4,9 @@ dist
 .gitignore
 .env
 .env.*
-*.md
 .DS_Store
 .husky
-.prettierignore
-.prettierrc
-nodemon.json
-eslint.config.js
+node_modules
+*.log
+packages/coding-agent
+.gitignore
