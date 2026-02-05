@@ -21,8 +21,8 @@ describe('Webhook Routes Tests', () => {
       })
     );
 
-    const issuesWebhook = await import('./routes/v1/webhooks/issues.js');
-    const pullRequestsWebhook = await import('./routes/v1/webhooks/pullRequests.js');
+    const issuesWebhook = await import('./routes/v1/webhooks/issues.post.js');
+    const pullRequestsWebhook = await import('./routes/v1/webhooks/pullRequests.post.js');
 
     app.post('/v1/webhooks/issues', issuesWebhook.default);
     app.post('/v1/webhooks/pullRequests', pullRequestsWebhook.default);
@@ -233,7 +233,7 @@ describe('Webhook Routes Tests', () => {
 
       const app2 = express();
       app2.use(express.json());
-      const issuesWebhook = await import('./routes/v1/webhooks/issues.js');
+      const issuesWebhook = await import('./routes/v1/webhooks/issues.post.js');
       app2.post('/v1/webhooks/issues', issuesWebhook.default);
 
       const payload = { test: 'data' };
