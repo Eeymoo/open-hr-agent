@@ -2,8 +2,11 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import express from 'express';
+import dotenv from 'dotenv';
 import toonMiddleware from './middleware/responseFormat/toonMiddleware.js';
 import autoLoadRoutes from './middleware/autoLoadRoutes.js';
+
+dotenv.config();
 
 const app = express();
 const DEFAULT_PORT = 3000;
