@@ -1,0 +1,98 @@
+name: Delete Merged Branches
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (do not actually delete branches)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  delete-merged-branches:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch all branches
+        run: |
+          git fetch --all --prune
+
+      - name: Identify and delete merged branches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          echo "🔍 Finding merged branches..."
+          
+          # List of branches that were merged via PRs
+          MERGED_BRANCHES=(
+            "fix/docker-image-name"
+            "feature/update-agents-workflow"
+            "refactor/webhook-complexity"
+            "feature/monorepo-structure"
+            "docs/update-agents-md"
+            "feat/add-docker-deployment"
+            "feature/docker"
+            "feature/hot-reload"
+          )
+          
+          echo ""
+          echo "📋 Merged branches to be deleted:"
+          for branch in "${MERGED_BRANCHES[@]}"; do
+            if git ls-remote --heads origin "$branch" | grep -q "$branch"; then
+              echo "  ✓ $branch (exists)"
+            else
+              echo "  ℹ️  $branch (already deleted)"
+            fi
+          done
+          
+          if [ "$DRY_RUN" == "true" ]; then
+            echo ""
+            echo "🔍 DRY RUN MODE - No branches will be deleted"
+            exit 0
+          fi
+          
+          echo ""
+          echo "🗑️  Deleting merged branches from remote..."
+          
+          for branch in "${MERGED_BRANCHES[@]}"; do
+            if git ls-remote --heads origin "$branch" | grep -q "$branch"; then
+              echo "  Deleting origin/$branch..."
+              git push origin --delete "$branch" || echo "  ⚠️  Failed to delete $branch"
+            fi
+          done
+          
+          echo ""
+          echo "✅ Cleanup complete!"
+          
+          echo ""
+          echo "📊 Remaining remote branches:"
+          git branch -r | grep -v HEAD
+
+      - name: Summary
+        run: |
+          echo "## Branch Cleanup Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deleted Branches:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- fix/docker-image-name (PR #13)" >> $GITHUB_STEP_SUMMARY
+          echo "- feature/update-agents-workflow (PR #11)" >> $GITHUB_STEP_SUMMARY
+          echo "- refactor/webhook-complexity (PR #10)" >> $GITHUB_STEP_SUMMARY
+          echo "- feature/monorepo-structure (PR #9)" >> $GITHUB_STEP_SUMMARY
+          echo "- docs/update-agents-md (PR #8)" >> $GITHUB_STEP_SUMMARY
+          echo "- feat/add-docker-deployment (PR #6)" >> $GITHUB_STEP_SUMMARY
+          echo "- feature/docker (PR #3)" >> $GITHUB_STEP_SUMMARY
+          echo "- feature/hot-reload (PR #1)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All merged branches have been cleaned up!" >> $GITHUB_STEP_SUMMARY

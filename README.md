@@ -131,3 +131,22 @@ src/routes/
     └── [id]/
         └── index.ts    → /v1/:id (动态路由)
 ```
+
+## 维护
+
+### 分支清理
+
+定期清理已合并的分支，保持仓库整洁：
+
+```bash
+# 手动删除已合并的分支
+./scripts/delete-merged-branches.sh
+
+# 或查看文档
+cat docs/BRANCH_CLEANUP.md
+```
+
+也可以通过 GitHub Actions 自动清理：
+1. 前往仓库的 Actions 标签页
+2. 选择 "Delete Merged Branches" 工作流
+3. 点击 "Run workflow"
