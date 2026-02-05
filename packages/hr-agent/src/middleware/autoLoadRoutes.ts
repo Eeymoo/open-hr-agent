@@ -28,7 +28,11 @@ export default async function autoLoadRoutes(
       await processDirectory(router, item, fullPath, basePath);
     } else if (stat.isFile()) {
       const isTsFile = item.endsWith('.ts') && item !== 'index.ts' && !item.endsWith('.d.ts');
-      const isJsFile = item.endsWith('.js') && item !== 'index.js' && !item.endsWith('.d.js') && !item.endsWith('.map');
+      const isJsFile =
+        item.endsWith('.js') &&
+        item !== 'index.js' &&
+        !item.endsWith('.d.js') &&
+        !item.endsWith('.map');
       if (isTsFile || isJsFile) {
         await processFile(router, item, fullPath, basePath);
       }
