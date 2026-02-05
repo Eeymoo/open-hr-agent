@@ -14,13 +14,13 @@ function buildExpressPath(basePath: string, routePath: string): string {
 }
 
 function parseRouteFileName(fileName: string): { routeName: string; method: string } {
-  const methodMatch = fileName.match(/\.(post|put|delete|patch|get)\.ts$/i);
+  const methodMatch = fileName.match(/\.(post|put|delete|patch|get)\.(ts|js)$/i);
   if (methodMatch) {
     const method = methodMatch[1].toLowerCase();
     const routeName = fileName.slice(0, methodMatch.index);
     return { routeName, method };
   }
-  const routeName = fileName.replace(/\.ts$/, '');
+  const routeName = fileName.replace(/\.ts$/, '').replace(/\.js$/, '');
   return { routeName, method: 'get' };
 }
 
