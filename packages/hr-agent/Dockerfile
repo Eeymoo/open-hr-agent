@@ -2,7 +2,8 @@ FROM node:22.21.1-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json ./
+COPY ../../pnpm-lock.yaml ./
 
 RUN corepack enable && pnpm install --frozen-lockfile
 
@@ -17,7 +18,8 @@ WORKDIR /app
 
 RUN addgroup -S nodejs && adduser -S nodeuser -G nodejs
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json ./
+COPY --from=builder /app/pnpm-lock.yaml ./
 
 RUN corepack enable && pnpm install --prod --frozen-lockfile --ignore-scripts
 
