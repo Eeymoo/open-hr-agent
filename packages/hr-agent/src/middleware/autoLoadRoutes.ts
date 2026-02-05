@@ -1,5 +1,5 @@
 import { readdirSync, statSync } from 'node:fs';
-import { join, basename, extname } from 'node:path';
+import { join } from 'node:path';
 import type { Router, RequestHandler } from 'express';
 
 const IS_TSX =
@@ -20,7 +20,8 @@ function parseRouteFileName(fileName: string): { routeName: string; method: stri
     const routeName = fileName.slice(0, methodMatch.index);
     return { routeName, method };
   }
-  return { routeName: fileName, method: 'get' };
+  const routeName = fileName.replace(/\.ts$/, '');
+  return { routeName, method: 'get' };
 }
 
 function registerRoute(
@@ -50,6 +51,8 @@ function registerRoute(
 
   console.log(`Route registered: ${method.toUpperCase()} ${path}`);
 }
+
+export { parseRouteFileName };
 
 export default async function autoLoadRoutes(
   router: Router,
@@ -108,8 +111,7 @@ async function processFile(
   fullPath: string,
   basePath: string
 ): Promise<void> {
-  const fileName = basename(item, extname(item));
-  const { routeName, method } = parseRouteFileName(fileName);
+  const { routeName, method } = parseRouteFileName(item);
   let modulePath: string;
   if (IS_TSX) {
     modulePath = fullPath;

@@ -57,4 +57,21 @@ describe('Routes Integration Tests', () => {
     const response = await request(app).get('/v1/nonexistent');
     expect(response.status).toBe(404);
   });
+
+  it('应该响应 .post.ts 文件的 POST 路由', async () => {
+    await import('./routes/v1/webhooks/issues.post.js');
+    const response = await request(app)
+      .post('/v1/webhooks/issues')
+      .set('X-Hub-Signature-256', 'test-signature')
+      .set('X-GitHub-Event', 'issues')
+      .send({ test: 'data' });
+
+    expect(response.status).toBe(401);
+    expect(response.body).toHaveProperty('error', 'Invalid signature');
+  });
+
+  it('应该拒绝对 POST 路由的 GET 请求', async () => {
+    const response = await request(app).get('/v1/webhooks/issues');
+    expect(response.status).toBe(404);
+  });
 });
