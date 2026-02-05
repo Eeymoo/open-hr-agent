@@ -12,7 +12,10 @@
     "lint": "eslint src",
     "format": "prettier --write src",
     "check": "pnpm run typecheck && pnpm run lint",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@opencode-ai/sdk": "latest",
@@ -23,8 +26,10 @@
     "@eslint/js": "^9.39.2",
     "@types/express": "^5.0.6",
     "@types/node": "^25.2.0",
+    "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
@@ -32,8 +37,10 @@
     "lint-staged": "^16.2.7",
     "nodemon": "^3.1.11",
     "prettier": "^3.0.0",
+    "supertest": "^7.2.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   },
   "engines": {
     "node": ">=22.0.0",
