@@ -1,42 +1,66 @@
-import { Buffer } from 'node:buffer';
-import crypto from 'node:crypto';
 import type { Request, Response } from 'express';
+import {
+  verifyWebhookSignature,
+  sendUnauthorizedResponse,
+  sendSecretNotConfiguredResponse,
+  sendSuccessResponse,
+  sendErrorResponse,
+  logWebhookReceived,
+  logWebhookPayload,
+  formatLabels
+} from '../../../utils/webhook.js';
 
-const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
-const HTTP_STATUS_UNAUTHORIZED = 401;
+interface PullRequestData {
+  number?: number;
+  title?: string;
+  user?: { login?: string };
+  html_url?: string;
+  state?: string;
+  merged?: boolean;
+  labels?: { name: string }[];
+}
 
-function verifyWebhookSignature(
-  signatureHeader: string | undefined,
-  webhookSecret: string,
-  body: unknown
-): boolean {
-  if (!webhookSecret) {
-    console.error('GitHub webhook secret is not configured.');
-    return false;
+interface PullRequestsWebhookPayload {
+  action?: string;
+  pull_request?: PullRequestData;
+  repository?: { full_name?: string };
+}
+
+function logPullRequestDetails(action: string, repositoryName: string, pr: PullRequestData): void {
+  const prNumber = pr.number ?? 'unknown';
+  const prTitle = pr.title ?? 'No title';
+  const authorLogin = pr.user?.login ?? 'unknown author';
+  const prUrl = pr.html_url ?? 'N/A';
+  const prState = pr.state ?? 'unknown';
+  const mergedText = pr.merged ? 'Yes' : 'No';
+  const labelsText = formatLabels(pr.labels);
+
+  console.log(`=== Pull Request ${action} ===`);
+  console.log(`Repository: ${repositoryName}`);
+  console.log(`PR #${prNumber}: ${prTitle}`);
+  console.log(`Author: ${authorLogin}`);
+  console.log(`URL: ${prUrl}`);
+  console.log(`State: ${prState}`);
+  console.log(`Merged: ${mergedText}`);
+  console.log(`Labels: ${labelsText}`);
+}
+
+function handlePullRequestEvent(event: string, webhookData: PullRequestsWebhookPayload): void {
+  if (event !== 'pull_request' && event !== 'pull_request_review') {
+    return;
   }
 
-  if (!signatureHeader) {
-    console.warn('Missing X-Hub-Signature-256 header on GitHub webhook request.');
-    return false;
+  const { action, pull_request: pr, repository } = webhookData;
+
+  if (!pr || !repository) {
+    console.warn(
+      'Missing pull_request or repository data in GitHub webhook payload; skipping detailed PR logging.'
+    );
+    return;
   }
 
-  const rawBodyValue =
-    (body as Record<string, unknown> | undefined)?.rawBody ?? JSON.stringify(body ?? {});
-  const rawBodyBuffer = Buffer.isBuffer(rawBodyValue)
-    ? rawBodyValue
-    : Buffer.from(String(rawBodyValue), 'utf8');
-
-  const hmac = crypto.createHmac('sha256', webhookSecret);
-  hmac.update(rawBodyBuffer);
-  const expectedSignature = `sha256=${hmac.digest('hex')}`;
-
-  const providedSignatureBuffer = Buffer.from(signatureHeader, 'utf8');
-  const expectedSignatureBuffer = Buffer.from(expectedSignature, 'utf8');
-
-  return (
-    providedSignatureBuffer.length === expectedSignatureBuffer.length &&
-    crypto.timingSafeEqual(providedSignatureBuffer, expectedSignatureBuffer)
-  );
+  const repositoryName = repository.full_name ?? 'unknown repository';
+  logPullRequestDetails(action ?? 'unknown', repositoryName, pr);
 }
 
 export default function pullRequestsWebhook(req: Request, res: Response): void {
@@ -45,63 +69,22 @@ export default function pullRequestsWebhook(req: Request, res: Response): void {
     const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET;
 
     if (!verifyWebhookSignature(signatureHeader, webhookSecret ?? '', req.body)) {
-      res.status(HTTP_STATUS_UNAUTHORIZED).json({ error: 'Invalid signature' });
+      sendUnauthorizedResponse(res);
       return;
     }
 
     if (!webhookSecret) {
-      console.error('GitHub webhook secret is not configured.');
-      res
-        .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
-        .json({ error: 'Webhook secret not configured' });
+      sendSecretNotConfiguredResponse(res);
       return;
     }
 
-    const webhookData = req.body;
     const event = req.headers['x-github-event'] as string;
+    logWebhookReceived('Pull Requests', event);
+    logWebhookPayload(req.body);
 
-    console.log('=== GitHub Pull Requests Webhook Received ===');
-    console.log(`Event Type: ${event}`);
-    console.log(`Timestamp: ${new Date().toISOString()}`);
-
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Payload keys:', Object.keys(webhookData ?? {}));
-    }
-
-    if (event === 'pull_request' || event === 'pull_request_review') {
-      const { action } = webhookData;
-      const pr = webhookData.pull_request;
-      const { repository } = webhookData;
-
-      console.log(`=== Pull Request ${action ?? 'unknown'} ===`);
-
-      if (!pr || !repository) {
-        console.warn(
-          'Missing pull_request or repository data in GitHub webhook payload; skipping detailed PR logging.'
-        );
-      } else {
-        console.log(`Repository: ${repository.full_name ?? 'unknown repository'}`);
-        console.log(`PR #${pr.number ?? 'unknown'}: ${pr.title ?? 'No title'}`);
-        console.log(`Author: ${pr.user?.login ?? 'unknown author'}`);
-        console.log(`URL: ${pr.html_url ?? 'N/A'}`);
-        console.log(`State: ${pr.state ?? 'unknown'}`);
-        console.log(`Merged: ${pr.merged ? 'Yes' : 'No'}`);
-        const labelsArray = Array.isArray(pr.labels) ? pr.labels : [];
-        const labelsText =
-          labelsArray.length > 0
-            ? labelsArray.map((label: { name: string }) => label.name).join(', ')
-            : 'None';
-        console.log(`Labels: ${labelsText}`);
-      }
-    }
-
-    res.json({ received: true, event });
+    handlePullRequestEvent(event, req.body as PullRequestsWebhookPayload);
+    sendSuccessResponse(res, event);
   } catch (error) {
-    console.error('Error handling GitHub Pull Requests webhook:', error);
-    if (!res.headersSent) {
-      res
-        .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
-        .json({ received: false, error: 'Internal server error' });
-    }
+    sendErrorResponse(res, error);
   }
 }

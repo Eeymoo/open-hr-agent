@@ -9,8 +9,8 @@
     "dev": "nodemon",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src/**/*.ts",
-    "format": "prettier --write src/**/*.ts",
+    "lint": "eslint src",
+    "format": "prettier --write src",
     "check": "pnpm run typecheck && pnpm run lint",
     "prepare": "husky"
   },
