@@ -1,6 +1,6 @@
 import { readdirSync, statSync } from 'node:fs';
 import { join, basename, extname } from 'node:path';
-import type { Router } from 'express';
+import type { Router, RequestHandler } from 'express';
 
 const IS_TSX =
   process.argv[1]?.includes('tsx') || process.execArgv.some((arg) => arg.includes('tsx'));
@@ -11,6 +11,44 @@ function convertNextRouteName(name: string): string {
 
 function buildExpressPath(basePath: string, routePath: string): string {
   return basePath ? `/${basePath}/${routePath}` : `/${routePath}`;
+}
+
+function parseRouteFileName(fileName: string): { routeName: string; method: string } {
+  const methodMatch = fileName.match(/\.(post|put|delete|patch|get)\.ts$/i);
+  if (methodMatch) {
+    const method = methodMatch[1].toLowerCase();
+    const routeName = fileName.slice(0, methodMatch.index);
+    return { routeName, method };
+  }
+  return { routeName: fileName, method: 'get' };
+}
+
+function registerRoute(
+  router: Router,
+  method: string,
+  path: string,
+  handler: RequestHandler
+): void {
+  switch (method) {
+    case 'post':
+      router.post(path, handler);
+      break;
+    case 'put':
+      router.put(path, handler);
+      break;
+    case 'delete':
+      router.delete(path, handler);
+      break;
+    case 'patch':
+      router.patch(path, handler);
+      break;
+    case 'get':
+    default:
+      router.get(path, handler);
+      break;
+  }
+
+  console.log(`Route registered: ${method.toUpperCase()} ${path}`);
 }
 
 export default async function autoLoadRoutes(
@@ -57,7 +95,7 @@ async function processDirectory(
 
     if (typeof defaultExport === 'function') {
       const expressPath = `/${newBasePath}`;
-      router.get(expressPath, defaultExport);
+      registerRoute(router, 'get', expressPath, defaultExport);
     }
   } catch {
     await autoLoadRoutes(router, fullPath, newBasePath);
@@ -70,7 +108,8 @@ async function processFile(
   fullPath: string,
   basePath: string
 ): Promise<void> {
-  const routeName = basename(item, extname(item));
+  const fileName = basename(item, extname(item));
+  const { routeName, method } = parseRouteFileName(fileName);
   let modulePath: string;
   if (IS_TSX) {
     modulePath = fullPath;
@@ -85,6 +124,6 @@ async function processFile(
   if (typeof defaultExport === 'function') {
     const routePath = convertNextRouteName(routeName);
     const expressPath = buildExpressPath(basePath, routePath);
-    router.get(expressPath, defaultExport);
+    registerRoute(router, method, expressPath, defaultExport);
   }
 }
