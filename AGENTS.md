@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-基于 Github 的 AI 自编排任务管理工具 Monorepo。使用 pnpm workspace 管理 packages，包含 hr-agent（HRA）和 coding-agent（CA）两个包。HRA 负责管理 Issue 任务和 PR 审查，CA 负责具体的编码工作。
+GitHub-based AI self-orchestrated task management tool Monorepo. Uses pnpm workspace to manage packages, containing hr-agent (HRA) and coding-agent (CA) two packages. HRA handles Issue task management and PR reviews, CA handles specific coding tasks.
 
 ## Environment Detection
 
@@ -32,35 +32,39 @@
 - Format all: `pnpm run format` (formats all packages)
 - Format specific: `pnpm --filter hra format`
 
+### Testing
+
+- Run all tests: `pnpm --filter hra test`
+- Run single test file: `pnpm --filter hra test src/routes.test.ts`
+- Run test by pattern: `pnpm --filter hra test -- --grep "test name"`
+- Run tests with coverage: `pnpm --filter hra test:coverage`
+- Run tests in watch mode: `pnpm --filter hra test -- --watch`
+
 ### Running Applications
 
 - HRA Dev: `pnpm --filter hra dev` (nodemon with hot reload in packages/hr-agent/)
 - HRA Prod: `pnpm --filter hra start` (runs compiled packages/hr-agent/dist/index.js)
 - CA Dev: `pnpm --filter ca dev` (when CA has dev script)
 
-### Testing
+## Development Workflow
 
-No test framework configured. Add test commands when tests are implemented.
+When developing new features, follow these steps:
 
-## Monorepo Structure
+1. Switch to main branch: `git checkout main`
+`2. Pull latest from remote: `git pull origin main`
+3. Create feature branch: `git checkout -b feature/your-feature-name`
+4. Develop the feature
+5. **Add test cases for all new/modified APIs (required for all new/modified APIs)**
+6. Run tests: `pnpm --filter hra test` (must ensure all tests pass)
+7. Format code: `pnpm run format`
+8. Type check: `pnpm run typecheck`
+9. Push to remote: `git push -u origin feature/your-feature-name`
 
-```
-open-hr-agent/
-├── packages/
-│   ├── hr-agent/        # HRA 包 (Express API)
-│   │   ├── src/
-│   │   │   ├── index.ts
-│   │   │   ├── middleware/    # 自动加载路由、Toon 格式中间件
-│   │   │   ├── routes/         # API 路由 (自动加载)
-│   │   │   └── utils/          # 工具类
-│   │   ├── package.json
-│   │   └── tsconfig.json
-│   └── coding-agent/    # CA 包 (基于 OpenCode 的编码 Agent)
-│       ├── package.json
-│       └── src/
-├── package.json         # 根 package.json (workspace 管理)
-└── pnpm-workspace.yaml
-```
+**Testing Requirements:**
+- All new or modified APIs must have corresponding test cases
+- Must run `pnpm --filter hra test` before committing to ensure all tests pass
+- Commit is prohibited when tests fail
+- Test files should have the same name as source files, using `.test.ts` or `.spec.ts` suffix
 
 ## Code Style & Conventions
 
@@ -97,6 +101,7 @@ import Result from "./utils/Result.js";
 - Files: camelCase.ts (matching exports)
 - Directories: camelCase
 - Dynamic routes: [id].ts → :id parameter
+- Test files: sourceFileName.test.ts or sourceFileName.spec.ts
 
 ### Type Rules
 
@@ -129,7 +134,7 @@ app.get('/api/v1/endpoint', (_req: Request, res: Response) => {
 - Max lines per function: 100 (warn)
 - Max statements: 30 (warn)
 - Complexity: C10 (warn)
-- Max nested callbacks: 3
+- Max nested: callbacks: 3
 
 ### Formatting Rules
 
@@ -150,6 +155,31 @@ app.get('/api/v1/endpoint', (_req: Request, res: Response) => {
 - No console/debugger in production code
 - Avoid eval, new Function
 - Use async/await for async operations
+
+## Testing Guidelines
+
+### Test Structure
+
+- Unit tests: Place next to source files or in `__tests__` directory
+- Integration tests: Place in `src/` with `.test.ts` suffix
+- Use describe/it pattern for grouping tests
+- Use beforeEach/afterEach for setup/teardown
+- Mock external dependencies (network, filesystem, database)
+
+### Test Coverage Requirements
+
+- All public API endpoints must have tests
+- All utility functions must have tests
+- All error scenarios must be tested
+- Webhook signature verification must be tested
+- Edge cases (null, undefined, empty arrays) must be covered
+
+### Test Framework (Vitest)
+
+- Location: `packages/hr-agent/vitest.config.ts`
+- Includes: `src/**/*.{test,spec}.ts`
+- Environment: node
+- Globals: enabled (describe, it, expect available globally)
 
 ## Middleware & Special Features (HRA Package)
 
@@ -185,24 +215,14 @@ app.get('/api/v1/endpoint', (_req: Request, res: Response) => {
 }
 ```
 
-## Git Workflow
-
-When developing new features, follow these steps:
-
-1. Switch to main branch: `git checkout main`
-2. Pull latest from remote: `git pull origin main`
-3. Create feature branch: `git checkout -b feature/your-feature-name`
-4. Develop the feature
-5. Format code: `pnpm run format`
-6. Type check: `pnpm run typecheck`
-7. Push to remote: `git push -u origin feature/your-feature-name`
-
 ## Agent Commit Strategy
 
 - Small, focused commits
 - Format: `type(scope): description` (feat, fix, refactor, style, docs, test, chore)
 - Run format and lint before committing
+- **Run tests before committing (mandatory)**
 - Never commit secrets
+- **Test failure should block commit**
 
 ## Safety Rules
 
@@ -216,12 +236,14 @@ When developing new features, follow these steps:
 - Build fails: Check TypeScript errors in specific package
 - Lint fails: Review ESLint messages
 - Typecheck fails: Ensure strict compliance
-- Always run typecheck before committing
+- Test fails: Review test output, check mocks and assertions
+- Always run typecheck and tests before committing
 
 ## File Organization (HRA Package)
 
 - `packages/hr-agent/src/index.ts` - Main entry point, Express app setup
-- `packages/hr-agentra/src/routes/` - API route handlers (auto-loaded)
+- `packages/hr-agent/src/routes/` - API route handlers (auto-loaded)
 - `packages/hr-agent/src/middleware/` - Express middleware
 - `packages/hr-agent/src/utils/` - Utility classes/functions
 - `packages/hr-agent/dist/` - Compiled output (gitignored)
+- `packages/hr-agent/vitest.config.ts` - Test configuration
