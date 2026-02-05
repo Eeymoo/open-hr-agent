@@ -26,8 +26,12 @@ export default async function autoLoadRoutes(
 
     if (stat.isDirectory()) {
       await processDirectory(router, item, fullPath, basePath);
-    } else if (stat.isFile() && item.endsWith('.ts') && item !== 'index.ts') {
-      await processFile(router, item, fullPath, basePath);
+    } else if (stat.isFile()) {
+      const isTsFile = item.endsWith('.ts') && item !== 'index.ts' && !item.endsWith('.d.ts');
+      const isJsFile = item.endsWith('.js') && item !== 'index.js' && !item.endsWith('.d.js') && !item.endsWith('.map');
+      if (isTsFile || isJsFile) {
+        await processFile(router, item, fullPath, basePath);
+      }
     }
   }
 }
@@ -63,7 +67,14 @@ async function processFile(
   basePath: string
 ): Promise<void> {
   const routeName = basename(item, extname(item));
-  const modulePath = IS_TSX ? fullPath : `${fullPath}.js`;
+  let modulePath: string;
+  if (IS_TSX) {
+    modulePath = fullPath;
+  } else if (item.endsWith('.ts')) {
+    modulePath = `${fullPath.slice(0, -3)}.js`;
+  } else {
+    modulePath = fullPath;
+  }
   const routeModule = await import(modulePath);
   const defaultExport = routeModule.default;
 

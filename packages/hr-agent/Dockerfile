@@ -18,8 +18,11 @@ WORKDIR /app
 
 RUN addgroup -S nodejs && adduser -S nodeuser -G nodejs
 
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages/hr-agent/node_modules ./node_modules
+COPY packages/hr-agent/package.json ./package.json
+COPY pnpm-lock.yaml ./
+
+RUN corepack enable && pnpm install --prod --ignore-scripts --no-frozen-lockfile
+
 COPY --from=builder /app/packages/hr-agent/dist ./dist
 
 RUN chown -R nodeuser:nodejs /app
