@@ -2,15 +2,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import express, { Express } from 'express';
 import request from 'supertest';
 import crypto from 'node:crypto';
-import { Buffer } from 'node:buffer';
 
 const TEST_SECRET = 'test-webhook-secret-123';
 
 describe('Webhook Routes Tests', () => {
   let app: Express;
-  const consoleSpy = vi.spyOn(console, 'log');
-  const consoleWarnSpy = vi.spyOn(console, 'warn');
-  const consoleErrorSpy = vi.spyOn(console, 'error');
 
   beforeEach(async () => {
     process.env.GITHUB_WEBHOOK_SECRET = TEST_SECRET;
@@ -19,8 +15,8 @@ describe('Webhook Routes Tests', () => {
     app = express();
     app.use(
       express.json({
-        verify: (req, res, buf) => {
-          (req as any).rawBody = buf;
+        verify: (req, _res, buf) => {
+          (req as unknown as Record<string, unknown>).rawBody = buf;
         }
       })
     );

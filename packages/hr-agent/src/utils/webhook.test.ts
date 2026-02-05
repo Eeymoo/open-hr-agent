@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import crypto from 'node:crypto';
 import type { Response } from 'express';
+import { Buffer } from 'node:buffer';
 import {
   verifyWebhookSignature,
   sendUnauthorizedResponse,
@@ -79,8 +80,6 @@ describe('webhook 工具函数测试', () => {
       hmac.update(payloadString);
       const correctSignature = `sha256=${hmac.digest('hex')}`;
 
-      const incorrectSignature = `sha256=${hmac.digest('hex').slice(0, -1)}1`;
-
       const timingSafeEqualSpy = vi.spyOn(crypto, 'timingSafeEqual');
 
       verifyWebhookSignature(correctSignature, TEST_SECRET, payload);
@@ -143,8 +142,8 @@ describe('webhook 工具函数测试', () => {
       sendErrorResponse(mockResponse, error);
 
       expect(consoleErrorSpy).toHaveBeenCalled();
-      expect((mockResponse as any).status).toHaveBeenCalledWith(500);
-      expect((mockResponse as any).json).toHaveBeenCalledWith({
+      expect((mockResponse as unknown as Record<string, unknown>).status).toHaveBeenCalledWith(500);
+      expect((mockResponse as unknown as Record<string, unknown>).json).toHaveBeenCalledWith({
         received: false,
         error: 'Internal server error'
       });
@@ -162,8 +161,8 @@ describe('webhook 工具函数测试', () => {
       sendErrorResponse(mockResponse, error);
 
       expect(consoleErrorSpy).toHaveBeenCalled();
-      expect((mockResponse as any).status).not.toHaveBeenCalled();
-      expect((mockResponse as any).json).not.toHaveBeenCalled();
+      expect((mockResponse as unknown as Record<string, unknown>).status).not.toHaveBeenCalled();
+      expect((mockResponse as unknown as Record<string, unknown>).json).not.toHaveBeenCalled();
     });
   });
 
@@ -175,7 +174,7 @@ describe('webhook 工具函数测试', () => {
       logWebhookReceived(webhookType, event);
 
       expect(consoleSpy).toHaveBeenCalled();
-      const calls = consoleSpy.mock.calls;
+      const { calls } = consoleSpy.mock;
       expect(calls[0][0]).toContain('GitHub Issues Webhook Received');
     });
   });
@@ -190,7 +189,7 @@ describe('webhook 工具函数测试', () => {
       logWebhookPayload(payload);
 
       expect(consoleSpy).toHaveBeenCalled();
-      const calls = consoleSpy.mock.calls;
+      const { calls } = consoleSpy.mock;
       expect(calls[calls.length - 1][0]).toContain('Payload keys:');
 
       process.env.NODE_ENV = originalEnv;
