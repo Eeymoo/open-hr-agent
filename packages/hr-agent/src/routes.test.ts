@@ -59,13 +59,13 @@ describe('Routes Integration Tests', () => {
   });
 
   it('应该响应 .post.ts 文件的 POST 路由', async () => {
-    const issuesWebhook = await import('./routes/v1/webhooks/issues.post.js');
+    await import('./routes/v1/webhooks/issues.post.js');
     const response = await request(app)
       .post('/v1/webhooks/issues')
       .set('X-Hub-Signature-256', 'test-signature')
       .set('X-GitHub-Event', 'issues')
       .send({ test: 'data' });
-    
+
     expect(response.status).toBe(401);
     expect(response.body).toHaveProperty('error', 'Invalid signature');
   });

@@ -1,5 +1,5 @@
 import { readdirSync, statSync } from 'node:fs';
-import { join, basename, extname } from 'node:path';
+import { join } from 'node:path';
 import type { Router, RequestHandler } from 'express';
 
 const IS_TSX =

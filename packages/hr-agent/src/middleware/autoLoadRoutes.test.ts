@@ -51,7 +51,7 @@ describe('parseRouteFileName 单元测试', () => {
     const result1 = parseRouteFileName('item.POST.ts');
     const result2 = parseRouteFileName('item.Post.ts');
     const result3 = parseRouteFileName('item.PUT.ts');
-    
+
     expect(result1.method).toBe('post');
     expect(result2.method).toBe('post');
     expect(result3.method).toBe('put');
