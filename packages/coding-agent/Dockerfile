@@ -28,9 +28,9 @@ ENV NODE_ENV=production
 
 # 启动命令
 CMD ["/bin/sh", "-c", "if [ -d /home/workspace/repo ]; then \
-        cd /home/workspace/repo && opencode web --port ${PORT}; \
+        cd /home/workspace/repo && opencode web --hostname 0.0.0.0 --port ${PORT}; \
     elif [ -n \"${GITHUB_REPO_URL}\" ]; then \
-        git clone ${GITHUB_REPO_URL} repo && cd /home/workspace/repo && opencode web --port ${PORT}; \
+        git clone ${GITHUB_REPO_URL} repo && cd /home/workspace/repo && opencode web --hostname 0.0.0.0 --port ${PORT}; \
     else \
-        opencode web --port ${PORT}; \
+        opencode web --hostname 0.0.0.0 --port ${PORT}; \
     fi"]
