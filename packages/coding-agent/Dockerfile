@@ -16,14 +16,8 @@ RUN npm install -g opencode-ai
 # 创建 .config 目录并建立软链接
 RUN mkdir -p ~/.config && ln -s /opencode ~/.config/opencode
 
-# 定义构建参数（构建时传入仓库地址）
-ARG GITHUB_REPO_URL
-# 克隆仓库到 repo 目录
-RUN if [ -n "$GITHUB_REPO_URL" ]; then \
-        git clone $GITHUB_REPO_URL repo; \
-    else \
-        echo "提示：未传入 GITHUB_REPO_URL，运行时需要挂载代码目录"; \
-    fi
+# 定义运行时环境变量（仓库地址）
+ENV GITHUB_REPO_URL=
 
 # 暴露端口
 EXPOSE 4096
@@ -35,7 +29,8 @@ ENV NODE_ENV=production
 # 启动命令
 CMD ["/bin/sh", "-c", "if [ -d /home/workspace/repo ]; then \
         cd /home/workspace/repo && opencode web --port ${PORT}; \
+    elif [ -n \"${GITHUB_REPO_URL}\" ]; then \
+        git clone ${GITHUB_REPO_URL} repo && cd /home/workspace/repo && opencode web --port ${PORT}; \
     else \
-        echo '错误：repo 目录不存在，请挂载代码目录或传入 GITHUB_REPO_URL 构建'; \
-        exit 1; \
+        opencode web --port ${PORT}; \
     fi"]
