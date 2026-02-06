@@ -5,13 +5,12 @@ services:
     build:
       context: .
       dockerfile: packages/coding-agent/Dockerfile
-      args:
-        GITHUB_REPO_URL: ${GITHUB_REPO_URL:-}
     ports:
       - '4096:4096'
     environment:
       - NODE_ENV=production
       - PORT=4096
+      - GITHUB_REPO_URL=${GITHUB_REPO_URL:-}
     volumes:
-      - ${CODE_PATH:-./}:/home/workspace/repo:ro
+      - ${CODE_PATH:-./.}:/home/workspace/repo:ro
     restart: unless-stopped
