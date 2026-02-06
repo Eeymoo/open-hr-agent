@@ -1,0 +1,10 @@
+services:
+  open-hr-agent-ca:
+    image: ghcr.io/eeymoo/open-hr-agent-ca:main
+    ports:
+      - "4096:4096"
+    environment:
+      - PORT=4096
+      - NODE_ENV=production
+      - GITHUB_REPO_URL=https://github.com/Eeymoo/open-hr-agent.git
+    restart: unless-stopped
