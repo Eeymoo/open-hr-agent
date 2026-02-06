@@ -145,7 +145,7 @@ docker pull ghcr.io/eeymoo/open-hr-agent:latest
 docker run -d -p 3000:3000 \
   --name open-hr-agent \
   -e GITHUB_TOKEN=your_github_token \
-  -e MAX_CONCURRENT_AG_AGENTS=3 \
+  -e MAX_CONCURRENT_AGENTS=3 \
   ghcr.io/eeymoo/open-hr-agent:latest
 ```
 
@@ -168,12 +168,45 @@ services:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - MAX_CONCURRENT_AGENTS=${MAX_CONCURRENT_AGENTS:-3}
     restart: unless-stopped
+
+  coding-agent:
+    build:
+      context: .
+      dockerfile: packages/coding-agent/Dockerfile
+    ports:
+      - '4096:4096'
+    environment:
+      - NODE_ENV=production
+      - PORT=4096
+      - GITHUB_REPO_URL=${GITHUB_REPO_URL:-}
+    volumes:
+      - ${CODE_PATH:-./.}:/home/workspace/repo:ro
+    restart: unless-stopped
 ```
 
 Start service:
 
 ```bash
 docker-compose up -d
+```
+
+#### Coding Agent Deployment Methods
+
+The Coding Agent supports three deployment methods:
+
+**Method 1: Mount Local Code Directory**
+```bash
+CODE_PATH=/path/to/your/repo docker-compose up -d coding-agent
+```
+
+**Method 2: Clone GitHub Repository at Runtime**
+```bash
+GITHUB_REPO_URL=https://github.com/username/repo.git docker-compose up -d coding-agent
+```
+
+**Method 3: Start Empty Workspace (No Parameters)**
+```bash
+docker-compose up -d coding-agent
 ```
 
 ### Environment Variables
