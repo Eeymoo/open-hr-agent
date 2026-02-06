@@ -1,11 +1,11 @@
-# 选择 Node.js 最新 LTS (22.x) Alpine 基础镜像
-FROM node:22-alpine
+# 选择 Node.js 最新 LTS (22.x) 基础镜像
+FROM node:22
 
 # 维护者信息
 LABEL maintainer="opencode-agent"
 
 # 安装依赖：Git 和构建工具（某些 npm 包可能需要）
-RUN apk add --no-cache git python3 make g++
+RUN apt-get update && apt-get install -y git python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
 WORKDIR /home/workspace
