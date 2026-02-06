@@ -168,6 +168,66 @@ services:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - MAX_CONCURRENT_AGENTS=${MAX_CONCURRENT_AGENTS:-3}
     restart: unless-stopped
+
+  coding-agent:
+    build:
+      context: .
+      dockerfile: packages/coding-agent/Dockerfile
+    ports:
+      - '4096:4096'
+    environment:
+      - NODE_ENV=production
+      - PORT=4096
+      - GITHUB_REPO_URL=${GITHUB_REPO_URL:-}
+    volumes:
+      - ${CODE_PATH:-./.}:/home/workspace/repo:ro
+    restart: unless-stopped
+```
+
+启动服务：
+
+```bash
+docker-compose up -d
+```
+
+#### Coding Agent 部署方式
+
+Coding Agent 支持三种部署方式：
+
+**方式一：挂载本地代码目录**
+```bash
+CODE_PATH=/path/to/your/repo docker-compose up -d coding-agent
+```
+
+**方式二：运行时克隆 GitHub 仓库**
+```bash
+GITHUB_REPO_URL=https://github.com/username/repo.git docker-compose up -d coding-agent
+```
+
+**方式三：启动空 workspace（不指定任何参数）**
+```bash
+docker-compose up -d coding-agent
+```
+
+#### 使用 Docker Compose
+
+创建 `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  hra:
+    image: ghcr.io/eeymoo/open-hr-agent:latest
+    container_name: hra
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - MAX_CONCURRENT_AGENTS=${MAX_CONCURRENT_AGENTS:-3}
+    restart: unless-stopped
 ```
 
 启动服务：
