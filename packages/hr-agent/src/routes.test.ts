@@ -85,7 +85,7 @@ vi.mock('dockerode', () => {
       State: { Status: 'running' },
       NetworkSettings: {
         Ports: {
-          '4096/tcp': [{ HostPort: '32768' }]
+          '4096/tcp': []
         }
       }
     })
@@ -143,8 +143,30 @@ describe('CA Routes Tests', () => {
     expect(response.body).toHaveProperty('code', HTTP_STATUS.OK);
     expect(response.body.data).toHaveProperty('name', 'test-container');
     expect(response.body.data).toHaveProperty('containerName', 'ca-test-container');
-    expect(response.body.data).toHaveProperty('port', '32768');
+    expect(response.body.data).toHaveProperty('internalUrl');
     expect(response.body.data).toHaveProperty('message', 'Docker container created successfully');
+  });
+
+  it('应该使用 issueId 创建容器', async () => {
+    const response = await request(app)
+      .post('/v1/ca/add')
+      .set('X-CA-Secret', TEST_SECRET)
+      .send({ issueId: 123 });
+
+    expect(response.status).toBe(HTTP_STATUS.OK);
+    expect(response.body).toHaveProperty('code', HTTP_STATUS.OK);
+    expect(response.body.data).toHaveProperty('name', 'hra_ca_123');
+    expect(response.body.data).toHaveProperty('containerName', 'ca-hra_ca_123');
+    expect(response.body.data).toHaveProperty('internalUrl');
+    expect(response.body.data).toHaveProperty('message', 'Docker container created successfully');
+  });
+
+  it('应该在 name 和 issueId 都缺失时返回 400 错误', async () => {
+    const response = await request(app).post('/v1/ca/add').set('X-CA-Secret', TEST_SECRET).send({});
+
+    expect(response.status).toBe(HTTP_STATUS.OK);
+    expect(response.body).toHaveProperty('code', HTTP_STATUS.BAD_REQUEST);
+    expect(response.body).toHaveProperty('message', 'name or issueId is required');
   });
 
   it('应该在缺少认证头时返回 401 错误', async () => {
