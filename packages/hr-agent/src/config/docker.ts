@@ -1,10 +1,13 @@
 import { getDockerCASecret } from '../utils/secretManager.js';
 
-const basePortInput = parseInt(process.env.DOCKER_BASE_PORT ?? '5000', 10);
+const MAX_PORT_NUMBER = 65536;
+const DEFAULT_DOCKER_BASE_PORT = 5000;
+
+const basePortInput = parseInt(process.env.DOCKER_BASE_PORT ?? String(DEFAULT_DOCKER_BASE_PORT), 10);
 const BASE_PORT =
-  Number.isFinite(basePortInput) && basePortInput > 0 && basePortInput < 65536
+  Number.isFinite(basePortInput) && basePortInput > 0 && basePortInput < MAX_PORT_NUMBER
     ? basePortInput
-    : 5000;
+    : DEFAULT_DOCKER_BASE_PORT;
 
 export const DOCKER_CONFIG = {
   IMAGE: process.env.DOCKER_CA_IMAGE ?? 'ghcr.io/eeymoo/open-hr-agent-ca:main',

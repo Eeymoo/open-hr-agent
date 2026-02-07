@@ -1,6 +1,12 @@
 import type { Request, Response } from 'express';
 import { receiveWebhook } from '../../../utils/webhookHandler.js';
 
+const HTTP = {
+  BAD_REQUEST: 400,
+  OK: 200,
+  INTERNAL_SERVER_ERROR: 500
+};
+
 export default async function issuesWebhook(req: Request, res: Response): Promise<void> {
   console.log('=== Issues Webhook Received ===');
   console.log('Headers:', JSON.stringify(req.headers, null, 2));
@@ -11,14 +17,14 @@ export default async function issuesWebhook(req: Request, res: Response): Promis
 
     if (!result.success) {
       console.error('Webhook processing failed:', result.error);
-      res.status(400).json({ error: result.error });
+      res.status(HTTP.BAD_REQUEST).json({ error: result.error });
       return;
     }
 
-    res.status(200).json({ message: 'Webhook processed successfully' });
+    res.status(HTTP.OK).json({ message: 'Webhook processed successfully' });
   } catch (error) {
     console.error('Issues webhook error:', error);
-    res.status(500).json({
+    res.status(HTTP.INTERNAL_SERVER_ERROR).json({
       error: error instanceof Error ? error.message : 'Internal server error'
     });
   }

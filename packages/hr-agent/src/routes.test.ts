@@ -7,6 +7,12 @@ import { dirname, join } from 'node:path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const HTTP_STATUS = {
+  OK: 200,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401
+} as const;
+
 vi.mock('@prisma/client', () => {
   const mockPrismaClient = {
     codingAgent: {
@@ -133,8 +139,8 @@ describe('CA Routes Tests', () => {
       .set('X-CA-Secret', TEST_SECRET)
       .send({ name: 'test-container' });
 
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('code', 200);
+    expect(response.status).toBe(HTTP_STATUS.OK);
+    expect(response.body).toHaveProperty('code', HTTP_STATUS.OK);
     expect(response.body.data).toHaveProperty('name', 'test-container');
     expect(response.body.data).toHaveProperty('containerName', 'ca-test-container');
     expect(response.body.data).toHaveProperty('port', '32768');
@@ -144,16 +150,16 @@ describe('CA Routes Tests', () => {
   it('应该在缺少认证头时返回 401 错误', async () => {
     const response = await request(app).post('/v1/ca/add').send({ name: 'test-container' });
 
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('code', 401);
+    expect(response.status).toBe(HTTP_STATUS.OK);
+    expect(response.body).toHaveProperty('code', HTTP_STATUS.UNAUTHORIZED);
     expect(response.body).toHaveProperty('message', 'Unauthorized: invalid or missing secret');
   });
 
   it('应该在 name 缺失时返回 400 错误', async () => {
     const response = await request(app).post('/v1/ca/add').set('X-CA-Secret', TEST_SECRET).send({});
 
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('code', 400);
+    expect(response.status).toBe(HTTP_STATUS.OK);
+    expect(response.body).toHaveProperty('code', HTTP_STATUS.BAD_REQUEST);
     expect(response.body).toHaveProperty('message', 'name is required and must be a string');
   });
 
@@ -163,8 +169,8 @@ describe('CA Routes Tests', () => {
       .set('X-CA-Secret', TEST_SECRET)
       .send({ name: 123 });
 
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('code', 400);
+    expect(response.status).toBe(HTTP_STATUS.OK);
+    expect(response.body).toHaveProperty('code', HTTP_STATUS.BAD_REQUEST);
     expect(response.body).toHaveProperty('message', 'name is required and must be a string');
   });
 
@@ -174,22 +180,22 @@ describe('CA Routes Tests', () => {
       .set('X-CA-Secret', TEST_SECRET)
       .send({ name: 'invalid container name!' });
 
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('code', 400);
+    expect(response.status).toBe(HTTP_STATUS.OK);
+    expect(response.body).toHaveProperty('code', HTTP_STATUS.BAD_REQUEST);
     expect(response.body.message).toContain('name must be a valid Docker container name');
   });
 
   it('应该拒绝对 POST 路由的 GET 请求', async () => {
     const response = await request(app).get('/v1/ca/add');
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('code', 401);
+    expect(response.status).toBe(HTTP_STATUS.OK);
+    expect(response.body).toHaveProperty('code', HTTP_STATUS.UNAUTHORIZED);
   });
 
   it('应该在缺少认证头时返回 401 错误 - DELETE', async () => {
     const response = await request(app).delete('/v1/ca/test');
 
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('code', 401);
+    expect(response.status).toBe(HTTP_STATUS.OK);
+    expect(response.body).toHaveProperty('code', HTTP_STATUS.UNAUTHORIZED);
     expect(response.body).toHaveProperty('message', 'Unauthorized: invalid or missing secret');
   });
 });

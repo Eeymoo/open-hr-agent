@@ -2,7 +2,15 @@ import Docker from 'dockerode';
 
 const docker = new Docker();
 
-export async function getContainerByName(name: string) {
+interface ContainerInfo {
+  id: string;
+  name: string;
+  status: string;
+  state: boolean;
+  created: string;
+}
+
+export async function getContainerByName(name: string): Promise<ContainerInfo> {
   const container = docker.getContainer(`ca-${name}`);
   const info = await container.inspect();
   return {

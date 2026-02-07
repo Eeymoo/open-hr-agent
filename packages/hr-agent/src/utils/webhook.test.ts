@@ -13,6 +13,11 @@ import {
   formatLabels
 } from './webhook.js';
 
+const HTTP_STATUS = {
+  UNAUTHORIZED: 401,
+  INTERNAL_SERVER_ERROR: 500
+} as const;
+
 describe('webhook 工具函数测试', () => {
   const TEST_SECRET = 'test-webhook-secret';
   const consoleSpy = vi.spyOn(console, 'log');
@@ -96,7 +101,7 @@ describe('webhook 工具函数测试', () => {
 
       sendUnauthorizedResponse(mockResponse);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
+      expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.UNAUTHORIZED);
       expect(mockResponse.json).toHaveBeenCalledWith({ error: 'Invalid signature' });
     });
   });
@@ -111,7 +116,7 @@ describe('webhook 工具函数测试', () => {
       sendSecretNotConfiguredResponse(mockResponse);
 
       expect(consoleErrorSpy).toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
+      expect(mockResponse.status).toHaveBeenCalledWith(HTTP_STATUS.INTERNAL_SERVER_ERROR);
       expect(mockResponse.json).toHaveBeenCalledWith({ error: 'Webhook secret not configured' });
     });
   });
@@ -142,7 +147,9 @@ describe('webhook 工具函数测试', () => {
       sendErrorResponse(mockResponse, error);
 
       expect(consoleErrorSpy).toHaveBeenCalled();
-      expect((mockResponse as unknown as Record<string, unknown>).status).toHaveBeenCalledWith(500);
+      expect((mockResponse as unknown as Record<string, unknown>).status).toHaveBeenCalledWith(
+        HTTP_STATUS.INTERNAL_SERVER_ERROR
+      );
       expect((mockResponse as unknown as Record<string, unknown>).json).toHaveBeenCalledWith({
         received: false,
         error: 'Internal server error'
