@@ -158,7 +158,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: hr-postgres
     restart: always
     environment:
