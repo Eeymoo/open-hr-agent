@@ -71,7 +71,8 @@ export default async function newCARoute(req: Request, res: Response): Promise<v
         PortBindings: {
           [`${DOCKER_CONFIG.PORT}/tcp`]: [{}]
         },
-        NetworkMode: DOCKER_CONFIG.NETWORK
+        NetworkMode: DOCKER_CONFIG.NETWORK,
+        Binds: ['/var/run/docker.sock:/var/run/docker.sock:rw']
       }
     });
 

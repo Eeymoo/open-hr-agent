@@ -1,0 +1,13 @@
+services:
+  hra:
+    build:
+      context: ..
+      dockerfile: packages/hr-agent/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
