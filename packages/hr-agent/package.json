@@ -15,10 +15,16 @@
     "prepare": "husky",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "prisma:push": "prisma db push",
+    "db:setup": "prisma migrate dev && prisma generate"
   },
   "dependencies": {
     "@opencode-ai/sdk": "latest",
+    "@prisma/client": "^5.22.0",
     "@toon-format/toon": "^2.1.0",
     "dockerode": "^4.0.9",
     "dotenv": "^17.2.3",
@@ -41,6 +47,7 @@
     "lint-staged": "^16.2.7",
     "nodemon": "^3.1.11",
     "prettier": "^3.0.0",
+    "prisma": "^5.22.0",
     "supertest": "^7.2.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",

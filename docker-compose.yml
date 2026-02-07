@@ -1,6 +1,26 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hr-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: hr_agent_test
+      POSTGRES_USER: hr_user
+      POSTGRES_PASSWORD: hr_password
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U hr_user -d hr_agent_test']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hr-network
+
   coding-agent:
     build:
       context: .
@@ -14,3 +34,12 @@ services:
     volumes:
       - ${CODE_PATH:-./.}:/home/workspace/repo:ro
     restart: unless-stopped
+    networks:
+      - hr-network
+
+volumes:
+  postgres_data:
+
+networks:
+  hr-network:
+    external: false

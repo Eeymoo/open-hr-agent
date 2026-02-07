@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Issue {
+  id           Int      @id @default(autoincrement())
+  issueId      Int      @unique
+  issueUrl     String
+  issueTitle   String
+  issueContent String?  @db.Text
+  createdAt    Int      @default(-2)
+  updatedAt    Int      @default(-2)
+  completedAt  Int      @default(-2)
+  deletedAt    Int      @default(-2)
+  tasks        Task[]
+  @@index([deletedAt])
+}
+
+model PullRequest {
+  id          Int      @id @default(autoincrement())
+  prId        Int      @unique
+  prTitle     String
+  prContent   String?  @db.Text
+  issueId     Int?
+  createdAt   Int      @default(-2)
+  updatedAt   Int      @default(-2)
+  completedAt Int      @default(-2)
+  deletedAt   Int      @default(-2)
+  tasks       Task[]
+  @@index([deletedAt])
+}
+
+model CodingAgent {
+  id             Int      @id @default(autoincrement())
+  caName         String   @unique
+  containerId    String?
+  status         String   @default("pending")
+  dockerConfig   Json?
+  createdAt      Int      @default(-2)
+  updatedAt      Int      @default(-2)
+  completedAt    Int      @default(-2)
+  deletedAt      Int      @default(-2)
+  tasks          Task[]
+  @@index([deletedAt])
+}
+
+model Task {
+  id           Int         @id @default(autoincrement())
+  type         String
+  status       String      @default("planned")
+  priority     Int         @default(0)
+  issueId      Int?
+  issue        Issue?      @relation(fields: [issueId], references: [id])
+  prId         Int?
+  pullRequest  PullRequest? @relation(fields: [prId], references: [id])
+  caId         Int?
+  codingAgent  CodingAgent? @relation(fields: [caId], references: [id])
+  metadata     Json?
+  createdAt    Int         @default(-2)
+  updatedAt    Int         @default(-2)
+  completedAt  Int         @default(-2)
+  deletedAt    Int         @default(-2)
+  @@index([deletedAt])
+  @@index([status])
+  @@index([priority])
+}
