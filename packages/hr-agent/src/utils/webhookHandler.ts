@@ -32,7 +32,7 @@ export function createMockRequest(
 export function createMockResponse(): {
   res: MockResponse;
   getResponseData: () => { statusCode?: number; data?: unknown } | null;
-  } {
+} {
   let responseData: { statusCode?: number; data?: unknown } | null = null;
 
   const res: MockResponse = {

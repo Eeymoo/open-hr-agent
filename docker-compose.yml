@@ -21,19 +21,32 @@ services:
     networks:
       - hr-network
 
-  coding-agent:
-    build:
-      context: .
-      dockerfile: packages/coding-agent/Dockerfile
+  open-hr-agent:
+    image: ghcr.io/eeymoo/open-hr-agent:main
+    container_name: open-hr-agent
     ports:
-      - '4096:4096'
-    environment:
-      - NODE_ENV=production
-      - PORT=4096
-      - GITHUB_REPO_URL=${GITHUB_REPO_URL:-}
+      - "3000:3000"
     volumes:
-      - ${CODE_PATH:-./.}:/home/workspace/repo:ro
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+    user: root
+    environment:
+      - PUID=1000
+      - PGID=10
+      - PORT=3000
+      - DATABASE_URL=postgresql://hr_user:hr_password@postgres:5432/hr_agent_test
+      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
+      - DOCKER_CA_SECRET=${DOCKER_CA_SECRET}
+      - HR_NETWORK=${HR_NETWORK:-hr-network}
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+    tty: true
     networks:
       - hr-network
 

@@ -157,31 +157,74 @@ Create `docker-compose.yml`:
 version: '3.8'
 
 services:
-  hra:
-    image: ghcr.io/eeymoo/open-hr-agent:latest
-    container_name: hra
-    ports:
-      - '3000:3000'
+  postgres:
+    image: postgres:16-alpine
+    container_name: hr-postgres
+    restart: always
     environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
-      - MAX_CONCURRENT_AGENTS=${MAX_CONCURRENT_AGENTS:-3}
-    restart: unless-stopped
-
-  coding-agent:
-    build:
-      context: .
-      dockerfile: packages/coding-agent/Dockerfile
+      POSTGRES_DB: hr_agent_test
+      POSTGRES_USER: hr_user
+      POSTGRES_PASSWORD: hr_password
     ports:
-      - '4096:4096'
-    environment:
-      - NODE_ENV=production
-      - PORT=4096
-      - GITHUB_REPO_URL=${GITHUB_REPO_URL:-}
+      - '5432:5432'
     volumes:
-      - ${CODE_PATH:-./.}:/home/workspace/repo:ro
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U hr_user -d hr_agent_test']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hr-network
+
+  open-hr-agent:
+    image: ghcr.io/eeymoo/open-hr-agent:main
+    container_name: open-hr-agent
+    ports:
+      - "3000:3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+    user: root
+    environment:
+      - PUID=1000
+      - PGID=10
+      - PORT=3000
+      - DATABASE_URL=postgresql://hr_user:hr_password@postgres:5432/hr_agent_test
+      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
+      - DOCKER_CA_SECRET=${DOCKER_CA_SECRET}
+      - HR_NETWORK=${HR_NETWORK:-hr-network}
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+    tty: true
+    networks:
+      - hr-network
+
+volumes:
+  postgres_data:
+
+networks:
+  hr-network:
+    external: false
+```
+
+Create `.env` file for environment variables:
+
+```bash
+# GitHub Webhook Secret (required for webhook signature verification)
+GITHUB_WEBHOOK_SECRET=your_webhook_secret_here
+
+# Docker CA Secret (for coding agent management)
+DOCKER_CA_SECRET=your_docker_ca_secret_here
+
+# Optional: Docker network name
+HR_NETWORK=hr-network
 ```
 
 Start service:
@@ -189,6 +232,11 @@ Start service:
 ```bash
 docker-compose up -d
 ```
+
+**Note:** 
+- PostgreSQL database credentials (default): `hr_user` / `hr_password` on database `hr_agent_test`
+- For production, change the default password by setting `POSTGRES_PASSWORD` and updating `DATABASE_URL`
+- The postgres service includes health checks to ensure it's ready before HRA starts
 
 #### Coding Agent Deployment Methods
 
@@ -213,9 +261,10 @@ docker-compose up -d coding-agent
 
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
-| `GITHUB_TOKEN` | GitHub Personal Access Token | Yes | - |
-| `MAX_CONCURRENT_AGENTS` | Max concurrent Coding Agents | No | 3 |
-| `NODE_ENV` | Runtime environment | No | development |
+| `DATABASE_URL` | PostgreSQL database connection string | Yes | - |
+| `GITHUB_WEBHOOK_SECRET` | GitHub webhook secret for signature verification | Yes | - |
+| `DOCKER_CA_SECRET` | Secret for coding agent management | Yes | - |
+| `HR_NETWORK` | Docker network name for agent containers | No | `hr-network` |
 | `PORT` | Service port | No | 3000 |
 
 ### GitHub Webhook Configuration
