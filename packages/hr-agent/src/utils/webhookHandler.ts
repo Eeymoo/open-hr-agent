@@ -229,8 +229,12 @@ webhooks.on('issues.opened', async ({ payload }) => {
   const issueResult = await createIssueFromWebhook(issueNumber, issueUrl, issueTitle, issueContent);
 
   if (!issueResult.success) {
-    console.error('Failed to create issue:', issueResult.error);
-    return;
+    const errorMessage = String(issueResult.error ?? '');
+    if (!errorMessage.includes('Issue with this issueId already exists')) {
+      console.error('Failed to create issue:', issueResult.error);
+      return;
+    }
+    console.log('Issue already exists, continuing to create task');
   }
 
   console.log('Issue created successfully:', issueResult.data);
@@ -282,6 +286,22 @@ webhooks.on('issues.labeled', async ({ payload }) => {
   console.log('=== Issues Webhook: labeled with hra ===');
   console.log(`Repository: ${repository.full_name}`);
   console.log(`Issue #${issue.number ?? 'unknown'}: ${issue.title}`);
+
+  // Ensure the Issue record exists before creating the Task
+  const issueNumber = issue.number ?? 0;
+  const issueUrl = issue.html_url ?? '';
+  const issueTitle = issue.title ?? 'Untitled';
+  const issueContent = issue.body ?? '';
+  const issueResult = await createIssueFromWebhook(issueNumber, issueUrl, issueTitle, issueContent);
+
+  if (!issueResult.success) {
+    const errorMessage = String(issueResult.error ?? '');
+    if (!errorMessage.includes('Issue with this issueId already exists')) {
+      console.error('Failed to create issue:', issueResult.error);
+      return;
+    }
+    console.log('Issue already exists, continuing to create task');
+  }
 
   const taskResult = await createTaskFromIssue(issue.number ?? 0, labels, {
     repository: repository.full_name,
