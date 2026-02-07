@@ -2,7 +2,12 @@ import { Webhooks } from '@octokit/webhooks';
 import crypto from 'node:crypto';
 import { Buffer } from 'node:buffer';
 import type { Prisma } from '@prisma/client';
-import { getPrismaClient, getCurrentTimestamp, setTimestamps, INACTIVE_TIMESTAMP } from './database.js';
+import {
+  getPrismaClient,
+  getCurrentTimestamp,
+  setTimestamps,
+  INACTIVE_TIMESTAMP
+} from './database.js';
 import { getGitHubWebhookSecret } from './secretManager.js';
 
 interface MockRequest {
@@ -299,7 +304,10 @@ async function handleIssuesOpened(data: IssueWebhookPayload): Promise<void> {
   console.log('Task created successfully:', taskResult.data);
 }
 
-async function ensureIssueAndCreateTask(issueInfo: IssueInfo, metadata: Record<string, unknown>): Promise<boolean> {
+async function ensureIssueAndCreateTask(
+  issueInfo: IssueInfo,
+  metadata: Record<string, unknown>
+): Promise<boolean> {
   const issueResult = await createIssueFromWebhook(
     issueInfo.issueNumber,
     issueInfo.issueUrl,

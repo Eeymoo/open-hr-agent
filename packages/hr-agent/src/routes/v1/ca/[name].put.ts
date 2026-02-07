@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import Docker from 'dockerode';
 import Result from '../../../utils/Result.js';
 import { getDockerCASecret } from '../../../utils/secretManager.js';
+import { DOCKER_CONFIG } from '../../../config/docker.js';
 
 const HTTP = {
   BAD_REQUEST: 400,
@@ -44,6 +45,7 @@ export default async function updateCARoute(req: Request, res: Response): Promis
     }
 
     const containerInfo = await container.inspect();
+    const internalUrl = `${containerName}:${DOCKER_CONFIG.PORT}`;
 
     res.json(
       new Result({
@@ -51,6 +53,7 @@ export default async function updateCARoute(req: Request, res: Response): Promis
         containerId: containerInfo.Id,
         containerName,
         status: containerInfo.State.Status,
+        internalUrl,
         message: 'Docker container updated successfully'
       })
     );

@@ -18,23 +18,33 @@ function isValidContainerName(name: string): boolean {
   return name.length > 0 && name.length <= MAX_CONTAINER_NAME_LENGTH && validPattern.test(name);
 }
 
-function validateRequest(
-  req: Request,
-  res: Response
-): { valid: boolean; name?: string } {
+function validateRequest(req: Request, res: Response): { valid: boolean; name?: string } {
   const authHeader = req.headers['x-ca-secret'];
   if (!authHeader || authHeader !== DOCKER_CONFIG.SECRET) {
     res.json(new Result().error(HTTP.UNAUTHORIZED, 'Unauthorized: invalid or missing secret'));
     return { valid: false };
   }
 
-  const { name } = req.body;
-  if (!name || typeof name !== 'string') {
-    res.json(new Result().error(HTTP.BAD_REQUEST, 'name is required and must be a string'));
+  const { name, issueId } = req.body;
+  let containerName = name;
+
+  if (!containerName) {
+    if (issueId !== undefined && issueId !== null) {
+      containerName = String(issueId);
+    } else {
+      res.json(new Result().error(HTTP.BAD_REQUEST, 'name or issueId is required'));
+      return { valid: false };
+    }
+  }
+
+  if (typeof containerName !== 'string') {
+    res.json(new Result().error(HTTP.BAD_REQUEST, 'name or issueId must be a string'));
     return { valid: false };
   }
 
-  if (!isValidContainerName(name)) {
+  const prefixedName = `${DOCKER_CONFIG.NAME_PREFIX}${containerName}`;
+
+  if (!isValidContainerName(prefixedName)) {
     res.json(
       new Result().error(
         HTTP.BAD_REQUEST,
@@ -44,7 +54,7 @@ function validateRequest(
     return { valid: false };
   }
 
-  return { valid: true, name };
+  return { valid: true, name: prefixedName };
 }
 
 async function ensureNetworkExists(networkName: string): Promise<void> {
@@ -58,7 +68,6 @@ async function ensureNetworkExists(networkName: string): Promise<void> {
 async function createDockerContainer(name: string): Promise<{
   containerId: string;
   containerName: string;
-  port: string;
 }> {
   const containerName = `ca-${name}`;
 
@@ -69,10 +78,7 @@ async function createDockerContainer(name: string): Promise<{
     Image: DOCKER_CONFIG.IMAGE,
     Env: [`PORT=${DOCKER_CONFIG.PORT}`, 'NODE_ENV=production'],
     HostConfig: {
-      PortBindings: {
-        [`${DOCKER_CONFIG.PORT}/tcp`]: [{}]
-      },
-      Binds: ['/var/run/docker.sock:/var/​run/docker.sock:rw'],
+      Binds: ['/var/run/docker.sock:/var/run/docker.sock:rw'],
       NetworkMode: DOCKER_CONFIG.NETWORK
     }
   });
@@ -82,13 +88,10 @@ async function createDockerContainer(name: string): Promise<{
   await docker.getNetwork(DOCKER_CONFIG.HR_NETWORK).connect({ Container: containerName });
 
   const containerInfo = await container.inspect();
-  const portBindings = containerInfo.NetworkSettings.Ports[`${DOCKER_CONFIG.PORT}/tcp`];
-  const port = portBindings?.[0]?.HostPort ?? '';
 
   return {
     containerId: containerInfo.Id,
-    containerName,
-    port
+    containerName
   };
 }
 
@@ -101,14 +104,13 @@ export default async function newCARoute(req: Request, res: Response): Promise<v
   const prisma = getPrismaClient();
 
   try {
-    const { containerId, containerName, port } = await createDockerContainer(name);
+    const { containerId, containerName } = await createDockerContainer(name);
 
     const caData = setTimestamps({
       caName: name,
       containerId,
       status: 'running',
       dockerConfig: {
-        port,
         image: DOCKER_CONFIG.IMAGE,
         network: DOCKER_CONFIG.NETWORK
       },
@@ -125,7 +127,6 @@ export default async function newCARoute(req: Request, res: Response): Promise<v
         name,
         containerId,
         containerName,
-        port,
         image: DOCKER_CONFIG.IMAGE,
         network: DOCKER_CONFIG.NETWORK,
         hrNetwork: DOCKER_CONFIG.HR_NETWORK,
