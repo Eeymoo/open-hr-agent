@@ -21,7 +21,8 @@ vi.mock('dockerode', () => {
   };
 
   const mockNetwork = {
-    inspect: vi.fn().mockRejectedValue(new Error('Network not found'))
+    inspect: vi.fn().mockRejectedValue(new Error('Network not found')),
+    connect: vi.fn().mockResolvedValue(undefined)
   };
 
   const mockDocker = {
