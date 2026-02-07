@@ -10,8 +10,12 @@ const __dirname = dirname(__filename);
 vi.mock('dockerode', () => {
   const mockContainer = {
     start: vi.fn().mockResolvedValue(undefined),
+    remove: vi.fn().mockResolvedValue(undefined),
+    restart: vi.fn().mockResolvedValue(undefined),
     inspect: vi.fn().mockResolvedValue({
       Id: 'test-container-id',
+      Config: { Image: 'test-image' },
+      State: { Status: 'running' },
       NetworkSettings: {
         Ports: {
           '4096/tcp': [{ HostPort: '32768' }]
@@ -27,6 +31,8 @@ vi.mock('dockerode', () => {
 
   const mockDocker = {
     getNetwork: vi.fn().mockReturnValue(mockNetwork),
+    getContainer: vi.fn().mockReturnValue(mockContainer),
+    listContainers: vi.fn().mockResolvedValue([]),
     createNetwork: vi.fn().mockResolvedValue(undefined),
     createContainer: vi.fn().mockResolvedValue(mockContainer)
   };
@@ -60,9 +66,9 @@ describe('CA Routes Tests', () => {
     delete process.env.DOCKER_CA_SECRET;
   });
 
-  it('应该响应 /v1/ca/new POST 路由', async () => {
+  it('应该响应 /v1/ca/add POST 路由', async () => {
     const response = await request(app)
-      .post('/v1/ca/new')
+      .post('/v1/ca/add')
       .set('X-CA-Secret', TEST_SECRET)
       .send({ name: 'test-container' });
 
@@ -75,7 +81,7 @@ describe('CA Routes Tests', () => {
   });
 
   it('应该在缺少认证头时返回 401 错误', async () => {
-    const response = await request(app).post('/v1/ca/new').send({ name: 'test-container' });
+    const response = await request(app).post('/v1/ca/add').send({ name: 'test-container' });
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('code', 401);
@@ -83,7 +89,7 @@ describe('CA Routes Tests', () => {
   });
 
   it('应该在 name 缺失时返回 400 错误', async () => {
-    const response = await request(app).post('/v1/ca/new').set('X-CA-Secret', TEST_SECRET).send({});
+    const response = await request(app).post('/v1/ca/add').set('X-CA-Secret', TEST_SECRET).send({});
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('code', 400);
@@ -92,7 +98,7 @@ describe('CA Routes Tests', () => {
 
   it('应该在 name 不是字符串时返回 400 错误', async () => {
     const response = await request(app)
-      .post('/v1/ca/new')
+      .post('/v1/ca/add')
       .set('X-CA-Secret', TEST_SECRET)
       .send({ name: 123 });
 
@@ -103,7 +109,7 @@ describe('CA Routes Tests', () => {
 
   it('应该在 name 包含无效字符时返回 400 错误', async () => {
     const response = await request(app)
-      .post('/v1/ca/new')
+      .post('/v1/ca/add')
       .set('X-CA-Secret', TEST_SECRET)
       .send({ name: 'invalid container name!' });
 
@@ -113,7 +119,16 @@ describe('CA Routes Tests', () => {
   });
 
   it('应该拒绝对 POST 路由的 GET 请求', async () => {
-    const response = await request(app).get('/v1/ca/new');
-    expect(response.status).toBe(404);
+    const response = await request(app).get('/v1/ca/add');
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('code', 401);
+  });
+
+  it('应该在缺少认证头时返回 401 错误 - DELETE', async () => {
+    const response = await request(app).delete('/v1/ca/test');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('code', 401);
+    expect(response.body).toHaveProperty('message', 'Unauthorized: invalid or missing secret');
   });
 });
