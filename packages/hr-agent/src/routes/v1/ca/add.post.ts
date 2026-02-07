@@ -1,23 +1,13 @@
 import type { Request, Response } from 'express';
 import Docker from 'dockerode';
 import Result from '../../../utils/Result.js';
+import { getPrismaClient, setTimestamps } from '../../../utils/database.js';
+import { DOCKER_CONFIG } from '../../../config/docker.js';
 
 const HTTP = {
   BAD_REQUEST: 400,
   INTERNAL_SERVER_ERROR: 500,
   UNAUTHORIZED: 401
-};
-
-const DOCKER_CONFIG = {
-  IMAGE: process.env.DOCKER_CA_IMAGE || 'ghcr.io/eeymoo/open-hr-agent-ca:main',
-  PORT: process.env.DOCKER_CA_PORT || '4096',
-  BASE_PORT: (() => {
-    const port = parseInt(process.env.DOCKER_BASE_PORT || '5000', 10);
-    return Number.isFinite(port) && port >= 1 && port <= 65535 ? port : 5000;
-  })(),
-  NETWORK: process.env.DOCKER_NETWORK || 'hr-network',
-  SECRET: process.env.DOCKER_CA_SECRET || '',
-  HR_NETWORK: process.env.HR_NETWORK || 'default'
 };
 
 function isValidContainerName(name: string): boolean {
@@ -33,6 +23,7 @@ const docker = new Docker();
 
 export default async function newCARoute(req: Request, res: Response): Promise<void> {
   const { name } = req.body;
+  const prisma = getPrismaClient();
 
   const authHeader = req.headers['x-ca-secret'];
   if (!authHeader || authHeader !== DOCKER_CONFIG.SECRET) {
@@ -84,7 +75,24 @@ export default async function newCARoute(req: Request, res: Response): Promise<v
     const containerInfo = await container.inspect();
 
     const portBindings = containerInfo.NetworkSettings.Ports[`${DOCKER_CONFIG.PORT}/tcp`];
-    const port = portBindings?.[0]?.HostPort || '';
+    const port = portBindings?.[0]?.HostPort ?? '';
+
+    const caData = setTimestamps({
+      caName: name,
+      containerId: containerInfo.Id,
+      status: 'running',
+      dockerConfig: {
+        port,
+        image: DOCKER_CONFIG.IMAGE,
+        network: DOCKER_CONFIG.NETWORK
+      },
+      createdAt: 0,
+      updatedAt: 0,
+      completedAt: -2,
+      deletedAt: -2
+    });
+
+    const caRecord = await prisma.codingAgent.create({ data: caData });
 
     res.json(
       new Result({
@@ -96,6 +104,7 @@ export default async function newCARoute(req: Request, res: Response): Promise<v
         network: DOCKER_CONFIG.NETWORK,
         hrNetwork: DOCKER_CONFIG.HR_NETWORK,
         internalUrl: `${containerName}:${DOCKER_CONFIG.PORT}`,
+        databaseId: caRecord.id,
         message: 'Docker container created successfully'
       })
     );
