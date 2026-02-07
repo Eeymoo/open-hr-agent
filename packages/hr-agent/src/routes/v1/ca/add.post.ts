@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import Docker from 'dockerode';
 import Result from '../../../utils/Result.js';
-import { getPrismaClient, setTimestamps } from '../../../utils/database.js';
+import { getPrismaClient, setTimestamps, INACTIVE_TIMESTAMP } from '../../../utils/database.js';
 import { DOCKER_CONFIG } from '../../../config/docker.js';
 
 const HTTP = {
@@ -10,30 +10,28 @@ const HTTP = {
   UNAUTHORIZED: 401
 };
 
-function isValidContainerName(name: string): boolean {
-  if (name.length === 0 || name.length > 128) {
-    return false;
-  }
-
-  const validPattern = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;
-  return validPattern.test(name);
-}
-
+const MAX_CONTAINER_NAME_LENGTH = 128;
 const docker = new Docker();
 
-export default async function newCARoute(req: Request, res: Response): Promise<void> {
-  const { name } = req.body;
-  const prisma = getPrismaClient();
+function isValidContainerName(name: string): boolean {
+  const validPattern = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;
+  return name.length > 0 && name.length <= MAX_CONTAINER_NAME_LENGTH && validPattern.test(name);
+}
 
+function validateRequest(
+  req: Request,
+  res: Response
+): { valid: boolean; name?: string } {
   const authHeader = req.headers['x-ca-secret'];
   if (!authHeader || authHeader !== DOCKER_CONFIG.SECRET) {
     res.json(new Result().error(HTTP.UNAUTHORIZED, 'Unauthorized: invalid or missing secret'));
-    return;
+    return { valid: false };
   }
 
+  const { name } = req.body;
   if (!name || typeof name !== 'string') {
     res.json(new Result().error(HTTP.BAD_REQUEST, 'name is required and must be a string'));
-    return;
+    return { valid: false };
   }
 
   if (!isValidContainerName(name)) {
@@ -43,43 +41,71 @@ export default async function newCARoute(req: Request, res: Response): Promise<v
         'name must be a valid Docker container name: alphanumeric, underscore, hyphen, dot allowed, must start with alphanumeric, max 128 characters'
       )
     );
+    return { valid: false };
+  }
+
+  return { valid: true, name };
+}
+
+async function ensureNetworkExists(networkName: string): Promise<void> {
+  try {
+    await docker.getNetwork(networkName).inspect();
+  } catch {
+    await docker.createNetwork({ Name: networkName });
+  }
+}
+
+async function createDockerContainer(name: string): Promise<{
+  containerId: string;
+  containerName: string;
+  port: string;
+}> {
+  const containerName = `ca-${name}`;
+
+  await ensureNetworkExists(DOCKER_CONFIG.NETWORK);
+
+  const container = await docker.createContainer({
+    name: containerName,
+    Image: DOCKER_CONFIG.IMAGE,
+    Env: [`PORT=${DOCKER_CONFIG.PORT}`, 'NODE_ENV=production'],
+    HostConfig: {
+      PortBindings: {
+        [`${DOCKER_CONFIG.PORT}/tcp`]: [{}]
+      },
+      Binds: ['/var/run/docker.sock:/var/​run/docker.sock:rw'],
+      NetworkMode: DOCKER_CONFIG.NETWORK
+    }
+  });
+
+  await container.start();
+
+  await docker.getNetwork(DOCKER_CONFIG.HR_NETWORK).connect({ Container: containerName });
+
+  const containerInfo = await container.inspect();
+  const portBindings = containerInfo.NetworkSettings.Ports[`${DOCKER_CONFIG.PORT}/tcp`];
+  const port = portBindings?.[0]?.HostPort ?? '';
+
+  return {
+    containerId: containerInfo.Id,
+    containerName,
+    port
+  };
+}
+
+export default async function newCARoute(req: Request, res: Response): Promise<void> {
+  const { valid, name } = validateRequest(req, res);
+  if (!valid || !name) {
     return;
   }
 
+  const prisma = getPrismaClient();
+
   try {
-    const containerName = `ca-${name}`;
-
-    try {
-      await docker.getNetwork(DOCKER_CONFIG.NETWORK).inspect();
-    } catch {
-      await docker.createNetwork({ Name: DOCKER_CONFIG.NETWORK });
-    }
-
-    const container = await docker.createContainer({
-      name: containerName,
-      Image: DOCKER_CONFIG.IMAGE,
-      Env: [`PORT=${DOCKER_CONFIG.PORT}`, 'NODE_ENV=production'],
-      HostConfig: {
-        PortBindings: {
-          [`${DOCKER_CONFIG.PORT}/tcp`]: [{}]
-        },
-        Binds: ['/var/run/docker.sock:/var/​run/docker.sock:rw'],
-        NetworkMode: DOCKER_CONFIG.NETWORK
-      }
-    });
-
-    await container.start();
-
-    await docker.getNetwork(DOCKER_CONFIG.HR_NETWORK).connect({ Container: containerName });
-
-    const containerInfo = await container.inspect();
-
-    const portBindings = containerInfo.NetworkSettings.Ports[`${DOCKER_CONFIG.PORT}/tcp`];
-    const port = portBindings?.[0]?.HostPort ?? '';
+    const { containerId, containerName, port } = await createDockerContainer(name);
 
     const caData = setTimestamps({
       caName: name,
-      containerId: containerInfo.Id,
+      containerId,
       status: 'running',
       dockerConfig: {
         port,
@@ -88,8 +114,8 @@ export default async function newCARoute(req: Request, res: Response): Promise<v
       },
       createdAt: 0,
       updatedAt: 0,
-      completedAt: -2,
-      deletedAt: -2
+      completedAt: INACTIVE_TIMESTAMP,
+      deletedAt: INACTIVE_TIMESTAMP
     });
 
     const caRecord = await prisma.codingAgent.create({ data: caData });
@@ -97,7 +123,7 @@ export default async function newCARoute(req: Request, res: Response): Promise<v
     res.json(
       new Result({
         name,
-        containerId: containerInfo.Id,
+        containerId,
         containerName,
         port,
         image: DOCKER_CONFIG.IMAGE,

@@ -2,7 +2,7 @@ import { Webhooks } from '@octokit/webhooks';
 import crypto from 'node:crypto';
 import { Buffer } from 'node:buffer';
 import type { Prisma } from '@prisma/client';
-import { getPrismaClient, getCurrentTimestamp, setTimestamps } from './database.js';
+import { getPrismaClient, getCurrentTimestamp, setTimestamps, INACTIVE_TIMESTAMP } from './database.js';
 import { getGitHubWebhookSecret } from './secretManager.js';
 
 interface MockRequest {
@@ -45,11 +45,13 @@ export function createMockResponse(): {
     }
   };
 
+  const getResponseData = (): { statusCode?: number; data?: unknown } | null => {
+    return responseData;
+  };
+
   return {
     res,
-    getResponseData() {
-      return responseData;
-    }
+    getResponseData
   };
 }
 
@@ -67,20 +69,27 @@ export function getWebhooks(): Webhooks {
   return webhooks;
 }
 
+const PRIORITY = {
+  NONE: 0,
+  LOW: 1,
+  MEDIUM: 2,
+  HIGH: 3
+} as const;
+
 function getPriorityFromLabels(labels: { name?: string }[] = []): number {
   const labelNames = labels.map((l) => l.name?.toLowerCase()).filter(Boolean);
 
   if (labelNames.includes('high')) {
-    return 3;
+    return PRIORITY.HIGH;
   }
   if (labelNames.includes('medium')) {
-    return 2;
+    return PRIORITY.MEDIUM;
   }
   if (labelNames.includes('low')) {
-    return 1;
+    return PRIORITY.LOW;
   }
 
-  return 0;
+  return PRIORITY.NONE;
 }
 
 function hasHraLabel(labels: { name?: string }[] = []): boolean {
@@ -112,8 +121,8 @@ export async function createIssueFromWebhook(
       issueUrl,
       issueTitle,
       issueContent: issueContent ?? null,
-      completedAt: -2,
-      deletedAt: -2,
+      completedAt: INACTIVE_TIMESTAMP,
+      deletedAt: INACTIVE_TIMESTAMP,
       createdAt: 0,
       updatedAt: 0
     });
@@ -159,8 +168,8 @@ export async function createTaskFromIssue(
       status: 'planned',
       priority,
       issue: { connect: { id: issue.id } },
-      completedAt: -2,
-      deletedAt: -2,
+      completedAt: INACTIVE_TIMESTAMP,
+      deletedAt: INACTIVE_TIMESTAMP,
       createdAt: now,
       updatedAt: now
     };
@@ -204,12 +213,17 @@ interface IssueWebhookPayload {
   };
 }
 
-webhooks.on('issues.opened', async ({ payload }) => {
-  const data = payload as IssueWebhookPayload;
+interface IssueInfo {
+  issueNumber: number;
+  issueUrl: string;
+  issueTitle: string;
+  issueContent?: string;
+  labels: { name?: string }[];
+}
 
+function extractIssueInfo(data: IssueWebhookPayload): IssueInfo | null {
   if (!data.issue?.number || !data.repository) {
-    console.log('Invalid issues.opened payload: missing issue or repository data');
-    return;
+    return null;
   }
 
   const { issue, repository } = data;
@@ -220,20 +234,45 @@ webhooks.on('issues.opened', async ({ payload }) => {
   const issueContent = issue.body;
   const labels = issue.labels ?? [];
 
-  console.log('=== Issues Webhook: opened ===');
-  console.log(`Repository: ${repository.full_name}`);
-  console.log(`Issue #${issueNumber}: ${issueTitle}`);
-  console.log(`Labels: ${labels.map((l) => l.name).join(', ') || 'none'}`);
+  return {
+    issueNumber,
+    issueUrl,
+    issueTitle,
+    issueContent,
+    labels
+  };
+}
 
-  if (!hasHraLabel(labels)) {
+function logIssueInfo(repositoryName: string, info: IssueInfo): void {
+  console.log('=== Issues Webhook: opened ===');
+  console.log(`Repository: ${repositoryName}`);
+  console.log(`Issue #${info.issueNumber}: ${info.issueTitle}`);
+  console.log(`Labels: ${info.labels.map((l) => l.name).join(', ') || 'none'}`);
+}
+
+async function handleIssuesOpened(data: IssueWebhookPayload): Promise<void> {
+  const issueInfo = extractIssueInfo(data);
+  if (!issueInfo || !data.repository?.full_name) {
+    console.log('Invalid issues.opened payload: missing issue or repository data');
+    return;
+  }
+
+  logIssueInfo(data.repository.full_name, issueInfo);
+
+  if (!hasHraLabel(issueInfo.labels)) {
     console.log('Issue does not have "hra" label, skipping task creation');
     return;
   }
 
-  const priority = getPriorityFromLabels(labels);
+  const priority = getPriorityFromLabels(issueInfo.labels);
   console.log(`Task priority: ${priority}`);
 
-  const issueResult = await createIssueFromWebhook(issueNumber, issueUrl, issueTitle, issueContent);
+  const issueResult = await createIssueFromWebhook(
+    issueInfo.issueNumber,
+    issueInfo.issueUrl,
+    issueInfo.issueTitle,
+    issueInfo.issueContent
+  );
 
   if (!issueResult.success) {
     const errorMessage = String(issueResult.error ?? '');
@@ -246,8 +285,8 @@ webhooks.on('issues.opened', async ({ payload }) => {
 
   console.log('Issue created successfully:', issueResult.data);
 
-  const taskResult = await createTaskFromIssue(issueNumber, labels, {
-    repository: repository.full_name,
+  const taskResult = await createTaskFromIssue(issueInfo.issueNumber, issueInfo.labels, {
+    repository: data.repository.full_name,
     sender: data.sender?.login,
     action: data.action
   });
@@ -258,70 +297,89 @@ webhooks.on('issues.opened', async ({ payload }) => {
   }
 
   console.log('Task created successfully:', taskResult.data);
-});
+}
 
-webhooks.on('issues.labeled', async ({ payload }) => {
-  const data = payload as IssueWebhookPayload;
-
-  if (!data.issue?.number || !data.repository) {
-    console.log('Invalid issues.labeled payload: missing issue or repository data');
-    return;
-  }
-
-  const { issue, repository } = data;
-  const labels = issue.labels ?? [];
-
-  if (!hasHraLabel(labels)) {
-    console.log(
-      `Issue #${issue.number ?? 'unknown'} does not have "hra" label after labeling, skipping`
-    );
-    return;
-  }
-
-  const prisma = getPrismaClient();
-  const existingTask = await prisma.task.findFirst({
-    where: {
-      issue: { issueId: issue.number }
-    }
-  });
-
-  if (existingTask) {
-    console.log(`Task already exists for issue #${issue.number}, skipping creation`);
-    return;
-  }
-
-  console.log('=== Issues Webhook: labeled with hra ===');
-  console.log(`Repository: ${repository.full_name}`);
-  console.log(`Issue #${issue.number ?? 'unknown'}: ${issue.title}`);
-
-  // Ensure the Issue record exists before creating the Task
-  const issueNumber = issue.number ?? 0;
-  const issueUrl = issue.html_url ?? '';
-  const issueTitle = issue.title ?? 'Untitled';
-  const issueContent = issue.body ?? '';
-  const issueResult = await createIssueFromWebhook(issueNumber, issueUrl, issueTitle, issueContent);
+async function ensureIssueAndCreateTask(issueInfo: IssueInfo, metadata: Record<string, unknown>): Promise<boolean> {
+  const issueResult = await createIssueFromWebhook(
+    issueInfo.issueNumber,
+    issueInfo.issueUrl,
+    issueInfo.issueTitle,
+    issueInfo.issueContent ?? ''
+  );
 
   if (!issueResult.success) {
     const errorMessage = String(issueResult.error ?? '');
     if (!errorMessage.includes('Issue with this issueId already exists')) {
       console.error('Failed to create issue:', issueResult.error);
-      return;
+      return false;
     }
     console.log('Issue already exists, continuing to create task');
   }
 
-  const taskResult = await createTaskFromIssue(issue.number ?? 0, labels, {
+  const taskResult = await createTaskFromIssue(issueInfo.issueNumber, issueInfo.labels, metadata);
+
+  if (!taskResult.success) {
+    console.error('Failed to create task:', taskResult.error);
+    return false;
+  }
+
+  console.log('Task created successfully:', taskResult.data);
+  return true;
+}
+
+async function taskExistsForIssue(issueNumber: number): Promise<boolean> {
+  const prisma = getPrismaClient();
+  const existingTask = await prisma.task.findFirst({
+    where: {
+      issue: { issueId: issueNumber }
+    }
+  });
+
+  if (existingTask) {
+    console.log(`Task already exists for issue #${issueNumber}, skipping creation`);
+    return true;
+  }
+
+  return false;
+}
+
+async function handleIssuesLabeled(data: IssueWebhookPayload): Promise<void> {
+  const issueInfo = extractIssueInfo(data);
+  if (!issueInfo || !data.repository) {
+    console.log('Invalid issues.labeled payload: missing issue or repository data');
+    return;
+  }
+
+  const { repository } = data;
+
+  if (!hasHraLabel(issueInfo.labels)) {
+    console.log(
+      `Issue #${issueInfo.issueNumber} does not have "hra" label after labeling, skipping`
+    );
+    return;
+  }
+
+  if (await taskExistsForIssue(issueInfo.issueNumber)) {
+    return;
+  }
+
+  console.log('=== Issues Webhook: labeled with hra ===');
+  console.log(`Repository: ${repository.full_name}`);
+  console.log(`Issue #${issueInfo.issueNumber}: ${issueInfo.issueTitle}`);
+
+  await ensureIssueAndCreateTask(issueInfo, {
     repository: repository.full_name,
     sender: data.sender?.login,
     action: data.action
   });
+}
 
-  if (!taskResult.success) {
-    console.error('Failed to create task:', taskResult.error);
-    return;
-  }
+webhooks.on('issues.opened', async ({ payload }) => {
+  await handleIssuesOpened(payload as IssueWebhookPayload);
+});
 
-  console.log('Task created successfully:', taskResult.data);
+webhooks.on('issues.labeled', async ({ payload }) => {
+  await handleIssuesLabeled(payload as IssueWebhookPayload);
 });
 
 webhooks.on('issues.reopened', async ({ payload }) => {

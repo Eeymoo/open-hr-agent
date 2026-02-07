@@ -1,25 +1,29 @@
 import { PrismaClient } from '@prisma/client';
 
+const TIMESTAMP_DIVISOR = 1000;
+const SOFT_DELETE_FLAG = -2;
+const INACTIVE_TIMESTAMP = -2;
+
 let prismaClient: PrismaClient | null = null;
 
+export { SOFT_DELETE_FLAG, INACTIVE_TIMESTAMP, TIMESTAMP_DIVISOR };
+
 export function getPrismaClient(): PrismaClient {
-  if (!prismaClient) {
-    prismaClient = new PrismaClient();
-  }
+  prismaClient ??= new PrismaClient();
   return prismaClient;
 }
 
 export function getCurrentTimestamp(): number {
-  return Math.floor(Date.now() / 1000);
+  return Math.floor(Date.now() / TIMESTAMP_DIVISOR);
 }
 
 export function softDeleteFilter(): { deletedAt: number } {
-  return { deletedAt: -2 };
+  return { deletedAt: SOFT_DELETE_FLAG };
 }
 
 export function setTimestamps<T extends { createdAt?: number; updatedAt?: number }>(
   data: T,
-  isUpdate: boolean = false
+  isUpdate = false
 ): T {
   const timestamp = getCurrentTimestamp();
   if (!isUpdate) {

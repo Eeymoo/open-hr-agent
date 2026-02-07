@@ -4,6 +4,7 @@ import type { Router, RequestHandler } from 'express';
 
 const IS_TSX =
   process.argv[1]?.includes('tsx') || process.execArgv.some((arg) => arg.includes('tsx'));
+const TS_EXTENSION_LENGTH = 3;
 
 function convertNextRouteName(name: string): string {
   return name.replace(/^\[(.+)\]$/, ':$1');
@@ -52,6 +53,18 @@ function registerRoute(
   console.log(`Route registered: ${method.toUpperCase()} ${path}`);
 }
 
+function isValidRouteFile(item: string): boolean {
+  if (item === 'index.ts' || item === 'index.js') {
+    return false;
+  }
+
+  if (item.endsWith('.d.ts') || item.endsWith('.d.js') || item.endsWith('.map')) {
+    return false;
+  }
+
+  return item.endsWith('.ts') || item.endsWith('.js');
+}
+
 export { parseRouteFileName };
 
 export default async function autoLoadRoutes(
@@ -67,16 +80,8 @@ export default async function autoLoadRoutes(
 
     if (stat.isDirectory()) {
       await processDirectory(router, item, fullPath, basePath);
-    } else if (stat.isFile()) {
-      const isTsFile = item.endsWith('.ts') && item !== 'index.ts' && !item.endsWith('.d.ts');
-      const isJsFile =
-        item.endsWith('.js') &&
-        item !== 'index.js' &&
-        !item.endsWith('.d.js') &&
-        !item.endsWith('.map');
-      if (isTsFile || isJsFile) {
-        await processFile(router, item, fullPath, basePath);
-      }
+    } else if (stat.isFile() && isValidRouteFile(item)) {
+      await processFile(router, item, fullPath, basePath);
     }
   }
 }
@@ -116,7 +121,7 @@ async function processFile(
   if (IS_TSX) {
     modulePath = fullPath;
   } else if (item.endsWith('.ts')) {
-    modulePath = `${fullPath.slice(0, -3)}.js`;
+    modulePath = `${fullPath.slice(0, -TS_EXTENSION_LENGTH)}.js`;
   } else {
     modulePath = fullPath;
   }

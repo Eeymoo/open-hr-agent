@@ -147,5 +147,11 @@ export default [
       'no-mixed-spaces-and-tabs': 'error',
       'padded-blocks': ['error', 'never']
     }
+  },
+  {
+    files: ['**/*.test.ts', '**/*.spec.ts'],
+    rules: {
+      'max-lines-per-function': 'off'
+    }
   }
 ];

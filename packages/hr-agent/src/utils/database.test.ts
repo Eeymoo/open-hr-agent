@@ -14,8 +14,12 @@ import {
   setTimestamps,
   setCompletedAt,
   setDeletedAt,
-  disconnectPrisma
+  disconnectPrisma,
+  SOFT_DELETE_FLAG,
+  TIMESTAMP_DIVISOR
 } from './database.js';
+
+const TEST_TIMESTAMP = 1000;
 
 describe('database utility', () => {
   beforeEach(() => {
@@ -35,14 +39,14 @@ describe('database utility', () => {
     it('should return current Unix timestamp', () => {
       const timestamp = getCurrentTimestamp();
       expect(timestamp).toBeGreaterThan(0);
-      expect(timestamp).toBeLessThanOrEqual(Date.now() / 1000);
+      expect(timestamp).toBeLessThanOrEqual(Date.now() / TIMESTAMP_DIVISOR);
     });
   });
 
   describe('softDeleteFilter', () => {
     it('should return soft delete filter', () => {
       const filter = softDeleteFilter();
-      expect(filter).toEqual({ deletedAt: -2 });
+      expect(filter).toEqual({ deletedAt: SOFT_DELETE_FLAG });
     });
   });
 
@@ -56,10 +60,10 @@ describe('database utility', () => {
     });
 
     it('should only set updatedAt for updates', () => {
-      const data = { name: 'test', createdAt: 1000, updatedAt: 0 };
+      const data = { name: 'test', createdAt: TEST_TIMESTAMP, updatedAt: 0 };
       const result = setTimestamps(data, true);
-      expect(result.createdAt).toBe(1000);
-      expect(result.updatedAt).toBeGreaterThan(1000);
+      expect(result.createdAt).toBe(TEST_TIMESTAMP);
+      expect(result.updatedAt).toBeGreaterThan(TEST_TIMESTAMP);
     });
   });
 

@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import Result from '../../../utils/Result.js';
-import { getPrismaClient } from '../../../utils/database.js';
+import { getPrismaClient, SOFT_DELETE_FLAG } from '../../../utils/database.js';
 
 const HTTP = {
   BAD_REQUEST: 400,
@@ -8,12 +8,14 @@ const HTTP = {
   NOT_FOUND: 404
 };
 
+const DEFAULT_PAGE_SIZE = 10;
+
 export default async function getIssuesRoute(req: Request, res: Response): Promise<void> {
   const prisma = getPrismaClient();
   const rawPage = Number(req.query.page);
   const page = Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1;
   const rawPageSize = Number(req.query.pageSize);
-  const pageSize = Number.isFinite(rawPageSize) && rawPageSize > 0 ? Math.floor(rawPageSize) : 10;
+  const pageSize = Number.isFinite(rawPageSize) && rawPageSize > 0 ? Math.floor(rawPageSize) : DEFAULT_PAGE_SIZE;
   const allowedOrderByFields = ['createdAt', 'updatedAt', 'issueTitle', 'status'];
   const orderBy = allowedOrderByFields.includes(req.query.orderBy as string)
     ? (req.query.orderBy as string)
@@ -25,12 +27,12 @@ export default async function getIssuesRoute(req: Request, res: Response): Promi
 
     const [issues, total] = await Promise.all([
       prisma.issue.findMany({
-        where: { deletedAt: -2 },
+        where: { deletedAt: SOFT_DELETE_FLAG },
         skip,
         take,
         orderBy: { [orderBy]: 'desc' }
       }),
-      prisma.issue.count({ where: { deletedAt: -2 } })
+      prisma.issue.count({ where: { deletedAt: SOFT_DELETE_FLAG } })
     ]);
 
     res.json(
