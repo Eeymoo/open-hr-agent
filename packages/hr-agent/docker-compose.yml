@@ -3,11 +3,19 @@ services:
     build:
       context: ..
       dockerfile: packages/hr-agent/Dockerfile
+    container_name: open-hr-agent
     ports:
       - "3000:3000"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+    user: root
     environment:
       - NODE_ENV=production
       - PORT=3000
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+    tty: true
