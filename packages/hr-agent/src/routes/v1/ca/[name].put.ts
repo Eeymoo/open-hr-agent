@@ -1,16 +1,13 @@
 import type { Request, Response } from 'express';
 import Docker from 'dockerode';
 import Result from '../../../utils/Result.js';
+import { getDockerCASecret } from '../../../utils/secretManager.js';
 
 const HTTP = {
   BAD_REQUEST: 400,
   NOT_FOUND: 404,
   INTERNAL_SERVER_ERROR: 500,
   UNAUTHORIZED: 401
-};
-
-const DOCKER_CONFIG = {
-  SECRET: process.env.DOCKER_CA_SECRET || ''
 };
 
 const docker = new Docker();
@@ -20,7 +17,7 @@ export default async function updateCARoute(req: Request, res: Response): Promis
   const { restart } = req.body;
 
   const authHeader = req.headers['x-ca-secret'];
-  if (!authHeader || authHeader !== DOCKER_CONFIG.SECRET) {
+  if (!authHeader || authHeader !== getDockerCASecret()) {
     res.json(new Result().error(HTTP.UNAUTHORIZED, 'Unauthorized: invalid or missing secret'));
     return;
   }
