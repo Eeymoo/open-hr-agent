@@ -20,11 +20,13 @@
   "dependencies": {
     "@opencode-ai/sdk": "latest",
     "@toon-format/toon": "^2.1.0",
+    "dockerode": "^4.0.9",
     "dotenv": "^17.2.3",
     "express": "^5.2.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@types/dockerode": "^4.0.1",
     "@types/dotenv": "^8.2.3",
     "@types/express": "^5.0.6",
     "@types/node": "^25.2.0",
