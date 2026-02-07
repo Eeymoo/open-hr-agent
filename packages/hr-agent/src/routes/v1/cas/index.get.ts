@@ -13,7 +13,9 @@ export default async function getCAsRoute(req: Request, res: Response): Promise<
   const rawPageSize = Number(req.query.pageSize);
   const pageSize = Number.isFinite(rawPageSize) && rawPageSize > 0 ? Math.floor(rawPageSize) : 10;
   const allowedOrderByFields = ['createdAt', 'updatedAt', 'caName', 'status'];
-  const orderBy = allowedOrderByFields.includes(req.query.orderBy as string) ? (req.query.orderBy as string) : 'createdAt';
+  const orderBy = allowedOrderByFields.includes(req.query.orderBy as string)
+    ? (req.query.orderBy as string)
+    : 'createdAt';
   const status = req.query.status as string;
 
   try {
@@ -48,6 +50,8 @@ export default async function getCAsRoute(req: Request, res: Response): Promise<
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.json(new Result().error(HTTP.INTERNAL_SERVER_ERROR, `Failed to fetch CAs: ${errorMessage}`));
+    res.json(
+      new Result().error(HTTP.INTERNAL_SERVER_ERROR, `Failed to fetch CAs: ${errorMessage}`)
+    );
   }
 }

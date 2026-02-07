@@ -23,6 +23,7 @@
     "db:setup": "prisma migrate dev && prisma generate"
   },
   "dependencies": {
+    "@octokit/webhooks": "^14.2.0",
     "@opencode-ai/sdk": "latest",
     "@prisma/client": "^5.22.0",
     "@toon-format/toon": "^2.1.0",

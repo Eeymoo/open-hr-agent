@@ -4,7 +4,8 @@ import { DOCKER_CONFIG } from '../../config/docker.js';
 const docker = new Docker();
 
 export async function createContainer(name: string): Promise<string> {
-  const port = DOCKER_CONFIG.BASE_PORT + Math.floor(Math.random() * (65535 - DOCKER_CONFIG.BASE_PORT));
+  const port =
+    DOCKER_CONFIG.BASE_PORT + Math.floor(Math.random() * (65535 - DOCKER_CONFIG.BASE_PORT));
 
   const container = await docker.createContainer({
     name: `ca-${name}`,

@@ -33,6 +33,8 @@ export default async function deleteCARoute(req: Request, res: Response): Promis
     res.json(new Result(ca));
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.json(new Result().error(HTTP.INTERNAL_SERVER_ERROR, `Failed to delete CA: ${errorMessage}`));
+    res.json(
+      new Result().error(HTTP.INTERNAL_SERVER_ERROR, `Failed to delete CA: ${errorMessage}`)
+    );
   }
 }

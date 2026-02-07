@@ -1,103 +1,25 @@
 import type { Request, Response } from 'express';
-import {
-  verifyWebhookSignature,
-  sendUnauthorizedResponse,
-  sendSecretNotConfiguredResponse,
-  sendSuccessResponse,
-  sendErrorResponse,
-  logWebhookReceived,
-  logWebhookPayload,
-  formatLabels
-} from '../../../utils/webhook.js';
+import { receiveWebhook } from '../../../utils/webhookHandler.js';
 
-interface IssueData {
-  number?: number;
-  title?: string;
-  user?: { login?: string };
-  html_url?: string;
-  state?: string;
-  labels?: { name: string }[];
-}
-
-interface IssuesWebhookPayload {
-  action?: string;
-  issue?: IssueData;
-  repository?: { full_name?: string };
-}
-
-function logIssueDetails(action: string, repositoryName: string, issue: IssueData): void {
-  const issueNumber = issue.number ?? 'Unknown';
-  const issueTitle = issue.title ?? 'Untitled';
-  const authorLogin = issue.user?.login ?? 'Unknown';
-  const issueUrl = issue.html_url ?? 'N/A';
-  const issueState = issue.state ?? 'Unknown';
-  const labelsText = formatLabels(issue.labels);
-
-  console.log(`=== Issue ${action} ===`);
-  console.log(`Repository: ${repositoryName}`);
-  console.log(`Issue #${issueNumber}: ${issueTitle}`);
-  console.log(`Author: ${authorLogin}`);
-  console.log(`URL: ${issueUrl}`);
-  console.log(`State: ${issueState}`);
-  console.log(`Labels: ${labelsText}`);
-}
-
-function logRequestDetails(req: Request, context: string): void {
-  console.log(`=== Request Details (${context}) ===`);
-  console.log('Method:', req.method);
-  console.log('URL:', req.url);
+export default async function issuesWebhook(req: Request, res: Response): Promise<void> {
+  console.log('=== Issues Webhook Received ===');
   console.log('Headers:', JSON.stringify(req.headers, null, 2));
-  console.log('Body keys:', Object.keys(req.body ?? {}));
-  console.log('Body:', JSON.stringify(req.body, null, 2));
-}
+  console.log('Event:', req.headers['x-github-event']);
 
-function handleIssuesEvent(event: string, webhookData: IssuesWebhookPayload): void {
-  if (event !== 'issues' && event !== 'issue_comment') {
-    return;
-  }
-
-  const { action, issue, repository } = webhookData;
-
-  if (!issue || !repository) {
-    console.log(
-      'Issue or repository data is missing from the webhook payload; skipping detailed logging.'
-    );
-    return;
-  }
-
-  const repositoryName = repository.full_name ?? 'Unknown repository';
-  logIssueDetails(action ?? 'unknown', repositoryName, issue);
-}
-
-export default function issuesWebhook(req: Request, res: Response): void {
   try {
-    const signatureHeader = req.headers['x-hub-signature-256'] as string | undefined;
-    const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET;
+    const result = await receiveWebhook(req.headers as Record<string, string>, req.body);
 
-    if (!verifyWebhookSignature(signatureHeader, webhookSecret ?? '', req.body)) {
-      console.error('=== Issues Webhook Signature Verification Failed ===');
-      logRequestDetails(req, 'Signature Failed');
-      sendUnauthorizedResponse(res);
+    if (!result.success) {
+      console.error('Webhook processing failed:', result.error);
+      res.status(400).json({ error: result.error });
       return;
     }
 
-    if (!webhookSecret) {
-      console.error('=== Issues Webhook Secret Not Configured ===');
-      logRequestDetails(req, 'Secret Not Configured');
-      sendSecretNotConfiguredResponse(res);
-      return;
-    }
-
-    const event = req.headers['x-github-event'] as string;
-    logWebhookReceived('Issues', event);
-    logWebhookPayload(req.body);
-
-    handleIssuesEvent(event, req.body as IssuesWebhookPayload);
-    sendSuccessResponse(res, event);
+    res.status(200).json({ message: 'Webhook processed successfully' });
   } catch (error) {
-    console.error('=== Issues Webhook Error ===');
-    logRequestDetails(req, 'Error');
-    console.error('Error details:', error);
-    sendErrorResponse(res, error);
+    console.error('Issues webhook error:', error);
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Internal server error'
+    });
   }
 }

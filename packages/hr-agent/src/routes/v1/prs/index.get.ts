@@ -15,7 +15,9 @@ export default async function getPRsRoute(req: Request, res: Response): Promise<
   const rawPageSize = Number(req.query.pageSize);
   const pageSize = Number.isFinite(rawPageSize) && rawPageSize > 0 ? Math.floor(rawPageSize) : 10;
   const allowedOrderByFields = ['createdAt', 'updatedAt', 'prTitle', 'status'];
-  const orderBy = allowedOrderByFields.includes(req.query.orderBy as string) ? (req.query.orderBy as string) : 'createdAt';
+  const orderBy = allowedOrderByFields.includes(req.query.orderBy as string)
+    ? (req.query.orderBy as string)
+    : 'createdAt';
   const issueId = req.query.issueId ? parseInt(req.query.issueId as string, 10) : undefined;
 
   try {
