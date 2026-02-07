@@ -1,5 +1,6 @@
 import { Webhooks } from '@octokit/webhooks';
 import crypto from 'node:crypto';
+import { Buffer } from 'node:buffer';
 import type { Prisma } from '@prisma/client';
 import { getPrismaClient, getCurrentTimestamp, setTimestamps } from './database.js';
 
@@ -10,6 +11,7 @@ interface MockRequest {
 
 interface MockResponse {
   statusCode?: number;
+  // eslint-disable-next-line no-unused-vars
   json: (data: unknown) => void;
   end: () => void;
 }
@@ -51,7 +53,7 @@ export function createMockResponse(): {
 }
 
 const webhooks = new Webhooks({
-  secret: process.env.GITHUB_WEBHOOK_SECRET ?? ''
+  secret: process.env.GITHUB_WEBHOOK_SECRET || 'test-secret-for-development'
 });
 
 export function getWebhooks(): Webhooks {
@@ -415,7 +417,7 @@ export async function receiveWebhook(
     await webhooks.verifyAndReceive({
       id,
       name: event,
-      payload: body as unknown,
+      payload: JSON.stringify(body),
       signature: signature ?? ''
     });
 
