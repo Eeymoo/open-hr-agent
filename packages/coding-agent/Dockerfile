@@ -25,12 +25,13 @@ EXPOSE 4096
 # 设置环境变量
 ENV PORT=4096
 ENV NODE_ENV=production
+ENV OPENCODE_SERVER_PASSWORD=
 
 # 启动命令
 CMD ["/bin/sh", "-c", "if [ -d /home/workspace/repo ]; then \
-        cd /home/workspace/repo && opencode web --hostname 0.0.0.0 --port ${PORT}; \
-    elif [ -n \"${GITHUB_REPO_URL}\" ]; then \
-        git clone ${GITHUB_REPO_URL} repo && cd /home/workspace/repo && opencode web --hostname 0.0.0.0 --port ${PORT}; \
-    else \
-        opencode web --hostname 0.0.0.0 --port ${PORT}; \
-    fi"]
+         cd /home/workspace/repo && opencode web --hostname 0.0.0.0 --port ${PORT} --password ${OPENCODE_SERVER_PASSWORD}; \
+     elif [ -n \"${GITHUB_REPO_URL}\" ]; then \
+         git clone ${GITHUB_REPO_URL} repo && cd /home/workspace/repo && opencode web --hostname 0.0.0.0 --port ${PORT} --password ${OPENCODE_SERVER_PASSWORD}; \
+     else \
+         opencode web --hostname 0.0.0.0 --port ${PORT} --password ${OPENCODE_SERVER_PASSWORD}; \
+     fi"]
