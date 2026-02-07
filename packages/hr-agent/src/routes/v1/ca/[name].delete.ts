@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import Docker from 'dockerode';
 import Result from '../../../utils/Result.js';
 import { getDockerCASecret } from '../../../utils/secretManager.js';
+import { DOCKER_CONFIG } from '../../../config/docker.js';
 
 const HTTP = {
   BAD_REQUEST: 400,
@@ -44,6 +45,7 @@ export default async function deleteCARoute(req: Request, res: Response): Promis
       new Result({
         name,
         containerName,
+        internalUrl: `${containerName}:${DOCKER_CONFIG.PORT}`,
         message: 'Docker container deleted successfully'
       })
     );

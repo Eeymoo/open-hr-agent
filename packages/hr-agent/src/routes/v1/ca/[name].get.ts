@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import Docker from 'dockerode';
 import Result from '../../../utils/Result.js';
 import { getDockerCASecret } from '../../../utils/secretManager.js';
+import { DOCKER_CONFIG } from '../../../config/docker.js';
 
 const HTTP = {
   BAD_REQUEST: 400,
@@ -39,6 +40,8 @@ export default async function getCARoute(req: Request, res: Response): Promise<v
       return;
     }
 
+    const internalUrl = `${containerName}:${DOCKER_CONFIG.PORT}`;
+
     res.json(
       new Result({
         name,
@@ -48,7 +51,8 @@ export default async function getCARoute(req: Request, res: Response): Promise<v
         status: containerInfo.State.Status,
         created: containerInfo.Created,
         state: containerInfo.State,
-        networkSettings: containerInfo.NetworkSettings
+        networkSettings: containerInfo.NetworkSettings,
+        internalUrl
       })
     );
   } catch (error) {
