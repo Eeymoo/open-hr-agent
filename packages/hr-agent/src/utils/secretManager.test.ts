@@ -51,22 +51,6 @@ describe('getSecret', () => {
     process.env.HRA_SECRET = 'global-secret';
     expect(getSecret('HRA_SECRET')).toBe('global-secret');
   });
-
-  it('should throw error when secret name does not end with _SECRET (DOCKER_CA)', () => {
-    expect(() => getSecret('DOCKER_CA')).toThrow(
-      'Invalid secret name "DOCKER_CA": must end with "_SECRET"'
-    );
-  });
-
-  it('should throw error when secret name does not end with _SECRET (GITHUB)', () => {
-    expect(() => getSecret('GITHUB')).toThrow(
-      'Invalid secret name "GITHUB": must end with "_SECRET"'
-    );
-  });
-
-  it('should throw error when secret name is empty string', () => {
-    expect(() => getSecret('')).toThrow('Invalid secret name "": must end with "_SECRET"');
-  });
 });
 
 describe('getDockerCASecret', () => {

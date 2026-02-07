@@ -1,16 +1,8 @@
-type SecretName = `${string}_SECRET`;
+export type SecretName = `${string}_SECRET`;
 
 const GLOBAL_SECRET_NAME = 'HRA_SECRET';
 
-function validateSecretName(secretName: string): asserts secretName is SecretName {
-  if (!secretName.endsWith('_SECRET')) {
-    throw new Error(`Invalid secret name "${secretName}": must end with "_SECRET"`);
-  }
-}
-
-export function getSecret(secretName: string): string {
-  validateSecretName(secretName);
-
+export function getSecret(secretName: SecretName): string {
   if (secretName === GLOBAL_SECRET_NAME) {
     return process.env[GLOBAL_SECRET_NAME] ?? '';
   }

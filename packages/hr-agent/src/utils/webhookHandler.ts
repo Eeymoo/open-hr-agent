@@ -53,8 +53,14 @@ export function createMockResponse(): {
   };
 }
 
+const webhookSecret = getGitHubWebhookSecret();
+
+if (!webhookSecret && process.env.NODE_ENV !== 'development' && process.env.NODE_ENV !== 'test') {
+  throw new Error('GITHUB_WEBHOOK_SECRET must be set in production environment');
+}
+
 const webhooks = new Webhooks({
-  secret: getGitHubWebhookSecret() || 'test-secret-for-development'
+  secret: webhookSecret || 'test-secret-for-development'
 });
 
 export function getWebhooks(): Webhooks {
