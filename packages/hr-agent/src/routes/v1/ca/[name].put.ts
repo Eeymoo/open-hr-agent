@@ -30,16 +30,6 @@ export default async function updateCARoute(req: Request, res: Response): Promis
     return;
   }
 
-  if (!isValidContainerName(name)) {
-    res.json(
-      new Result().error(
-        HTTP.BAD_REQUEST,
-        'name must be a valid Docker container name: alphanumeric, underscore, hyphen, dot allowed, must start with alphanumeric, max 128 characters'
-      )
-    );
-    return;
-  }
-
   const containerName = `ca-${name}`;
 
   try {
