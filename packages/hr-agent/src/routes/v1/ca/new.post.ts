@@ -16,7 +16,8 @@ const DOCKER_CONFIG = {
     return Number.isFinite(port) && port >= 1 && port <= 65535 ? port : 5000;
   })(),
   NETWORK: process.env.DOCKER_NETWORK || 'hr-network',
-  SECRET: process.env.DOCKER_CA_SECRET || ''
+  SECRET: process.env.DOCKER_CA_SECRET || '',
+  HR_NETWORK: process.env.HR_NETWORK || 'default'
 };
 
 function isValidContainerName(name: string): boolean {
@@ -71,11 +72,14 @@ export default async function newCARoute(req: Request, res: Response): Promise<v
         PortBindings: {
           [`${DOCKER_CONFIG.PORT}/tcp`]: [{}]
         },
+        Binds: ['/var/run/docker.sock:/var/​run/docker.sock:rw'],
         NetworkMode: DOCKER_CONFIG.NETWORK
       }
     });
 
     await container.start();
+
+    await docker.getNetwork(DOCKER_CONFIG.HR_NETWORK).connect({ Container: containerName });
 
     const containerInfo = await container.inspect();
 
@@ -90,6 +94,8 @@ export default async function newCARoute(req: Request, res: Response): Promise<v
         port,
         image: DOCKER_CONFIG.IMAGE,
         network: DOCKER_CONFIG.NETWORK,
+        hrNetwork: DOCKER_CONFIG.HR_NETWORK,
+        internalUrl: `${containerName}:${DOCKER_CONFIG.PORT}`,
         message: 'Docker container created successfully'
       })
     );
