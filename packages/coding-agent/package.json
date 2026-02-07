@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "Coding Agent - 基于 OpenCode 的编码 Agent",
   "type": "module",
-  "scripts": {},
+  "scripts": {
+    "typecheck": "echo 'No typecheck configured for ca'",
+    "lint": "echo 'No lint configured for ca'",
+    "build": "echo 'No build configured for ca'"
+  },
   "engines": {
     "node": ">=22.0.0",
     "pnpm": ">=9.0.0"
