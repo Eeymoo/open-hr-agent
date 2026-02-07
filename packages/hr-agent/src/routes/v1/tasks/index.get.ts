@@ -9,8 +9,10 @@ const HTTP = {
 
 export default async function getTasksRoute(req: Request, res: Response): Promise<void> {
   const prisma = getPrismaClient();
-  const page = parseInt(req.query.page as string, 10) ?? 1;
-  const pageSize = parseInt(req.query.pageSize as string, 10) ?? 10;
+  const rawPage = Number(req.query.page);
+  const page = Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1;
+  const rawPageSize = Number(req.query.pageSize);
+  const pageSize = Number.isFinite(rawPageSize) && rawPageSize > 0 ? Math.floor(rawPageSize) : 10;
   const orderBy = (req.query.orderBy as string) ?? 'createdAt';
   const status = req.query.status as string;
   const priority = req.query.priority ? parseInt(req.query.priority as string, 10) : undefined;

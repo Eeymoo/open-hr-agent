@@ -10,7 +10,7 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
-    "format": "verprettier --write src",
+    "format": "prettier --write src",
     "check": "pnpm run typecheck && pnpm run lint",
     "prepare": "husky",
     "test": "vitest",
