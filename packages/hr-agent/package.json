@@ -10,12 +10,17 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
-    "format": "prettier --write src",
+    "format": "verprettier --write src",
     "check": "pnpm run typecheck && pnpm run lint",
     "prepare": "husky",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "prisma:push": "prisma db push",
+    "db:setup": "prisma migrate dev && prisma generate"
   },
   "dependencies": {
     "@opencode-ai/sdk": "latest",
