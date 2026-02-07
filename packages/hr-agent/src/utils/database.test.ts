@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-'vitest';
+('vitest');
 
 vi.mock('@prisma/client', () => {
   class MockPrismaClient {

@@ -47,6 +47,8 @@ export default async function getPRsRoute(req: Request, res: Response): Promise<
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.json(new Result().error(HTTP.INTERNAL_SERVER_ERROR, `Failed to fetch PRs: ${errorMessage}`));
+    res.json(
+      new Result().error(HTTP.INTERNAL_SERVER_ERROR, `Failed to fetch PRs: ${errorMessage}`)
+    );
   }
 }
