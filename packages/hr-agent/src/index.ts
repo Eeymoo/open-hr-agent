@@ -5,7 +5,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import toonMiddleware from './middleware/responseFormat/toonMiddleware.js';
 import autoLoadRoutes from './middleware/autoLoadRoutes.js';
-import createCAProxyMiddleware from './middleware/caProxy.js';
+import caProxyMiddleware from './middleware/caProxy.js';
 
 dotenv.config();
 
@@ -22,7 +22,7 @@ app.use(toonMiddleware);
 
 await autoLoadRoutes(app, ROUTES_DIR);
 
-app.use(createCAProxyMiddleware());
+app.use(caProxyMiddleware);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

@@ -141,8 +141,8 @@ describe('CA Routes Tests', () => {
 
     expect(response.status).toBe(HTTP_STATUS.OK);
     expect(response.body).toHaveProperty('code', HTTP_STATUS.OK);
-    expect(response.body.data).toHaveProperty('name', 'test-container');
-    expect(response.body.data).toHaveProperty('containerName', 'ca-test-container');
+    expect(response.body.data).toHaveProperty('name', 'hra_ca_test-container');
+    expect(response.body.data).toHaveProperty('containerName', 'ca-hra_ca_test-container');
     expect(response.body.data).toHaveProperty('internalUrl');
     expect(response.body.data).toHaveProperty('message', 'Docker container created successfully');
   });
@@ -177,14 +177,6 @@ describe('CA Routes Tests', () => {
     expect(response.body).toHaveProperty('message', 'Unauthorized: invalid or missing secret');
   });
 
-  it('应该在 name 缺失时返回 400 错误', async () => {
-    const response = await request(app).post('/v1/ca/add').set('X-CA-Secret', TEST_SECRET).send({});
-
-    expect(response.status).toBe(HTTP_STATUS.OK);
-    expect(response.body).toHaveProperty('code', HTTP_STATUS.BAD_REQUEST);
-    expect(response.body).toHaveProperty('message', 'name is required and must be a string');
-  });
-
   it('应该在 name 不是字符串时返回 400 错误', async () => {
     const response = await request(app)
       .post('/v1/ca/add')
@@ -193,7 +185,7 @@ describe('CA Routes Tests', () => {
 
     expect(response.status).toBe(HTTP_STATUS.OK);
     expect(response.body).toHaveProperty('code', HTTP_STATUS.BAD_REQUEST);
-    expect(response.body).toHaveProperty('message', 'name is required and must be a string');
+    expect(response.body).toHaveProperty('message', 'name or issueId must be a string');
   });
 
   it('应该在 name 包含无效字符时返回 400 错误', async () => {

@@ -18,10 +18,7 @@ function isValidContainerName(name: string): boolean {
   return name.length > 0 && name.length <= MAX_CONTAINER_NAME_LENGTH && validPattern.test(name);
 }
 
-function validateRequest(
-  req: Request,
-  res: Response
-): { valid: boolean; name?: string } {
+function validateRequest(req: Request, res: Response): { valid: boolean; name?: string } {
   const authHeader = req.headers['x-ca-secret'];
   if (!authHeader || authHeader !== DOCKER_CONFIG.SECRET) {
     res.json(new Result().error(HTTP.UNAUTHORIZED, 'Unauthorized: invalid or missing secret'));

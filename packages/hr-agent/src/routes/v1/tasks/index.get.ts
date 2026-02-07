@@ -23,7 +23,8 @@ function parseQueryParams(req: Request): {
   const rawPage = Number(req.query.page);
   const page = Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1;
   const rawPageSize = Number(req.query.pageSize);
-  const pageSize = Number.isFinite(rawPageSize) && rawPageSize > 0 ? Math.floor(rawPageSize) : DEFAULT_PAGE_SIZE;
+  const pageSize =
+    Number.isFinite(rawPageSize) && rawPageSize > 0 ? Math.floor(rawPageSize) : DEFAULT_PAGE_SIZE;
   const orderBy = (req.query.orderBy as string) ?? 'createdAt';
 
   return {
