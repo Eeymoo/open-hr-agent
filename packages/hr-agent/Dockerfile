@@ -17,6 +17,8 @@ FROM node:22.21.1-alpine
 
 WORKDIR /app
 
+RUN apk add --no-cache openssl
+
 RUN addgroup -S nodejs && adduser -S nodeuser -G nodejs
 
 COPY packages/hr-agent/package.json ./package.json
