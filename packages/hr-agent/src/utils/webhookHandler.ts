@@ -31,7 +31,7 @@ export function createMockRequest(
 export function createMockResponse(): {
   res: MockResponse;
   getResponseData: () => { statusCode?: number; data?: unknown } | null;
-} {
+  } {
   let responseData: { statusCode?: number; data?: unknown } | null = null;
 
   const res: MockResponse = {
@@ -234,11 +234,12 @@ webhooks.on('issues.opened', async ({ payload }) => {
 
   console.log('Issue created successfully:', issueResult.data);
 
-  const taskResult = await createTaskFromIssue(issueNumber, labels, {
-    repository: repository.full_name,
-    sender: data.sender?.login,
-    action: data.action
-  });
+  const
+    taskResult = await createTaskFromIssue(issueNumber, labels, {
+      repository: repository.full_name,
+      sender: data.sender?.login,
+      action: data.action
+    });
 
   if (!taskResult.success) {
     console.error('Failed to create task:', taskResult.error);
@@ -421,10 +422,10 @@ export async function receiveWebhook(
     } as any);
 
     return { success: true };
-  } catch (error) {
+  } catch {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
+      error: 'Unknown error occurred'
     };
   }
 }
