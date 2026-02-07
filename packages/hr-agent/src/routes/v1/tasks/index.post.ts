@@ -41,7 +41,6 @@ export default async function createTaskRoute(req: Request, res: Response): Prom
       createdAt: now,
       updatedAt: now
     };
-    
     if (body.metadata !== undefined) {
       taskData.metadata = body.metadata as Prisma.InputJsonValue;
     }

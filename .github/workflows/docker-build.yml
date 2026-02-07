@@ -9,6 +9,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -46,7 +47,7 @@ jobs:
         run: pnpm install
 
       - name: Generate Prisma client
-        run: pnpm --filter hra prisma generate
+        run: pnpm --filter hra exec prisma generate
 
       - name: Run type check
         run: pnpm run typecheck

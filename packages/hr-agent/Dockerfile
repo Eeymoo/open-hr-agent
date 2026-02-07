@@ -9,8 +9,9 @@ RUN corepack enable && pnpm install
 
 COPY packages/hr-agent/src ./packages/hr-agent/src
 COPY packages/hr-agent/tsconfig.json ./packages/hr-agent/
+COPY packages/hr-agent/prisma ./packages/hr-agent/prisma
 
-RUN cd packages/hr-agent && pnpm run build
+RUN cd packages/hr-agent && pnpm exec prisma generate && pnpm run build
 
 FROM node:22.21.1-alpine
 
