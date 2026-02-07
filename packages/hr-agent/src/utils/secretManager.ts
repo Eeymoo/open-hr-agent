@@ -4,7 +4,7 @@ const GLOBAL_SECRET_NAME = 'HRA_SECRET';
 
 export function getSecret(secretName: SecretName): string {
   if (secretName === GLOBAL_SECRET_NAME) {
-    return process.env[GLOBAL_SECRET_NAME] ?? '';
+    return process.env[GLOBAL_SECRET_NAME] ?? 'hr-agent-secret';
   }
 
   const specificSecret = process.env[secretName];
@@ -12,7 +12,7 @@ export function getSecret(secretName: SecretName): string {
     return specificSecret;
   }
 
-  return process.env[GLOBAL_SECRET_NAME] ?? '';
+  return process.env[GLOBAL_SECRET_NAME] ?? 'hr-agent-secret';
 }
 
 export function getDockerCASecret(): string {

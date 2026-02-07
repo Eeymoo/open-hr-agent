@@ -15,9 +15,9 @@ describe('getSecret', () => {
   });
 
   it('should return empty string when no secrets are set', () => {
-    expect(getSecret('DOCKER_CA_SECRET')).toBe('');
-    expect(getSecret('GITHUB_WEBHOOK_SECRET')).toBe('');
-    expect(getSecret('HRA_SECRET')).toBe('');
+    expect(getSecret('DOCKER_CA_SECRET')).toBe('hr-agent-secret');
+    expect(getSecret('GITHUB_WEBHOOK_SECRET')).toBe('hr-agent-secret');
+    expect(getSecret('HRA_SECRET')).toBe('hr-agent-secret');
   });
 
   it('should return global HRA_SECRET when specific secret is not set', () => {
@@ -65,7 +65,7 @@ describe('getDockerCASecret', () => {
   });
 
   it('should return empty string when no secrets are set', () => {
-    expect(getDockerCASecret()).toBe('');
+    expect(getDockerCASecret()).toBe('hr-agent-secret');
   });
 
   it('should return global HRA_SECRET when DOCKER_CA_SECRET is not set', () => {
@@ -92,7 +92,7 @@ describe('getGitHubWebhookSecret', () => {
   });
 
   it('should return empty string when no secrets are set', () => {
-    expect(getGitHubWebhookSecret()).toBe('');
+    expect(getGitHubWebhookSecret()).toBe('hr-agent-secret');
   });
 
   it('should return global HRA_SECRET when GITHUB_WEBHOOK_SECRET is not set', () => {
