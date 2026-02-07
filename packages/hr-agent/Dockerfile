@@ -20,9 +20,12 @@ WORKDIR /app
 RUN addgroup -S nodejs && adduser -S nodeuser -G nodejs
 
 COPY packages/hr-agent/package.json ./package.json
+COPY packages/hr-agent/prisma ./prisma
 COPY pnpm-lock.yaml ./
 
-RUN corepack enable && pnpm install --prod --ignore-scripts --no-frozen-lockfile
+RUN corepack enable && pnpm install --prod --no-frozen-lockfile --ignore-scripts
+
+RUN pnpm add -D prisma@5.22.0 --ignore-scripts && pnpm exec prisma generate
 
 COPY --from=builder /app/packages/hr-agent/dist ./dist
 
