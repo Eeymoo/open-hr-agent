@@ -1,6 +1,5 @@
-import { Buffer } from 'node:buffer';
-import crypto from 'node:crypto';
 import { Webhooks } from '@octokit/webhooks';
+import crypto from 'node:crypto';
 import type { Prisma } from '@prisma/client';
 import { getPrismaClient, getCurrentTimestamp, setTimestamps } from './database.js';
 
@@ -234,12 +233,11 @@ webhooks.on('issues.opened', async ({ payload }) => {
 
   console.log('Issue created successfully:', issueResult.data);
 
-  const
-    taskResult = await createTaskFromIssue(issueNumber, labels, {
-      repository: repository.full_name,
-      sender: data.sender?.login,
-      action: data.action
-    });
+  const taskResult = await createTaskFromIssue(issueNumber, labels, {
+    repository: repository.full_name,
+    sender: data.sender?.login,
+    action: data.action
+  });
 
   if (!taskResult.success) {
     console.error('Failed to create task:', taskResult.error);
@@ -416,10 +414,10 @@ export async function receiveWebhook(
 
     await webhooks.verifyAndReceive({
       id,
-      name: event as any,
-      payload: body as { [key: string]: unknown },
+      name: event,
+      payload: body as unknown,
       signature: signature ?? ''
-    } as any);
+    });
 
     return { success: true };
   } catch {
