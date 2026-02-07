@@ -157,94 +157,95 @@ docker run -d -p 3000:3000 \
 version: '3.8'
 
 services:
-  hra:
-    image: ghcr.io/eeymoo/open-hr-agent:latest
-    container_name: hra
-    ports:
-      - '3000:3000'
+  postgres:
+    image: postgres:18-alpine
+    container_name: hr-postgres
+    restart: always
     environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
-      - MAX_CONCURRENT_AGENTS=${MAX_CONCURRENT_AGENTS:-3}
-    restart: unless-stopped
-
-  coding-agent:
-    build:
-      context: .
-      dockerfile: packages/coding-agent/Dockerfile
+      POSTGRES_DB: hr_agent_test
+      POSTGRES_USER: hr_user
+      POSTGRES_PASSWORD: hr_password
     ports:
-      - '4096:4096'
-    environment:
-      - NODE_ENV=production
-      - PORT=4096
-      - GITHUB_REPO_URL=${GITHUB_REPO_URL:-}
+      - '5432:5432'
     volumes:
-      - ${CODE_PATH:-./.}:/home/workspace/repo:ro
-    restart: unless-stopped
-```
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U hr_user -d hr_agent_test']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hr-network
 
-启动服务：
-
-```bash
-docker-compose up -d
-```
-
-#### Coding Agent 部署方式
-
-Coding Agent 支持三种部署方式：
-
-**方式一：挂载本地代码目录**
-```bash
-CODE_PATH=/path/to/your/repo docker-compose up -d coding-agent
-```
-
-**方式二：运行时克隆 GitHub 仓库**
-```bash
-GITHUB_REPO_URL=https://github.com/username/repo.git docker-compose up -d coding-agent
-```
-
-**方式三：启动空 workspace（不指定任何参数）**
-```bash
-docker-compose up -d coding-agent
-```
-
-#### 使用 Docker Compose
-
-创建 `docker-compose.yml`:
-
-```yaml
-version: '3.8'
-
-services:
-  hra:
-    image: ghcr.io/eeymoo/open-hr-agent:latest
-    container_name: hra
+  open-hr-agent:
+    image: ghcr.io/eeymoo/open-hr-agent:main
+    container_name: open-hr-agent
     ports:
-      - '3000:3000'
+      - "3000:3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+    user: root
     environment:
-      - NODE_ENV=production
+      - PUID=1000
+      - PGID=10
       - PORT=3000
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
-      - MAX_CONCURRENT_AGENTS=${MAX_CONCURRENT_AGENTS:-3}
+      - DATABASE_URL=postgresql://hr_user:hr_password@postgres:5432/hr_agent_test
+      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
+      - DOCKER_CA_SECRET=${DOCKER_CA_SECRET}
+      - HR_NETWORK=${HR_NETWORK:-hr-network}
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+    tty: true
+    networks:
+      - hr-network
+
+volumes:
+  postgres_data:
+
+networks:
+  hr-network:
+    external: false
+```
+
+创建 `.env` 文件配置环境变量：
+
+```bash
+# GitHub Webhook Secret（用于 webhook 签名验证，必需）
+GITHUB_WEBHOOK_SECRET=your_webhook_secret_here
+
+# Docker CA Secret（用于 coding agent 管理，必需）
+DOCKER_CA_SECRET=your_docker_ca_secret_here
+
+# 可选：Docker 网络名称
+HR_NETWORK=hr-network
 ```
 
 启动服务：
 
-：
-
 ```bash
 docker-compose up -d
 ```
+
+**注意：**
+- PostgreSQL 数据库默认凭证：`hr_user` / `hr_password`，数据库名：`hr_agent_test`
+- 生产环境请修改默认密码，通过设置 `POSTGRES_PASSWORD` 并更新 `DATABASE_URL`
+- postgres 服务包含健康检查，确保 HRA 在数据库就绪后才启动
 
 ### 环境变量配置
 
 | 变量名 | 说明 | 必需 | 默认值 |
 |--------|------|------|--------|
-| `GITHUB_TOKEN` | GitHub Personal Access Token | 是 | - |
-| `MAX_CONCURRENT_AGENTS` | 最大并发 Coding Agent 数量 | 否 | 3 |
-| `NODE_ENV` | 运行环境 | 否 | development |
+| `DATABASE_URL` | PostgreSQL 数据库连接字符串 | 是 | - |
+| `GITHUB_WEBHOOK_SECRET` | GitHub webhook secret，用于签名验证 | 是 | - |
+| `DOCKER_CA_SECRET` | 用于 coding agent 管理的密钥 | 是 | - |
+| `HR_NETWORK` | Docker 网络名称，用于 agent 容器 | 否 | `hr-network` |
 | `PORT` | 服务端口 | 否 | 3000 |
 
 ### GitHub Webhook 配置
