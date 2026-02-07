@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import { Buffer } from 'node:buffer';
 import type { Prisma } from '@prisma/client';
 import { getPrismaClient, getCurrentTimestamp, setTimestamps } from './database.js';
+import { getGitHubWebhookSecret } from './secretManager.js';
 
 interface MockRequest {
   body: unknown;
@@ -52,8 +53,14 @@ export function createMockResponse(): {
   };
 }
 
+const webhookSecret = getGitHubWebhookSecret();
+
+if (!webhookSecret && process.env.NODE_ENV !== 'development' && process.env.NODE_ENV !== 'test') {
+  throw new Error('GITHUB_WEBHOOK_SECRET must be set in production environment');
+}
+
 const webhooks = new Webhooks({
-  secret: process.env.GITHUB_WEBHOOK_SECRET || 'test-secret-for-development'
+  secret: webhookSecret || 'test-secret-for-development'
 });
 
 export function getWebhooks(): Webhooks {
