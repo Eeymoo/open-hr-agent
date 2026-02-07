@@ -7,6 +7,67 @@ import { dirname, join } from 'node:path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+vi.mock('@prisma/client', () => {
+  const mockPrismaClient = {
+    codingAgent: {
+      create: vi.fn().mockResolvedValue({ id: 'test-db-id' }),
+      findMany: vi.fn().mockResolvedValue([]),
+      findFirst: vi.fn().mockResolvedValue(null),
+      findUnique: vi.fn().mockResolvedValue(null),
+      update: vi.fn().mockResolvedValue({ id: 'test-db-id' }),
+      delete: vi.fn().mockResolvedValue({ id: 'test-db-id' }),
+      findFirstOrThrow: vi.fn().mockResolvedValue({ id: 'test-db-id' })
+    },
+    issue: {
+      findMany: vi.fn().mockResolvedValue([]),
+      findFirst: vi.fn().mockResolvedValue(null),
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockResolvedValue({ id: 'test-id' }),
+      update: vi.fn().mockResolvedValue({ id: 'test-id' }),
+      delete: vi.fn().mockResolvedValue({ id: 'test-id' }),
+      findFirstOrThrow: vi.fn().mockResolvedValue({ id: 'test-id' })
+    },
+    pullRequest: {
+      findMany: vi.fn().mockResolvedValue([]),
+      findFirst: vi.fn().mockResolvedValue(null),
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockResolvedValue({ id: 'test-id' }),
+      update: vi.fn().mockResolvedValue({ id: 'test-id' }),
+      delete: vi.fn().mockResolvedValue({ id: 'test-id' }),
+      findFirstOrThrow: vi.fn().mockResolvedValue({ id: 'test-id' })
+    },
+    task: {
+      findMany: vi.fn().mockResolvedValue([]),
+      findFirst: vi.fn().mockResolvedValue(null),
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockResolvedValue({ id: 'test-id' }),
+      update: vi.fn().mockResolvedValue({ id: 'test-id' }),
+      delete: vi.fn().mockResolvedValue({ id: 'test-id' }),
+      findFirstOrThrow: vi.fn().mockResolvedValue({ id: 'test-id' })
+    },
+    agent: {
+      findMany: vi.fn().mockResolvedValue([]),
+      findFirst: vi.fn().mockResolvedValue(null),
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockResolvedValue({ id: 'test-id' }),
+      update: vi.fn().mockResolvedValue({ id: 'test-id' }),
+      delete: vi.fn().mockResolvedValue({ id: 'test-id' }),
+      findFirstOrThrow: vi.fn().mockResolvedValue({ id: 'test-id' })
+    },
+    $disconnect: vi.fn().mockResolvedValue(undefined)
+  };
+
+  class MockPrismaClient {
+    constructor() {
+      return mockPrismaClient;
+    }
+  }
+
+  return {
+    PrismaClient: MockPrismaClient
+  };
+});
+
 vi.mock('dockerode', () => {
   const mockContainer = {
     start: vi.fn().mockResolvedValue(undefined),
