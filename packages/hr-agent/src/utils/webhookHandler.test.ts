@@ -21,6 +21,8 @@ vi.mock('./docker/getContainer.js', () => ({
   getContainerByName: vi.fn()
 }));
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 describe('webhookHandler CA 功能测试', () => {
   const prismaMock = {
     task: {
@@ -51,7 +53,7 @@ describe('webhookHandler CA 功能测试', () => {
         caId: 123,
         codingAgent: { id: 123, caName: 'test-ca' }
       };
-      prismaMock.task.findFirst.mockResolvedValue(mockTask);
+      (prismaMock.task.findFirst as any).mockResolvedValue(mockTask);
 
       const result = await caExistsForIssue(42);
       expect(result).toBe(true);
@@ -67,7 +69,7 @@ describe('webhookHandler CA 功能测试', () => {
     });
 
     it('当 CA 不存在时应该返回 false', async () => {
-      prismaMock.task.findFirst.mockResolvedValue(null);
+      (prismaMock.task.findFirst as any).mockResolvedValue(null);
 
       const result = await caExistsForIssue(42);
       expect(result).toBe(false);
@@ -79,7 +81,7 @@ describe('webhookHandler CA 功能测试', () => {
         caId: null,
         codingAgent: null
       };
-      prismaMock.task.findFirst.mockResolvedValue(mockTask);
+      (prismaMock.task.findFirst as any).mockResolvedValue(mockTask);
 
       const result = await caExistsForIssue(42);
       expect(result).toBe(false);
@@ -94,8 +96,8 @@ describe('webhookHandler CA 功能测试', () => {
     };
 
     it('当容器已存在时应记录现有的 CA', async () => {
-      prismaMock.codingAgent.findFirst.mockResolvedValue(null);
-      prismaMock.codingAgent.create.mockResolvedValue({ id: 123 });
+      (prismaMock.codingAgent.findFirst as any).mockResolvedValue(null);
+      (prismaMock.codingAgent.create as any).mockResolvedValue({ id: 123 });
       vi.mocked(getContainerByName).mockResolvedValue({
         id: 'existing-container-id',
         name: 'ca-test_ca_42',
@@ -112,7 +114,7 @@ describe('webhookHandler CA 功能测试', () => {
     });
 
     it('当容器已存在且 CA 记录已存在时应返回错误', async () => {
-      prismaMock.codingAgent.findFirst.mockResolvedValue({
+      (prismaMock.codingAgent.findFirst as any).mockResolvedValue({
         id: 123,
         caName: 'test_ca_42'
       });
@@ -131,15 +133,15 @@ describe('webhookHandler CA 功能测试', () => {
     });
 
     it('当容器不存在时应创建新容器', async () => {
-      prismaMock.codingAgent.findFirst.mockResolvedValue(null);
+      (prismaMock.codingAgent.findFirst as any).mockResolvedValue(null);
       vi.mocked(getContainerByName).mockResolvedValue(null);
       vi.mocked(createContainer).mockResolvedValue('new-container-id');
-      prismaMock.codingAgent.create.mockResolvedValue({ id: 123 });
-      prismaMock.issue.findUnique.mockResolvedValue({
+      (prismaMock.codingAgent.create as any).mockResolvedValue({ id: 123 });
+      (prismaMock.issue.findUnique as any).mockResolvedValue({
         id: 1,
         issueId: 42
       });
-      prismaMock.task.create.mockResolvedValue({ id: 1 });
+      (prismaMock.task.create as any).mockResolvedValue({ id: 1 });
 
       const result = await createCAForIssue(42, mockMetadata);
 
@@ -150,11 +152,11 @@ describe('webhookHandler CA 功能测试', () => {
     });
 
     it('当 issue 不存在时应返回错误', async () => {
-      prismaMock.codingAgent.findFirst.mockResolvedValue(null);
+      (prismaMock.codingAgent.findFirst as any).mockResolvedValue(null);
       vi.mocked(getContainerByName).mockResolvedValue(null);
       vi.mocked(createContainer).mockResolvedValue('new-container-id');
-      prismaMock.codingAgent.create.mockResolvedValue({ id: 123 });
-      prismaMock.issue.findUnique.mockResolvedValue(null);
+      (prismaMock.codingAgent.create as any).mockResolvedValue({ id: 123 });
+      (prismaMock.issue.findUnique as any).mockResolvedValue(null);
 
       const result = await createCAForIssue(42, mockMetadata);
 
@@ -163,7 +165,7 @@ describe('webhookHandler CA 功能测试', () => {
     });
 
     it('当创建容器失败时应处理错误', async () => {
-      prismaMock.codingAgent.findFirst.mockResolvedValue(null);
+      (prismaMock.codingAgent.findFirst as any).mockResolvedValue(null);
       vi.mocked(getContainerByName).mockResolvedValue(null);
       vi.mocked(createContainer).mockRejectedValue(new Error('Docker error'));
 
@@ -176,14 +178,17 @@ describe('webhookHandler CA 功能测试', () => {
 
   describe('集成测试', () => {
     it('应该完整处理 issue opened 事件创建 CA', async () => {
-      prismaMock.task.findFirst.mockResolvedValue(null);
-      prismaMock.codingAgent.findFirst.mockResolvedValue(null);
-      prismaMock.issue.create.mockResolvedValue({ id: 1, issueId: 42 });
-      prismaMock.issue.findUnique.mockResolvedValue({ id: 1, issueId: 42 });
+      (prismaMock.task.findFirst as any).mockResolvedValue(null);
+      (prismaMock.codingAgent.findFirst as any).mockResolvedValue(null);
+      (prismaMock.issue.create as any).mockResolvedValue({ id: 1, issueId: 42 });
+      (prismaMock.issue.findUnique as any).mockResolvedValue({ id: 1, issueId: 42 });
       vi.mocked(getContainerByName).mockResolvedValue(null);
       vi.mocked(createContainer).mockResolvedValue('test-container-id');
-      prismaMock.codingAgent.create.mockResolvedValue({ id: 123, caName: 'hra_ca_42' });
-      prismaMock.task.create.mockResolvedValue({ id: 1 });
+      (prismaMock.codingAgent.create as any).mockResolvedValue({
+        id: 123,
+        caName: 'hra_ca_42'
+      });
+      (prismaMock.task.create as any).mockResolvedValue({ id: 1 });
 
       await createIssueFromWebhook(
         42,
