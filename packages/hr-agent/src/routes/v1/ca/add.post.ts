@@ -85,7 +85,9 @@ async function createDockerContainer(name: string): Promise<{
 
   await container.start();
 
-  await docker.getNetwork(DOCKER_CONFIG.HR_NETWORK).connect({ Container: containerName });
+  if (DOCKER_CONFIG.HR_NETWORK !== DOCKER_CONFIG.NETWORK) {
+    await docker.getNetwork(DOCKER_CONFIG.HR_NETWORK).connect({ Container: containerName });
+  }
 
   const containerInfo = await container.inspect();
 

@@ -21,6 +21,6 @@ export const DOCKER_CONFIG = {
   BASE_PORT,
   NETWORK: process.env.DOCKER_NETWORK ?? 'hr-network',
   SECRET: getDockerCASecret(),
-  HR_NETWORK: process.env.HR_NETWORK ?? 'default',
+  HR_NETWORK: process.env.HR_NETWORK ?? 'hr-network',
   NAME_PREFIX: namePrefix
 } as const;
