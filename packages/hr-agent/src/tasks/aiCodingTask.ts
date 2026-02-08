@@ -1,7 +1,5 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
-import { createOpencodeClient } from '@opencode-ai/sdk';
-import { DOCKER_CONFIG } from '../config/docker.js';
 import { getPrismaClient } from '../utils/database.js';
 
 export class AiCodingTask extends BaseTask {
@@ -20,10 +18,6 @@ export class AiCodingTask extends BaseTask {
     await this.logger.info(context.taskId, this.name, '开始 AI 编码任务', { caName, issueNumber });
 
     try {
-      createOpencodeClient({
-        baseUrl: `http://${caName}:${DOCKER_CONFIG.PORT}`
-      });
-
       const prisma = getPrismaClient();
       const issue = await prisma.issue.findUnique({
         where: { issueId: issueNumber }
@@ -33,7 +27,7 @@ export class AiCodingTask extends BaseTask {
         throw new Error(`Issue #${issueNumber} 未找到`);
       }
 
-      await this.logger.info(context.taskId, this.name, 'AI 编码消息已发送', {
+      await this.logger.info(context.taskId, this.name, 'AI 编码任务已触发', {
         caName,
         issueNumber
       });
@@ -41,7 +35,7 @@ export class AiCodingTask extends BaseTask {
       await this.updateTaskMetadata(context.taskId, {
         caName,
         issueNumber,
-        messageSentAt: Date.now()
+        triggeredAt: Date.now()
       });
 
       return {

@@ -230,7 +230,7 @@ async function handleIssuesOpened(data: IssueWebhookPayload): Promise<void> {
     return;
   }
 
-  const taskManager = global.taskManager;
+  const { taskManager } = global;
 
   if (taskManager) {
     await taskManager.run('create_ca', { issueNumber: issueInfo.issueNumber }, priority, issue.id);
@@ -291,7 +291,7 @@ webhooks.on('issues.labeled', async ({ payload }) => {
     return;
   }
 
-  const taskManager = global.taskManager;
+  const { taskManager } = global;
 
   if (taskManager) {
     const priority = getPriorityFromLabelsConfig(issueInfo.labels);

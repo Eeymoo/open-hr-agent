@@ -7,6 +7,7 @@ export class EventBus extends EventEmitter {
     this.setMaxListeners(100);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   register<T = unknown>(
     eventType: TaskEventType,
     handler: (data: T) => void | Promise<void>
@@ -14,6 +15,7 @@ export class EventBus extends EventEmitter {
     this.on(eventType, handler);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   unregister<T = unknown>(
     eventType: TaskEventType,
     handler: (data: T) => void | Promise<void>
@@ -30,6 +32,7 @@ export class EventBus extends EventEmitter {
     return true;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   once<T = unknown>(eventType: TaskEventType, handler: (data: T) => void | Promise<void>): this {
     return super.on(eventType, handler);
   }

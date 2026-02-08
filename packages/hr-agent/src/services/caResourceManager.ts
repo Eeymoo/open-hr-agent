@@ -261,10 +261,7 @@ export class CAResourceManager {
 
       let status: CAResourceStatus = caRecord.status as CAResourceStatus;
 
-      if (
-        (status === 'idle' || status === 'creating') &&
-        (!dockerContainer || !dockerContainer.state)
-      ) {
+      if ((status === 'idle' || status === 'creating') && !dockerContainer?.state) {
         status = 'error';
       }
 

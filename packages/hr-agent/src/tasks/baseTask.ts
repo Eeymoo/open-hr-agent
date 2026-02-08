@@ -35,7 +35,8 @@ export abstract class BaseTask {
     this.logger = logger;
   }
 
-  abstract execute(params: Record<string, unknown>, context: TaskContext): Promise<TaskResult>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  abstract execute(_params: Record<string, unknown>, _context: TaskContext): Promise<TaskResult>;
 
   protected async validateParams(
     params: Record<string, unknown>,

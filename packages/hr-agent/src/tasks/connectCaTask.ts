@@ -1,7 +1,5 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
-import { createOpencodeClient } from '@opencode-ai/sdk';
-import { DOCKER_CONFIG } from '../config/docker.js';
 import { getContainerByName } from '../utils/docker/getContainer.js';
 
 export class ConnectCaTask extends BaseTask {
@@ -19,16 +17,12 @@ export class ConnectCaTask extends BaseTask {
     try {
       await this.waitForContainerReady(caName);
 
-      createOpencodeClient({
-        baseUrl: `http://${caName}:${DOCKER_CONFIG.PORT}`
-      });
-
-      await this.logger.info(context.taskId, this.name, 'CA 连接成功', { caName });
+      await this.logger.info(context.taskId, this.name, 'CA 已准备就绪', { caName });
 
       await this.updateTaskMetadata(context.taskId, {
         caName,
         issueNumber,
-        connectedAt: Date.now()
+        readyAt: Date.now()
       });
 
       return {
@@ -62,6 +56,10 @@ export class ConnectCaTask extends BaseTask {
 
       if (container && container.state) {
         return;
+      }
+
+      if (container && !container.state) {
+        throw new Error(`CA 容器 ${containerName} 状态异常: ${container.status}`);
       }
 
       await new Promise((resolve) => setTimeout(resolve, 1000));

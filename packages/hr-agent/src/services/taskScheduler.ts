@@ -91,7 +91,7 @@ export class TaskScheduler {
       await this.monitor();
     }, TASK_CONFIG.MONITOR_INTERVAL);
 
-    void this.scheduleNext();
+    this.scheduleNext();
   }
 
   stop(): void {
@@ -190,7 +190,7 @@ export class TaskScheduler {
   }
 
   private async allocateCAForTask(task: QueuedTask): Promise<{ id: number } | null> {
-    let ca = await this.caManager.getIdleCA();
+    const ca = await this.caManager.getIdleCA();
 
     if (ca) {
       await this.caManager.allocateCA(task.taskId);
@@ -419,7 +419,7 @@ export class TaskScheduler {
     }
 
     const caStatus = await this.caManager.getCAStatus();
-    await this.logger.info(0, 'Scheduler', `CA 状态监控`, caStatus);
+    await this.logger.info(0, 'Scheduler', 'CA 状态监控', caStatus);
   }
 
   async getStatus(): Promise<SchedulerStatus> {

@@ -1,26 +1,20 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-export enum LogLevel {
-  INFO = 'info',
-  WARN = 'warn',
-  ERROR = 'error'
-}
-
 export interface TaskLogEntry {
   taskId: number;
   taskName: string;
   timestamp: number;
-  level: LogLevel;
+  level: 'info' | 'warn' | 'error';
   message: string;
   data?: Record<string, unknown>;
 }
 
 export class TaskLogger {
   private logDir: string;
-  private currentLogLevel: LogLevel;
+  private currentLogLevel: 'info' | 'warn' | 'error';
 
-  constructor(logDir: string = './logs/tasks', logLevel: LogLevel = LogLevel.INFO) {
+  constructor(logDir: string = './logs/tasks', logLevel: 'info' | 'warn' | 'error' = 'info') {
     this.logDir = logDir;
     this.currentLogLevel = logLevel;
     this.ensureLogDir();
@@ -37,8 +31,8 @@ export class TaskLogger {
     return path.join(this.logDir, `${date}_task_${taskId}.log`);
   }
 
-  private shouldLog(level: LogLevel): boolean {
-    const levels = [LogLevel.INFO, LogLevel.WARN, LogLevel.ERROR];
+  private shouldLog(level: 'info' | 'warn' | 'error'): boolean {
+    const levels: Array<'info' | 'warn' | 'error'> = ['info', 'warn', 'error'];
     return levels.indexOf(level) >= levels.indexOf(this.currentLogLevel);
   }
 
@@ -69,7 +63,7 @@ export class TaskLogger {
       taskId,
       taskName,
       timestamp: Date.now(),
-      level: LogLevel.INFO,
+      level: 'info',
       message,
       data
     });
@@ -85,7 +79,7 @@ export class TaskLogger {
       taskId,
       taskName,
       timestamp: Date.now(),
-      level: LogLevel.WARN,
+      level: 'warn',
       message,
       data
     });
@@ -101,7 +95,7 @@ export class TaskLogger {
       taskId,
       taskName,
       timestamp: Date.now(),
-      level: LogLevel.ERROR,
+      level: 'error',
       message,
       data
     });

@@ -25,16 +25,16 @@ export class ErrorHandlerTask extends BaseTask {
   }
 
   private registerErrorListeners(): void {
-    this.eventBus.register(TASK_EVENTS.TASK_FAILED, async (data) => {
-      await this.handleError(data as ErrorEventData);
+    this.eventBus.register(TASK_EVENTS.TASK_FAILED, async (_data) => {
+      await this.handleError(_data as ErrorEventData);
     });
 
-    this.eventBus.register(TASK_EVENTS.CA_ERROR, async (data) => {
-      await this.handleCAError(data as { caId: number; error: string; issueNumber?: number });
+    this.eventBus.register(TASK_EVENTS.CA_ERROR, async (_data) => {
+      await this.handleCAError(_data as { caId: number; error: string; issueNumber?: number });
     });
 
-    this.eventBus.register(TASK_EVENTS.AI_CODING_ERROR, async (data) => {
-      await this.handleError(data as ErrorEventData);
+    this.eventBus.register(TASK_EVENTS.AI_CODING_ERROR, async (_data) => {
+      await this.handleError(_data as ErrorEventData);
     });
   }
 
@@ -113,6 +113,7 @@ export class ErrorHandlerTask extends BaseTask {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async execute(_params: Record<string, unknown>, _context: TaskContext): Promise<TaskResult> {
     return {
       success: true
