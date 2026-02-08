@@ -21,8 +21,7 @@ interface MockRequest {
 
 interface MockResponse {
   statusCode?: number;
-  // eslint-disable-next-line no-unused-vars
-  json: (data: unknown) => void;
+  json: (_data: unknown) => void;
   end: () => void;
 }
 

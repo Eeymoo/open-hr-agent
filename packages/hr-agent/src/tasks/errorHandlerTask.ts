@@ -113,7 +113,10 @@ export class ErrorHandlerTask extends BaseTask {
     }
   }
 
-  async execute(_params: Record<string, unknown>, _context: TaskContext): Promise<TaskResult> {
+  async execute(
+    _params: Record<string, unknown>,
+    _context: TaskContext
+  ): Promise<TaskResult> {
     return {
       success: true
     };

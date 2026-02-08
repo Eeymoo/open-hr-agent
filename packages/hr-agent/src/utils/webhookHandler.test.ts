@@ -43,12 +43,12 @@ describe('webhookHandler 测试', () => {
 
   describe('createIssueFromWebhook', () => {
     it('应该创建新 issue', async () => {
-      (prismaMock.issue.findUnique as never).mockResolvedValue(null);
-      (prismaMock.issue.create as never).mockResolvedValue({
+      vi.mocked(prismaMock.issue.findUnique).mockResolvedValue(null);
+      vi.mocked(prismaMock.issue.create).mockResolvedValue({
         id: 1,
         issueId: 42,
         issueTitle: 'Test Issue'
-      });
+      } as never);
 
       const result = await createIssueFromWebhook(
         42,
@@ -62,10 +62,10 @@ describe('webhookHandler 测试', () => {
     });
 
     it('当 issue 已存在时应返回错误', async () => {
-      (prismaMock.issue.findUnique as never).mockResolvedValue({
+      vi.mocked(prismaMock.issue.findUnique).mockResolvedValue({
         id: 1,
         issueId: 42
-      });
+      } as never);
 
       const result = await createIssueFromWebhook(
         42,

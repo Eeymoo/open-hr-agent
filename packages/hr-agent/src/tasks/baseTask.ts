@@ -35,7 +35,10 @@ export abstract class BaseTask {
     this.logger = logger;
   }
 
-  abstract execute(_params: Record<string, unknown>, _context: TaskContext): Promise<TaskResult>;
+  abstract execute(
+    _params: Record<string, unknown>,
+    _context: TaskContext
+  ): Promise<TaskResult>;
 
   protected async validateParams(
     params: Record<string, unknown>,

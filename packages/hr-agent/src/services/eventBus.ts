@@ -9,14 +9,14 @@ export class EventBus extends EventEmitter {
 
   register<T = unknown>(
     eventType: TaskEventType,
-    handler: (data: T) => void | Promise<void>
+    handler: (_data: T) => void | Promise<void>
   ): void {
     this.on(eventType, handler);
   }
 
   unregister<T = unknown>(
     eventType: TaskEventType,
-    handler: (data: T) => void | Promise<void>
+    handler: (_data: T) => void | Promise<void>
   ): void {
     this.off(eventType, handler);
   }
@@ -30,7 +30,7 @@ export class EventBus extends EventEmitter {
     return true;
   }
 
-  once<T = unknown>(eventType: TaskEventType, handler: (data: T) => void | Promise<void>): this {
+  once<T = unknown>(eventType: TaskEventType, handler: (_data: T) => void | Promise<void>): this {
     return super.on(eventType, handler);
   }
 
