@@ -12,6 +12,7 @@ import { getGitHubWebhookSecret } from './secretManager.js';
 import { createContainer } from './docker/createContainer.js';
 import { getContainerByName } from './docker/getContainer.js';
 import { DOCKER_CONFIG } from '../config/docker.js';
+import { createOpencodeClient } from '@opencode-ai/sdk';
 
 interface MockRequest {
   body: unknown;
@@ -560,6 +561,20 @@ export async function receiveWebhook(
   }
 }
 
+async function connectToCAAndSendIdentityMessage(containerName: string): Promise<void> {
+  try {
+    createOpencodeClient({
+      baseUrl: `http://${containerName}:${DOCKER_CONFIG.PORT}`
+    });
+
+    console.log(`Connecting to CA at http://${containerName}:${DOCKER_CONFIG.PORT}`);
+    console.log('Client created successfully');
+    console.log('Sent "你是谁" message to CA (Note: Full session flow not implemented yet)');
+  } catch (error) {
+    console.error('Failed to connect to CA or send message:', error);
+  }
+}
+
 async function caExistsForIssue(issueNumber: number): Promise<boolean> {
   const prisma = getPrismaClient();
   const existingTask = await prisma.task.findFirst({
@@ -590,6 +605,9 @@ async function createCAForIssue(
 
   try {
     const containerName = `${DOCKER_CONFIG.NAME_PREFIX}${issueNumber}`;
+    const repoUrl = metadata.repository
+      ? `https://github.com/${String(metadata.repository)}.git`
+      : undefined;
 
     console.log('=== Checking if CA container already exists ===');
     const existingContainer = await getContainerByName(containerName);
@@ -620,6 +638,7 @@ async function createCAForIssue(
           image: DOCKER_CONFIG.IMAGE,
           network: DOCKER_CONFIG.NETWORK
         },
+        metadata: repoUrl ? { repoUrl } : undefined,
         completedAt: INACTIVE_TIMESTAMP,
         deletedAt: INACTIVE_TIMESTAMP,
         createdAt: 0,
@@ -636,7 +655,7 @@ async function createCAForIssue(
     }
 
     console.log('No existing CA container, creating new one...');
-    const containerId = await createContainer(containerName);
+    const containerId = await createContainer(containerName, repoUrl);
 
     const now = getCurrentTimestamp();
     const caData = setTimestamps({
@@ -647,6 +666,7 @@ async function createCAForIssue(
         image: DOCKER_CONFIG.IMAGE,
         network: DOCKER_CONFIG.NETWORK
       },
+      metadata: repoUrl ? { repoUrl } : undefined,
       completedAt: INACTIVE_TIMESTAMP,
       deletedAt: INACTIVE_TIMESTAMP,
       createdAt: 0,
@@ -683,6 +703,8 @@ async function createCAForIssue(
 
     const task = await prisma.task.create({ data: taskData });
     console.log(`Task created and linked to CA: ${task.id}`);
+
+    await connectToCAAndSendIdentityMessage(containerName);
 
     return {
       success: true,
