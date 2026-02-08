@@ -67,7 +67,33 @@ export class CAResourceManager {
 
   async canCreateCA(): Promise<boolean> {
     const status = await this.getCAStatus();
-    return status.total < TASK_CONFIG.MAX_CA_COUNT;
+    const hasIdleCA = status.idle > 0;
+    const hasCreatingCA = status.creating > 0;
+    const atMaxCapacity = status.total >= TASK_CONFIG.MAX_CA_COUNT;
+    const allCAAreBusy = status.busy > 0 && status.busy === status.total;
+    const hasErrorCA = status.error > 0;
+
+    if (hasIdleCA) {
+      return false;
+    }
+
+    if (hasCreatingCA) {
+      return false;
+    }
+
+    if (!atMaxCapacity) {
+      return true;
+    }
+
+    if (allCAAreBusy) {
+      return true;
+    }
+
+    if (hasErrorCA) {
+      return true;
+    }
+
+    return false;
   }
 
   async allocateCA(taskId: number): Promise<CAResource | null> {
@@ -123,6 +149,8 @@ export class CAResourceManager {
 
     const prisma = getPrismaClient();
     const now = getCurrentTimestamp();
+
+    await this.cleanupOldErrorCA();
 
     const caRecord = await prisma.codingAgent.create({
       data: {
@@ -238,6 +266,25 @@ export class CAResourceManager {
       caId,
       caName: caRecord.caName
     });
+  }
+
+  private async cleanupOldErrorCA(): Promise<void> {
+    const allCA = await this.getAllCA();
+    const errorCA = allCA.filter((ca) => ca.status === 'error');
+
+    const totalCount = allCA.length;
+    const errorCount = errorCA.length;
+
+    if (totalCount <= TASK_CONFIG.MAX_CA_COUNT || errorCount === 0) {
+      return;
+    }
+
+    const sortedErrorCA = errorCA.sort((a, b) => a.createdAt - b.createdAt);
+    const [oldestErrorCA] = sortedErrorCA;
+
+    if (oldestErrorCA) {
+      await this.destroyCA(oldestErrorCA.id);
+    }
   }
 
   private async refreshCACache(): Promise<void> {

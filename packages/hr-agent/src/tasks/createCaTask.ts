@@ -1,48 +1,53 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
-import { createContainer } from '../utils/docker/createContainer.js';
-import { DOCKER_CONFIG } from '../config/docker.js';
+import { getContainerByName } from '../utils/docker/getContainer.js';
 
 export class CreateCaTask extends BaseTask {
   readonly name = 'create_ca';
   readonly dependencies: string[] = [];
-  readonly needsCA = false;
+  readonly needsCA = true;
 
   async execute(params: Record<string, unknown>, context: TaskContext): Promise<TaskResult> {
-    await this.validateParams(params, ['issueNumber']);
+    await this.validateParams(params, ['issueNumber', 'caName']);
 
-    const { issueNumber } = params as { issueNumber: number };
+    const { issueNumber, caName } = params as { issueNumber: number; caName: string };
 
-    await this.logger.info(context.taskId, this.name, '开始创建 CA 容器', { issueNumber });
-
-    const containerName = `${DOCKER_CONFIG.NAME_PREFIX}${issueNumber}`;
+    await this.logger.info(context.taskId, this.name, '确认 CA 容器状态', { issueNumber, caName });
 
     try {
-      const containerId = await createContainer(containerName);
+      const container = await getContainerByName(caName);
 
-      await this.logger.info(context.taskId, this.name, 'CA 容器创建成功', {
-        containerId,
-        containerName
+      if (!container) {
+        throw new Error(`CA 容器 ${caName} 不存在`);
+      }
+
+      if (!container.state) {
+        throw new Error(`CA 容器 ${caName} 未运行`);
+      }
+
+      await this.logger.info(context.taskId, this.name, 'CA 容器状态确认成功', {
+        containerId: container.id,
+        containerName: caName
       });
 
       await this.updateTaskMetadata(context.taskId, {
-        containerId,
-        containerName
+        containerId: container.id,
+        containerName: caName
       });
 
       return {
         success: true,
-        data: { containerId, containerName },
+        data: { containerId: container.id, containerName: caName },
         nextEvent: TASK_EVENTS.CA_CREATED,
         nextTask: 'connect_ca',
         nextParams: {
-          caName: containerName,
+          caName,
           issueNumber
         }
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      await this.logger.error(context.taskId, this.name, `CA 容器创建失败: ${errorMessage}`);
+      await this.logger.error(context.taskId, this.name, `CA 容器状态确认失败: ${errorMessage}`);
 
       return {
         success: false,

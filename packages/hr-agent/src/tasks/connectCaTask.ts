@@ -5,7 +5,7 @@ import { getContainerByName } from '../utils/docker/getContainer.js';
 export class ConnectCaTask extends BaseTask {
   readonly name = 'connect_ca';
   readonly dependencies: string[] = ['create_ca'];
-  readonly needsCA = true;
+  readonly needsCA = false;
 
   async execute(params: Record<string, unknown>, context: TaskContext): Promise<TaskResult> {
     await this.validateParams(params, ['caName', 'issueNumber']);

@@ -20,42 +20,9 @@ export class AiCodingTask extends BaseTask {
     await this.logger.info(context.taskId, this.name, '开始 AI 编码任务', { caName, issueNumber });
 
     try {
-      const prisma = getPrismaClient();
-      const issue = await prisma.issue.findUnique({
-        where: { issueId: issueNumber }
-      });
-
-      if (!issue) {
-        throw new Error(`Issue #${issueNumber} 未找到`);
-      }
-
-      await this.logger.info(context.taskId, this.name, '连接到 OpenCode SDK', {
-        caName,
-        baseUrl: `http://${caName}:${DOCKER_CONFIG.PORT}`
-      });
-
-      const client = createOpencodeClient({
-        baseUrl: `http://${caName}:${DOCKER_CONFIG.PORT}`
-      });
-
-      await this.logger.info(context.taskId, this.name, '创建会话', { caName, issueNumber });
-
-      const session = await client.session.create({
-        body: {
-          title: `Issue #${issueNumber}: ${issue.issueTitle}`
-        }
-      });
-
-      if (!session.data) {
-        throw new Error('Session creation failed: no data returned');
-      }
-
-      const sessionId = session.data.id;
-
-      await this.logger.info(context.taskId, this.name, '会话创建成功', {
-        sessionId
-      });
-
+      const issue = await this.fetchIssue(issueNumber);
+      const client = this.createClient(caName);
+      const sessionId = await this.createOpenCodeSession(client, issue, context.taskId, issueNumber);
       await this.updateTaskMetadata(context.taskId, {
         caName,
         issueNumber,
@@ -63,35 +30,7 @@ export class AiCodingTask extends BaseTask {
         triggeredAt: Date.now()
       });
 
-      const promptText = this.buildCodingPrompt(issue);
-
-      await this.logger.info(context.taskId, this.name, '发送 AI 编码提示词', {
-        sessionId,
-        promptLength: promptText.length
-      });
-
-      const result = await client.session.prompt({
-        path: { id: sessionId },
-        body: {
-          model: {
-            providerID: 'anthropic',
-            modelID: 'claude-3-5-sonnet-20241022'
-          },
-          parts: [
-            {
-              type: 'text',
-              text: promptText
-            }
-          ]
-        }
-      });
-
-      const messageId = result.data?.info?.id;
-
-      await this.logger.info(context.taskId, this.name, 'AI 编码提示词已发送', {
-        sessionId,
-        messageId
-      });
+      const messageId = await this.sendPromptToAI(client, sessionId, issue, context.taskId);
 
       return {
         success: true,
@@ -119,6 +58,95 @@ export class AiCodingTask extends BaseTask {
         error: errorMessage
       };
     }
+  }
+
+  private async fetchIssue(issueNumber: number): Promise<{
+    issueId: number;
+    issueTitle: string;
+    issueContent: string | null;
+  }> {
+    const prisma = getPrismaClient();
+    const issue = await prisma.issue.findUnique({
+      where: { issueId: issueNumber }
+    });
+
+    if (!issue) {
+      throw new Error(`Issue #${issueNumber} 未找到`);
+    }
+
+    return issue;
+  }
+
+  private createClient(caName: string): ReturnType<typeof createOpencodeClient> {
+    return createOpencodeClient({
+      baseUrl: `http://${caName}:${DOCKER_CONFIG.PORT}`
+    });
+  }
+
+  private async createOpenCodeSession(
+    client: ReturnType<typeof createOpencodeClient>,
+    issue: { issueId: number; issueTitle: string },
+    taskId: number,
+    issueNumber: number
+  ): Promise<string> {
+    await this.logger.info(taskId, this.name, '创建会话', { issueNumber });
+
+    const session = await client.session.create({
+      body: {
+        title: `Issue #${issueNumber}: ${issue.issueTitle}`
+      }
+    });
+
+    if (!session.data) {
+      throw new Error('Session creation failed: no data returned');
+    }
+
+    const sessionId = session.data.id;
+
+    await this.logger.info(taskId, this.name, '会话创建成功', {
+      sessionId
+    });
+
+    return sessionId;
+  }
+
+  private async sendPromptToAI(
+    client: ReturnType<typeof createOpencodeClient>,
+    sessionId: string,
+    issue: { issueId: number; issueTitle: string; issueContent: string | null },
+    taskId: number
+  ): Promise<string | undefined> {
+    const promptText = this.buildCodingPrompt(issue);
+
+    await this.logger.info(taskId, this.name, '发送 AI 编码提示词', {
+      sessionId,
+      promptLength: promptText.length
+    });
+
+    const result = await client.session.prompt({
+      path: { id: sessionId },
+      body: {
+        model: {
+          providerID: 'anthropic',
+          modelID: 'claude-3-5-sonnet-20241022'
+        },
+        parts: [
+          {
+            type: 'text',
+            text: promptText
+          }
+        ]
+      }
+    });
+
+    const messageId = result.data?.info?.id;
+
+    await this.logger.info(taskId, this.name, 'AI 编码提示词已发送', {
+      sessionId,
+      messageId
+    });
+
+    return messageId;
   }
 
   private buildCodingPrompt(issue: {
