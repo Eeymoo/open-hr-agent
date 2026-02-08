@@ -91,7 +91,58 @@ export class TaskScheduler {
       await this.monitor();
     }, TASK_CONFIG.MONITOR_INTERVAL);
 
+    this.loadQueuedTasks();
+
     this.scheduleNext();
+  }
+
+  private async loadQueuedTasks(): Promise<void> {
+    const prisma = getPrismaClient();
+
+    const queuedTasks = await prisma.task.findMany({
+      where: {
+        status: TASK_STATUS.QUEUED,
+        deletedAt: -2
+      },
+      include: {
+        issue: true,
+        pullRequest: true
+      },
+      orderBy: {
+        priority: 'desc'
+      }
+    });
+
+    for (const taskRecord of queuedTasks) {
+      const task = this.taskRegistry.get(taskRecord.type);
+
+      this.taskQueue.enqueue({
+        taskId: taskRecord.id,
+        taskName: taskRecord.type,
+        params: (taskRecord.metadata as Record<string, unknown>) ?? {},
+        priority: taskRecord.priority,
+        issueId: taskRecord.issueId ?? undefined,
+        prId: taskRecord.prId ?? undefined,
+        retryCount: 0,
+        createdAt: taskRecord.createdAt,
+        dependencies: task?.dependencies ?? []
+      });
+
+      await this.logger.info(
+        taskRecord.id,
+        taskRecord.type,
+        '已从数据库加载到队列',
+        { priority: taskRecord.priority }
+      );
+    }
+
+    if (queuedTasks.length > 0) {
+      await this.logger.info(
+        0,
+        'Scheduler',
+        `已从数据库加载 ${queuedTasks.length} 个待执行任务到队列`
+      );
+    }
   }
 
   stop(): void {
