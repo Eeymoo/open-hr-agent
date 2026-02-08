@@ -41,7 +41,7 @@ export function createMockRequest(
 export function createMockResponse(): {
   res: MockResponse;
   getResponseData: () => { statusCode?: number; data?: unknown } | null;
-  } {
+} {
   let responseData: { statusCode?: number; data?: unknown } | null = null;
 
   const res: MockResponse = {
@@ -292,7 +292,10 @@ async function createIssueForTask(issueInfo: ReturnType<typeof extractIssueInfo>
   await startTaskChain(issueInfo.issueNumber, issueInfo.labels);
 }
 
-async function startTaskChain(issueNumber: number, labels: { name?: string }[] | undefined): Promise<void> {
+async function startTaskChain(
+  issueNumber: number,
+  labels: { name?: string }[] | undefined
+): Promise<void> {
   const prisma = getPrismaClient();
   const issue = await prisma.issue.findUnique({
     where: { issueId: issueNumber }
