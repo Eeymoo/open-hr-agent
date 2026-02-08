@@ -2,7 +2,7 @@ import { getDockerCASecret } from '../utils/secretManager.js';
 
 const MAX_PORT_NUMBER = 65536;
 const DEFAULT_DOCKER_BASE_PORT = 5000;
-const DEFAULT_NAME_PREFIX = 'hra_ca_';
+const DEFAULT_NAME_PREFIX = 'hra_';
 
 const basePortInput = parseInt(
   process.env.DOCKER_BASE_PORT ?? String(DEFAULT_DOCKER_BASE_PORT),

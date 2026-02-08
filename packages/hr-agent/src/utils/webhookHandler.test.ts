@@ -21,6 +21,13 @@ vi.mock('./docker/getContainer.js', () => ({
   getContainerByName: vi.fn()
 }));
 
+vi.mock('@opencode-ai/sdk', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    connect: vi.fn().mockResolvedValue(undefined),
+    sendMessage: vi.fn().mockResolvedValue(undefined)
+  }))
+}));
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 describe('webhookHandler CA 功能测试', () => {
@@ -100,7 +107,7 @@ describe('webhookHandler CA 功能测试', () => {
       (prismaMock.codingAgent.create as any).mockResolvedValue({ id: 123 });
       vi.mocked(getContainerByName).mockResolvedValue({
         id: 'existing-container-id',
-        name: 'ca-test_ca_42',
+        name: 'ca-hra_42',
         status: 'running',
         state: true,
         created: '2024-01-01T00:00:00Z'
@@ -116,11 +123,11 @@ describe('webhookHandler CA 功能测试', () => {
     it('当容器已存在且 CA 记录已存在时应返回错误', async () => {
       (prismaMock.codingAgent.findFirst as any).mockResolvedValue({
         id: 123,
-        caName: 'test_ca_42'
+        caName: 'hra_42'
       });
       vi.mocked(getContainerByName).mockResolvedValue({
         id: 'existing-container-id',
-        name: 'ca-test_ca_42',
+        name: 'ca-hra_42',
         status: 'running',
         state: true,
         created: '2024-01-01T00:00:00Z'
@@ -146,7 +153,7 @@ describe('webhookHandler CA 功能测试', () => {
       const result = await createCAForIssue(42, mockMetadata);
 
       expect(result.success).toBe(true);
-      expect(createContainer).toHaveBeenCalledWith('hra_ca_42');
+      expect(createContainer).toHaveBeenCalledWith('hra_42', 'https://github.com/test/repo.git');
       expect(prismaMock.codingAgent.create).toHaveBeenCalled();
       expect(prismaMock.task.create).toHaveBeenCalled();
     });
@@ -186,7 +193,7 @@ describe('webhookHandler CA 功能测试', () => {
       vi.mocked(createContainer).mockResolvedValue('test-container-id');
       (prismaMock.codingAgent.create as any).mockResolvedValue({
         id: 123,
-        caName: 'hra_ca_42'
+        caName: 'hra_42'
       });
       (prismaMock.task.create as any).mockResolvedValue({ id: 1 });
 
@@ -204,7 +211,7 @@ describe('webhookHandler CA 功能测试', () => {
       });
 
       expect(caResult.success).toBe(true);
-      expect(createContainer).toHaveBeenCalledWith('hra_ca_42');
+      expect(createContainer).toHaveBeenCalledWith('hra_42', 'https://github.com/test/repo.git');
     });
   });
 });

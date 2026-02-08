@@ -4,12 +4,18 @@ import { DOCKER_CONFIG } from '../../config/docker.js';
 const docker = new Docker();
 const MAX_PORT = 65535;
 
-export async function createContainer(name: string): Promise<string> {
+export async function createContainer(name: string, repoUrl?: string): Promise<string> {
   console.log('=== Creating CA Docker Container ===');
-  console.log(`Container Name: ca-${name}`);
+  console.log(`Container Name: ${name}`);
   console.log(`Image: ${DOCKER_CONFIG.IMAGE}`);
   console.log(`Port Mapping: ${DOCKER_CONFIG.PORT} -> host port (dynamically allocated)`);
   console.log(`Network: ${DOCKER_CONFIG.NETWORK}`);
+  if (repoUrl) {
+    console.log(`Repository URL: ${repoUrl}`);
+  }
+  if (repoUrl) {
+    console.log(`Repository URL: ${repoUrl}`);
+  }
 
   const port =
     DOCKER_CONFIG.BASE_PORT + Math.floor(Math.random() * (MAX_PORT - DOCKER_CONFIG.BASE_PORT));
@@ -18,10 +24,15 @@ export async function createContainer(name: string): Promise<string> {
 
   try {
     console.log('Creating Docker container...');
+    const envVars = [`PORT=${DOCKER_CONFIG.PORT}`, `OPENCODE_SERVER_PASSWORD=${DOCKER_CONFIG.SECRET}`];
+    if (repoUrl) {
+      envVars.push(`REPO_URL=${repoUrl}`);
+    }
+
     const container = await docker.createContainer({
-      name: `ca-${name}`,
+      name,
       Image: DOCKER_CONFIG.IMAGE,
-      Env: [`PORT=${DOCKER_CONFIG.PORT}`, `OPENCODE_SERVER_PASSWORD=${DOCKER_CONFIG.SECRET}`],
+      Env: envVars,
       HostConfig: {
         PortBindings: {
           [`${DOCKER_CONFIG.PORT}/tcp`]: [{ HostPort: port.toString() }]
@@ -37,7 +48,7 @@ export async function createContainer(name: string): Promise<string> {
 
     console.log('=== CA Docker Container Created Successfully ===');
     console.log(`Container ID: ${container.id}`);
-    console.log(`Container Name: ca-${name}`);
+    console.log(`Container Name: ${name}`);
     console.log(`Host Port: ${port}`);
     console.log(`Container Port: ${DOCKER_CONFIG.PORT}`);
     console.log(`Network: ${DOCKER_CONFIG.NETWORK}`);

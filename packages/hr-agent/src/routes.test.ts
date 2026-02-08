@@ -13,6 +13,10 @@ const HTTP_STATUS = {
   UNAUTHORIZED: 401
 } as const;
 
+vi.mock('@opencode-ai/sdk', () => ({
+  createOpencodeClient: vi.fn().mockReturnValue({})
+}));
+
 vi.mock('@prisma/client', () => {
   const mockPrismaClient = {
     codingAgent: {
@@ -141,8 +145,8 @@ describe('CA Routes Tests', () => {
 
     expect(response.status).toBe(HTTP_STATUS.OK);
     expect(response.body).toHaveProperty('code', HTTP_STATUS.OK);
-    expect(response.body.data).toHaveProperty('name', 'hra_ca_test-container');
-    expect(response.body.data).toHaveProperty('containerName', 'ca-hra_ca_test-container');
+    expect(response.body.data).toHaveProperty('name', 'hra_test-container');
+    expect(response.body.data).toHaveProperty('containerName', 'hra_test-container');
     expect(response.body.data).toHaveProperty('internalUrl');
     expect(response.body.data).toHaveProperty('message', 'Docker container created successfully');
   });
@@ -155,8 +159,8 @@ describe('CA Routes Tests', () => {
 
     expect(response.status).toBe(HTTP_STATUS.OK);
     expect(response.body).toHaveProperty('code', HTTP_STATUS.OK);
-    expect(response.body.data).toHaveProperty('name', 'hra_ca_123');
-    expect(response.body.data).toHaveProperty('containerName', 'ca-hra_ca_123');
+    expect(response.body.data).toHaveProperty('name', 'hra_123');
+    expect(response.body.data).toHaveProperty('containerName', 'hra_123');
     expect(response.body.data).toHaveProperty('internalUrl');
     expect(response.body.data).toHaveProperty('message', 'Docker container created successfully');
   });
