@@ -9,6 +9,9 @@ import {
   INACTIVE_TIMESTAMP
 } from './database.js';
 import { getGitHubWebhookSecret } from './secretManager.js';
+import { createContainer } from './docker/createContainer.js';
+import { getContainerByName } from './docker/getContainer.js';
+import { DOCKER_CONFIG } from '../config/docker.js';
 
 interface MockRequest {
   body: unknown;
@@ -290,65 +293,23 @@ async function handleIssuesOpened(data: IssueWebhookPayload): Promise<void> {
 
   console.log('Issue created successfully:', issueResult.data);
 
-  const taskResult = await createTaskFromIssue(issueInfo.issueNumber, issueInfo.labels, {
+  if (await caExistsForIssue(issueInfo.issueNumber)) {
+    console.log('CA already exists for issue, skipping CA creation');
+    return;
+  }
+
+  const caResult = await createCAForIssue(issueInfo.issueNumber, {
     repository: data.repository.full_name,
     sender: data.sender?.login,
     action: data.action
   });
 
-  if (!taskResult.success) {
-    console.error('Failed to create task:', taskResult.error);
+  if (!caResult.success) {
+    console.error('Failed to create CA for issue:', caResult.error);
     return;
   }
 
-  console.log('Task created successfully:', taskResult.data);
-}
-
-async function ensureIssueAndCreateTask(
-  issueInfo: IssueInfo,
-  metadata: Record<string, unknown>
-): Promise<boolean> {
-  const issueResult = await createIssueFromWebhook(
-    issueInfo.issueNumber,
-    issueInfo.issueUrl,
-    issueInfo.issueTitle,
-    issueInfo.issueContent ?? ''
-  );
-
-  if (!issueResult.success) {
-    const errorMessage = String(issueResult.error ?? '');
-    if (!errorMessage.includes('Issue with this issueId already exists')) {
-      console.error('Failed to create issue:', issueResult.error);
-      return false;
-    }
-    console.log('Issue already exists, continuing to create task');
-  }
-
-  const taskResult = await createTaskFromIssue(issueInfo.issueNumber, issueInfo.labels, metadata);
-
-  if (!taskResult.success) {
-    console.error('Failed to create task:', taskResult.error);
-    return false;
-  }
-
-  console.log('Task created successfully:', taskResult.data);
-  return true;
-}
-
-async function taskExistsForIssue(issueNumber: number): Promise<boolean> {
-  const prisma = getPrismaClient();
-  const existingTask = await prisma.task.findFirst({
-    where: {
-      issue: { issueId: issueNumber }
-    }
-  });
-
-  if (existingTask) {
-    console.log(`Task already exists for issue #${issueNumber}, skipping creation`);
-    return true;
-  }
-
-  return false;
+  console.log('CA created successfully for issue:', caResult.data);
 }
 
 async function handleIssuesLabeled(data: IssueWebhookPayload): Promise<void> {
@@ -367,19 +328,43 @@ async function handleIssuesLabeled(data: IssueWebhookPayload): Promise<void> {
     return;
   }
 
-  if (await taskExistsForIssue(issueInfo.issueNumber)) {
-    return;
-  }
-
   console.log('=== Issues Webhook: labeled with hra ===');
   console.log(`Repository: ${repository.full_name}`);
   console.log(`Issue #${issueInfo.issueNumber}: ${issueInfo.issueTitle}`);
 
-  await ensureIssueAndCreateTask(issueInfo, {
+  const issueResult = await createIssueFromWebhook(
+    issueInfo.issueNumber,
+    issueInfo.issueUrl,
+    issueInfo.issueTitle,
+    issueInfo.issueContent ?? ''
+  );
+
+  if (!issueResult.success) {
+    const errorMessage = String(issueResult.error ?? '');
+    if (!errorMessage.includes('Issue with this issueId already exists')) {
+      console.error('Failed to create issue:', issueResult.error);
+      return;
+    }
+    console.log('Issue already exists, continuing to create CA');
+  }
+
+  if (await caExistsForIssue(issueInfo.issueNumber)) {
+    console.log('CA already exists for issue, skipping CA creation');
+    return;
+  }
+
+  const caResult = await createCAForIssue(issueInfo.issueNumber, {
     repository: repository.full_name,
     sender: data.sender?.login,
     action: data.action
   });
+
+  if (!caResult.success) {
+    console.error('Failed to create CA for issue:', caResult.error);
+    return;
+  }
+
+  console.log('CA created successfully for issue:', caResult.data);
 }
 
 webhooks.on('issues.opened', async ({ payload }) => {
@@ -429,6 +414,58 @@ webhooks.on('issues.reopened', async ({ payload }) => {
   } catch (error) {
     console.error('Failed to update task status:', error instanceof Error ? error.message : error);
   }
+});
+
+webhooks.on('issues.edited', async ({ payload }) => {
+  const data = payload as IssueWebhookPayload;
+  const issueInfo = extractIssueInfo(data);
+
+  if (!issueInfo || !data.issue?.number) {
+    console.log('Invalid issues.edited payload: missing issue data');
+    return;
+  }
+
+  console.log('=== Issues Webhook: edited ===');
+  console.log(`Issue #${data.issue.number}: ${data.issue.title}`);
+
+  if (!hasHraLabel(issueInfo.labels)) {
+    console.log('Issue does not have "hra" label, skipping CA creation');
+    return;
+  }
+
+  const issueResult = await createIssueFromWebhook(
+    issueInfo.issueNumber,
+    issueInfo.issueUrl,
+    issueInfo.issueTitle,
+    issueInfo.issueContent ?? ''
+  );
+
+  if (!issueResult.success) {
+    const errorMessage = String(issueResult.error ?? '');
+    if (!errorMessage.includes('Issue with this issueId already exists')) {
+      console.error('Failed to create issue:', issueResult.error);
+      return;
+    }
+    console.log('Issue already exists, continuing to create CA');
+  }
+
+  if (await caExistsForIssue(issueInfo.issueNumber)) {
+    console.log('CA already exists for issue, skipping CA creation');
+    return;
+  }
+
+  const caResult = await createCAForIssue(issueInfo.issueNumber, {
+    repository: data.repository?.full_name,
+    sender: data.sender?.login,
+    action: data.action
+  });
+
+  if (!caResult.success) {
+    console.error('Failed to create CA for issue:', caResult.error);
+    return;
+  }
+
+  console.log('CA created successfully for issue:', caResult.data);
 });
 
 webhooks.on('issues.closed', async ({ payload }) => {
@@ -522,3 +559,142 @@ export async function receiveWebhook(
     };
   }
 }
+
+async function caExistsForIssue(issueNumber: number): Promise<boolean> {
+  const prisma = getPrismaClient();
+  const existingTask = await prisma.task.findFirst({
+    where: {
+      issue: { issueId: issueNumber },
+      caId: { not: null }
+    },
+    include: {
+      codingAgent: true
+    }
+  });
+
+  if (existingTask && existingTask.codingAgent) {
+    console.log(
+      `CA already exists for issue #${issueNumber}, CA ID: ${existingTask.codingAgent.id}`
+    );
+    return true;
+  }
+
+  return false;
+}
+
+async function createCAForIssue(
+  issueNumber: number,
+  metadata: Record<string, unknown>
+): Promise<{ success: boolean; data?: unknown; error?: string }> {
+  const prisma = getPrismaClient();
+
+  try {
+    const containerName = `${DOCKER_CONFIG.NAME_PREFIX}${issueNumber}`;
+
+    console.log('=== Checking if CA container already exists ===');
+    const existingContainer = await getContainerByName(containerName);
+
+    if (existingContainer) {
+      console.log(`CA container already exists: ${existingContainer.id}`);
+
+      const existingCA = await prisma.codingAgent.findFirst({
+        where: {
+          caName: containerName,
+          deletedAt: INACTIVE_TIMESTAMP
+        }
+      });
+
+      if (existingCA) {
+        console.log(`CA record already exists in database: ${existingCA.id}`);
+        return {
+          success: false,
+          error: 'CA already exists for this issue'
+        };
+      }
+
+      const caData = setTimestamps({
+        caName: containerName,
+        containerId: existingContainer.id,
+        status: 'running',
+        dockerConfig: {
+          image: DOCKER_CONFIG.IMAGE,
+          network: DOCKER_CONFIG.NETWORK
+        },
+        completedAt: INACTIVE_TIMESTAMP,
+        deletedAt: INACTIVE_TIMESTAMP,
+        createdAt: 0,
+        updatedAt: 0
+      });
+
+      const caRecord = await prisma.codingAgent.create({ data: caData });
+      console.log(`CA record created in database: ${caRecord.id}`);
+
+      return {
+        success: true,
+        data: caRecord
+      };
+    }
+
+    console.log('No existing CA container, creating new one...');
+    const containerId = await createContainer(containerName);
+
+    const now = getCurrentTimestamp();
+    const caData = setTimestamps({
+      caName: containerName,
+      containerId,
+      status: 'running',
+      dockerConfig: {
+        image: DOCKER_CONFIG.IMAGE,
+        network: DOCKER_CONFIG.NETWORK
+      },
+      completedAt: INACTIVE_TIMESTAMP,
+      deletedAt: INACTIVE_TIMESTAMP,
+      createdAt: 0,
+      updatedAt: 0
+    });
+
+    const caRecord = await prisma.codingAgent.create({ data: caData });
+    console.log(`CA record created in database: ${caRecord.id}`);
+
+    const issue = await prisma.issue.findUnique({
+      where: { issueId: issueNumber }
+    });
+
+    if (!issue) {
+      console.error(`Issue #${issueNumber} not found in database`);
+      return {
+        success: false,
+        error: 'Issue not found'
+      };
+    }
+
+    const taskData: Prisma.TaskCreateInput = {
+      type: 'issue_processing',
+      status: 'in_progress',
+      priority: 2,
+      issue: { connect: { id: issue.id } },
+      codingAgent: { connect: { id: caRecord.id } },
+      metadata: metadata as Prisma.InputJsonValue,
+      completedAt: INACTIVE_TIMESTAMP,
+      deletedAt: INACTIVE_TIMESTAMP,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    const task = await prisma.task.create({ data: taskData });
+    console.log(`Task created and linked to CA: ${task.id}`);
+
+    return {
+      success: true,
+      data: { ca: caRecord, task }
+    };
+  } catch (error) {
+    console.error('Failed to create CA for issue:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
+}
+
+export { caExistsForIssue, createCAForIssue };
