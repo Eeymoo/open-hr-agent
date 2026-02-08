@@ -3,6 +3,7 @@ import { CAResourceManager } from './caResourceManager.js';
 import { EventBus } from './eventBus.js';
 import { RetryManager } from '../utils/retryManager.js';
 import { TaskLogger } from '../utils/taskLogger.js';
+import { TaskGarbageCollector } from './taskGarbageCollector.js';
 import { getPrismaClient, getCurrentTimestamp } from '../utils/database.js';
 import { TASK_CONFIG } from '../config/taskConfig.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
@@ -29,6 +30,7 @@ export class TaskScheduler {
   private eventBus: EventBus;
   private retryManager: RetryManager;
   private logger: TaskLogger;
+  private garbageCollector: TaskGarbageCollector;
   private taskRegistry: Map<string, BaseTask>;
   private runningTasks: Set<number> = new Set();
   private monitoringInterval: NodeJS.Timeout | null = null;
@@ -41,6 +43,7 @@ export class TaskScheduler {
     this.caManager = new CAResourceManager(eventBus);
     this.retryManager = new RetryManager();
     this.logger = new TaskLogger();
+    this.garbageCollector = new TaskGarbageCollector();
 
     this.registerEventListeners();
   }
@@ -53,6 +56,7 @@ export class TaskScheduler {
       }
       this.runningTasks.delete(taskId);
       this.retryManager.clearRetry(taskId);
+      await this.garbageCollector.collect();
     });
 
     this.eventBus.register(TASK_EVENTS.TASK_FAILED, async (data) => {
@@ -62,13 +66,28 @@ export class TaskScheduler {
       }
       this.runningTasks.delete(taskId);
       this.retryManager.clearRetry(taskId);
+      await this.garbageCollector.collect();
+    });
+
+    this.eventBus.register(TASK_EVENTS.TASK_TIMEOUT, async () => {
+      await this.garbageCollector.collect();
+    });
+
+    this.eventBus.register(TASK_EVENTS.TASK_CANCELLED, async () => {
+      await this.garbageCollector.collect();
+    });
+
+    this.eventBus.register(TASK_EVENTS.CA_ERROR, async () => {
+      await this.garbageCollector.collect();
     });
 
     this.eventBus.register(TASK_EVENTS.CA_CREATED, async () => {
+      await this.garbageCollector.collect();
       await this.scheduleNext();
     });
 
     this.eventBus.register(TASK_EVENTS.CA_RELEASED, async () => {
+      await this.garbageCollector.collect();
       await this.scheduleNext();
     });
 
@@ -77,6 +96,7 @@ export class TaskScheduler {
       if (caId) {
         await this.caManager.destroyCA(caId);
       }
+      await this.garbageCollector.collect();
     });
   }
 
@@ -128,12 +148,9 @@ export class TaskScheduler {
         dependencies: task?.dependencies ?? []
       });
 
-      await this.logger.info(
-        taskRecord.id,
-        taskRecord.type,
-        '已从数据库加载到队列',
-        { priority: taskRecord.priority }
-      );
+      await this.logger.info(taskRecord.id, taskRecord.type, '已从数据库加载到队列', {
+        priority: taskRecord.priority
+      });
     }
 
     if (queuedTasks.length > 0) {
@@ -221,6 +238,7 @@ export class TaskScheduler {
 
     const task = this.taskQueue.dequeue();
     if (!task) {
+      await this.garbageCollector.collect();
       return;
     }
 
