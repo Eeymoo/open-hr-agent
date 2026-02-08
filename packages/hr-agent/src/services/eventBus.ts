@@ -4,6 +4,7 @@ import type { TaskEventType } from '../config/taskEvents.js';
 export class EventBus extends EventEmitter {
   constructor() {
     super();
+    // eslint-disable-next-line no-magic-numbers
     this.setMaxListeners(100);
   }
 

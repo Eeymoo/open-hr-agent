@@ -17,7 +17,7 @@ export class DestroyCaTask extends BaseTask {
     try {
       const container = await getContainerByName(caName);
 
-      if (container && container.id) {
+      if (container?.id) {
         await deleteContainer(container.id);
         await this.logger.info(context.taskId, this.name, 'CA 容器销毁成功', { caName });
       } else {
