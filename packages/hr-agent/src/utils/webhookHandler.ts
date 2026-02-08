@@ -41,7 +41,7 @@ export function createMockRequest(
 export function createMockResponse(): {
   res: MockResponse;
   getResponseData: () => { statusCode?: number; data?: unknown } | null;
-  } {
+} {
   let responseData: { statusCode?: number; data?: unknown } | null = null;
 
   const res: MockResponse = {
@@ -287,6 +287,19 @@ webhooks.on('issues.labeled', async ({ payload }) => {
 
   if (!issue) {
     console.error('Issue not found in database');
+    return;
+  }
+
+  const existingTask = await prisma.task.findFirst({
+    where: {
+      issue: { issueId: issueInfo.issueNumber },
+      type: 'create_ca',
+      status: { in: ['queued', 'running', 'retrying', 'planned'] }
+    }
+  });
+
+  if (existingTask) {
+    console.log(`Task already exists for issue #${issueInfo.issueNumber}, skipping task creation`);
     return;
   }
 
