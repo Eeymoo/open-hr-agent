@@ -107,6 +107,7 @@ export class TaskScheduler {
     }
   }
 
+  // eslint-disable-next-line max-params
   async addTask(
     taskName: string,
     params: Record<string, unknown>,
@@ -234,6 +235,7 @@ export class TaskScheduler {
         throw new Error(`CA ${caId} 创建失败`);
       }
 
+      // eslint-disable-next-line no-magic-numbers
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
@@ -405,6 +407,7 @@ export class TaskScheduler {
     });
 
     for (const task of runningTasks) {
+      // eslint-disable-next-line no-magic-numbers
       const elapsed = (now - task.updatedAt) * 1000;
 
       if (elapsed > TASK_CONFIG.TASK_TIMEOUT) {

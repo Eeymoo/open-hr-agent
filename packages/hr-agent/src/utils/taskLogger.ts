@@ -27,7 +27,7 @@ export class TaskLogger {
   }
 
   private getLogFile(taskId: number): string {
-    const date = new Date().toISOString().split('T')[0];
+    const [date] = new Date().toISOString().split('T');
     return path.join(this.logDir, `${date}_task_${taskId}.log`);
   }
 

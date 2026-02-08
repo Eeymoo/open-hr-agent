@@ -48,13 +48,14 @@ export class ConnectCaTask extends BaseTask {
   }
 
   private async waitForContainerReady(containerName: string): Promise<void> {
-    const maxWait = 60000;
+    const MAX_WAIT_MS = 60000;
+    const CHECK_INTERVAL_MS = 1000;
     const startTime = Date.now();
 
-    while (Date.now() - startTime < maxWait) {
+    while (Date.now() - startTime < MAX_WAIT_MS) {
       const container = await getContainerByName(containerName);
 
-      if (container && container.state) {
+      if (container?.state) {
         return;
       }
 
@@ -62,7 +63,7 @@ export class ConnectCaTask extends BaseTask {
         throw new Error(`CA 容器 ${containerName} 状态异常: ${container.status}`);
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, CHECK_INTERVAL_MS));
     }
 
     throw new Error(`CA 容器 ${containerName} 启动超时`);

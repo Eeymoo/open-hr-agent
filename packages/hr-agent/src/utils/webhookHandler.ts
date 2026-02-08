@@ -41,7 +41,7 @@ export function createMockRequest(
 export function createMockResponse(): {
   res: MockResponse;
   getResponseData: () => { statusCode?: number; data?: unknown } | null;
-} {
+  } {
   let responseData: { statusCode?: number; data?: unknown } | null = null;
 
   const res: MockResponse = {
@@ -243,7 +243,7 @@ webhooks.on('issues.opened', async ({ payload }) => {
   await handleIssuesOpened(payload as IssueWebhookPayload);
 });
 
-webhooks.on('issues.labeled', async ({ payload }) => {
+async function handleIssuesLabeled(payload: unknown): Promise<void> {
   const data = payload as IssueWebhookPayload;
   const issueInfo = extractIssueInfo(data);
   if (!issueInfo || !data.repository) {
@@ -264,6 +264,15 @@ webhooks.on('issues.labeled', async ({ payload }) => {
   console.log(`Repository: ${repository.full_name}`);
   console.log(`Issue #${issueInfo.issueNumber}: ${issueInfo.issueTitle}`);
 
+  await createIssueForTask(issueInfo);
+}
+
+async function createIssueForTask(issueInfo: ReturnType<typeof extractIssueInfo>): Promise<void> {
+  if (!issueInfo) {
+    console.log('Invalid issue info, skipping');
+    return;
+  }
+
   const issueResult = await createIssueFromWebhook(
     issueInfo.issueNumber,
     issueInfo.issueUrl,
@@ -280,9 +289,13 @@ webhooks.on('issues.labeled', async ({ payload }) => {
     console.log('Issue already exists, continuing to create CA');
   }
 
+  await startTaskChain(issueInfo.issueNumber, issueInfo.labels);
+}
+
+async function startTaskChain(issueNumber: number, labels: { name?: string }[] | undefined): Promise<void> {
   const prisma = getPrismaClient();
   const issue = await prisma.issue.findUnique({
-    where: { issueId: issueInfo.issueNumber }
+    where: { issueId: issueNumber }
   });
 
   if (!issue) {
@@ -292,26 +305,30 @@ webhooks.on('issues.labeled', async ({ payload }) => {
 
   const existingTask = await prisma.task.findFirst({
     where: {
-      issue: { issueId: issueInfo.issueNumber },
+      issue: { issueId: issueNumber },
       type: 'create_ca',
       status: { in: ['queued', 'running', 'retrying', 'planned'] }
     }
   });
 
   if (existingTask) {
-    console.log(`Task already exists for issue #${issueInfo.issueNumber}, skipping task creation`);
+    console.log(`Task already exists for issue #${issueNumber}, skipping task creation`);
     return;
   }
 
   const { taskManager } = global;
 
   if (taskManager) {
-    const priority = getPriorityFromLabelsConfig(issueInfo.labels);
-    await taskManager.run('create_ca', { issueNumber: issueInfo.issueNumber }, priority, issue.id);
-    console.log(`Task chain started for issue #${issueInfo.issueNumber} with priority ${priority}`);
+    const priority = getPriorityFromLabelsConfig(labels);
+    await taskManager.run('create_ca', { issueNumber }, priority, issue.id);
+    console.log(`Task chain started for issue #${issueNumber} with priority ${priority}`);
   } else {
     console.error('TaskManager not initialized');
   }
+}
+
+webhooks.on('issues.labeled', async ({ payload }) => {
+  await handleIssuesLabeled(payload);
 });
 
 webhooks.on('issues.reopened', async ({ payload }) => {

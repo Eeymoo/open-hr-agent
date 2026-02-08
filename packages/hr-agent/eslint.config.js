@@ -161,7 +161,8 @@ export default [
   {
     files: ['**/*.test.ts', '**/*.spec.ts'],
     rules: {
-      'max-lines-per-function': 'off'
+      'max-lines-per-function': 'off',
+      'no-magic-numbers': 'off'
     }
   }
 ];

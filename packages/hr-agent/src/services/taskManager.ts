@@ -1,5 +1,5 @@
 import { EventBus } from './eventBus.js';
-import { TaskScheduler } from './taskScheduler.js';
+import { TaskScheduler, type SchedulerStatus } from './taskScheduler.js';
 import { TaskLogger } from '../utils/taskLogger.js';
 
 export class TaskManager {
@@ -21,6 +21,7 @@ export class TaskManager {
     this.logger.info(0, 'TaskManager', '任务管理器已停止');
   }
 
+  // eslint-disable-next-line max-params
   async run(
     taskName: string,
     params: Record<string, unknown>,
@@ -46,7 +47,7 @@ export class TaskManager {
     throw new Error(`无效的 URI: ${uri}`);
   }
 
-  async getStatus() {
+  async getStatus(): Promise<SchedulerStatus> {
     return this.scheduler.getStatus();
   }
 }
