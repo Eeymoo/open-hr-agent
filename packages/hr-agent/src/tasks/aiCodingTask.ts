@@ -126,7 +126,7 @@ export class AiCodingTask extends BaseTask {
     issueTitle: string;
     issueContent: string | null;
   }): string {
-    const issueContent = issue.issueContent || 'No description provided';
+    const issueContent = issue.issueContent ?? 'No description provided';
 
     return `请根据以下 GitHub Issue，完成代码修改任务：
 
