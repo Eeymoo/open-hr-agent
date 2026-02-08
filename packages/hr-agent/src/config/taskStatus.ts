@@ -6,7 +6,12 @@ export const TASK_STATUS = {
   ERROR: 'error',
   PR_SUBMITTED: 'pr_submitted',
   PR_MERGED: 'pr_merged',
-  PR_COMMENTS_RESOLVED: 'pr_comments_resolved'
+  PR_COMMENTS_RESOLVED: 'pr_comments_resolved',
+  QUEUED: 'queued',
+  RUNNING: 'running',
+  RETRYING: 'retrying',
+  TIMEOUT: 'timeout',
+  CANCELLED: 'cancelled'
 } as const;
 
 export const VALID_TASK_STATUSES = Object.values(TASK_STATUS);

@@ -72,7 +72,10 @@ async function ensureNetworkExists(networkName: string): Promise<void> {
   }
 }
 
-async function createDockerContainer(name: string, repoUrl?: string): Promise<{
+async function createDockerContainer(
+  name: string,
+  repoUrl?: string
+): Promise<{
   containerId: string;
   containerName: string;
 }> {

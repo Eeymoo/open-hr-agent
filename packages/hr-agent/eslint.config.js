@@ -15,13 +15,21 @@ export default [
       },
       globals: {
         console: 'readonly',
-        process: 'readonly'
+        process: 'readonly',
+        global: 'writable',
+        setTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        NodeJS: 'readonly'
       }
     },
     plugins: {
       '@typescript-eslint': typescript
     },
     rules: {
+      // 禁用基础规则，使用 TypeScript 版本
+      'no-unused-vars': 'off',
+
       // TypeScript 规则
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/explicit-function-return-type': 'warn',
@@ -29,7 +37,9 @@ export default [
         'error',
         {
           argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_'
+          varsIgnorePattern: '^_',
+          args: 'after-used',
+          ignoreRestSiblings: true
         }
       ],
       '@typescript-eslint/no-non-null-assertion': 'warn',

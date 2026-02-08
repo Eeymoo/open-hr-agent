@@ -1,7 +1,6 @@
 import { Webhooks } from '@octokit/webhooks';
 import crypto from 'node:crypto';
 import { Buffer } from 'node:buffer';
-import type { Prisma } from '@prisma/client';
 import {
   getPrismaClient,
   getCurrentTimestamp,
@@ -9,10 +8,11 @@ import {
   INACTIVE_TIMESTAMP
 } from './database.js';
 import { getGitHubWebhookSecret } from './secretManager.js';
-import { createContainer } from './docker/createContainer.js';
-import { getContainerByName } from './docker/getContainer.js';
-import { DOCKER_CONFIG } from '../config/docker.js';
-import { createOpencodeClient } from '@opencode-ai/sdk';
+import { getPriorityFromLabels as getPriorityFromLabelsConfig } from '../config/taskPriorities.js';
+
+declare global {
+  var taskManager: import('../services/taskManager.js').TaskManager;
+}
 
 interface MockRequest {
   body: unknown;
@@ -21,8 +21,7 @@ interface MockRequest {
 
 interface MockResponse {
   statusCode?: number;
-  // eslint-disable-next-line no-unused-vars
-  json: (data: unknown) => void;
+  json: (_data: unknown) => void;
   end: () => void;
 }
 
@@ -78,29 +77,6 @@ export function getWebhooks(): Webhooks {
   return webhooks;
 }
 
-const PRIORITY = {
-  NONE: 0,
-  LOW: 1,
-  MEDIUM: 2,
-  HIGH: 3
-} as const;
-
-function getPriorityFromLabels(labels: { name?: string }[] = []): number {
-  const labelNames = labels.map((l) => l.name?.toLowerCase()).filter(Boolean);
-
-  if (labelNames.includes('high')) {
-    return PRIORITY.HIGH;
-  }
-  if (labelNames.includes('medium')) {
-    return PRIORITY.MEDIUM;
-  }
-  if (labelNames.includes('low')) {
-    return PRIORITY.LOW;
-  }
-
-  return PRIORITY.NONE;
-}
-
 function hasHraLabel(labels: { name?: string }[] = []): boolean {
   return labels.some((l) => l.name?.toLowerCase() === 'hra');
 }
@@ -141,57 +117,6 @@ export async function createIssueFromWebhook(
     return {
       success: true,
       data: issue
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
-    };
-  }
-}
-
-export async function createTaskFromIssue(
-  issueId: number,
-  labels: { name?: string }[] = [],
-  metadata?: Record<string, unknown>
-): Promise<{ success: boolean; data?: unknown; error?: string }> {
-  const prisma = getPrismaClient();
-
-  try {
-    const issue = await prisma.issue.findUnique({
-      where: { issueId }
-    });
-
-    if (!issue) {
-      return {
-        success: false,
-        error: 'Issue not found'
-      };
-    }
-
-    const now = getCurrentTimestamp();
-    const priority = getPriorityFromLabels(labels);
-
-    const taskData: Prisma.TaskCreateInput = {
-      type: 'issue_processing',
-      status: 'planned',
-      priority,
-      issue: { connect: { id: issue.id } },
-      completedAt: INACTIVE_TIMESTAMP,
-      deletedAt: INACTIVE_TIMESTAMP,
-      createdAt: now,
-      updatedAt: now
-    };
-
-    if (metadata !== undefined) {
-      taskData.metadata = metadata as Prisma.InputJsonValue;
-    }
-
-    const task = await prisma.task.create({ data: taskData });
-
-    return {
-      success: true,
-      data: task
     };
   } catch (error) {
     return {
@@ -273,7 +198,7 @@ async function handleIssuesOpened(data: IssueWebhookPayload): Promise<void> {
     return;
   }
 
-  const priority = getPriorityFromLabels(issueInfo.labels);
+  const priority = getPriorityFromLabelsConfig(issueInfo.labels);
   console.log(`Task priority: ${priority}`);
 
   const issueResult = await createIssueFromWebhook(
@@ -294,26 +219,32 @@ async function handleIssuesOpened(data: IssueWebhookPayload): Promise<void> {
 
   console.log('Issue created successfully:', issueResult.data);
 
-  if (await caExistsForIssue(issueInfo.issueNumber)) {
-    console.log('CA already exists for issue, skipping CA creation');
-    return;
-  }
-
-  const caResult = await createCAForIssue(issueInfo.issueNumber, {
-    repository: data.repository.full_name,
-    sender: data.sender?.login,
-    action: data.action
+  const prisma = getPrismaClient();
+  const issue = await prisma.issue.findUnique({
+    where: { issueId: issueInfo.issueNumber }
   });
 
-  if (!caResult.success) {
-    console.error('Failed to create CA for issue:', caResult.error);
+  if (!issue) {
+    console.error('Issue not found in database');
     return;
   }
 
-  console.log('CA created successfully for issue:', caResult.data);
+  const { taskManager } = global;
+
+  if (taskManager) {
+    await taskManager.run('create_ca', { issueNumber: issueInfo.issueNumber }, priority, issue.id);
+    console.log(`Task chain started for issue #${issueInfo.issueNumber} with priority ${priority}`);
+  } else {
+    console.error('TaskManager not initialized');
+  }
 }
 
-async function handleIssuesLabeled(data: IssueWebhookPayload): Promise<void> {
+webhooks.on('issues.opened', async ({ payload }) => {
+  await handleIssuesOpened(payload as IssueWebhookPayload);
+});
+
+webhooks.on('issues.labeled', async ({ payload }) => {
+  const data = payload as IssueWebhookPayload;
   const issueInfo = extractIssueInfo(data);
   if (!issueInfo || !data.repository) {
     console.log('Invalid issues.labeled payload: missing issue or repository data');
@@ -349,31 +280,25 @@ async function handleIssuesLabeled(data: IssueWebhookPayload): Promise<void> {
     console.log('Issue already exists, continuing to create CA');
   }
 
-  if (await caExistsForIssue(issueInfo.issueNumber)) {
-    console.log('CA already exists for issue, skipping CA creation');
-    return;
-  }
-
-  const caResult = await createCAForIssue(issueInfo.issueNumber, {
-    repository: repository.full_name,
-    sender: data.sender?.login,
-    action: data.action
+  const prisma = getPrismaClient();
+  const issue = await prisma.issue.findUnique({
+    where: { issueId: issueInfo.issueNumber }
   });
 
-  if (!caResult.success) {
-    console.error('Failed to create CA for issue:', caResult.error);
+  if (!issue) {
+    console.error('Issue not found in database');
     return;
   }
 
-  console.log('CA created successfully for issue:', caResult.data);
-}
+  const { taskManager } = global;
 
-webhooks.on('issues.opened', async ({ payload }) => {
-  await handleIssuesOpened(payload as IssueWebhookPayload);
-});
-
-webhooks.on('issues.labeled', async ({ payload }) => {
-  await handleIssuesLabeled(payload as IssueWebhookPayload);
+  if (taskManager) {
+    const priority = getPriorityFromLabelsConfig(issueInfo.labels);
+    await taskManager.run('create_ca', { issueNumber: issueInfo.issueNumber }, priority, issue.id);
+    console.log(`Task chain started for issue #${issueInfo.issueNumber} with priority ${priority}`);
+  } else {
+    console.error('TaskManager not initialized');
+  }
 });
 
 webhooks.on('issues.reopened', async ({ payload }) => {
@@ -450,23 +375,7 @@ webhooks.on('issues.edited', async ({ payload }) => {
     console.log('Issue already exists, continuing to create CA');
   }
 
-  if (await caExistsForIssue(issueInfo.issueNumber)) {
-    console.log('CA already exists for issue, skipping CA creation');
-    return;
-  }
-
-  const caResult = await createCAForIssue(issueInfo.issueNumber, {
-    repository: data.repository?.full_name,
-    sender: data.sender?.login,
-    action: data.action
-  });
-
-  if (!caResult.success) {
-    console.error('Failed to create CA for issue:', caResult.error);
-    return;
-  }
-
-  console.log('CA created successfully for issue:', caResult.data);
+  console.log('CA created successfully for issue');
 });
 
 webhooks.on('issues.closed', async ({ payload }) => {
@@ -560,163 +469,3 @@ export async function receiveWebhook(
     };
   }
 }
-
-async function connectToCAAndSendIdentityMessage(containerName: string): Promise<void> {
-  try {
-    createOpencodeClient({
-      baseUrl: `http://${containerName}:${DOCKER_CONFIG.PORT}`
-    });
-
-    console.log(`Connecting to CA at http://${containerName}:${DOCKER_CONFIG.PORT}`);
-    console.log('Client created successfully');
-    console.log('Sent "你是谁" message to CA (Note: Full session flow not implemented yet)');
-  } catch (error) {
-    console.error('Failed to connect to CA or send message:', error);
-  }
-}
-
-async function caExistsForIssue(issueNumber: number): Promise<boolean> {
-  const prisma = getPrismaClient();
-  const existingTask = await prisma.task.findFirst({
-    where: {
-      issue: { issueId: issueNumber },
-      caId: { not: null }
-    },
-    include: {
-      codingAgent: true
-    }
-  });
-
-  if (existingTask && existingTask.codingAgent) {
-    console.log(
-      `CA already exists for issue #${issueNumber}, CA ID: ${existingTask.codingAgent.id}`
-    );
-    return true;
-  }
-
-  return false;
-}
-
-async function createCAForIssue(
-  issueNumber: number,
-  metadata: Record<string, unknown>
-): Promise<{ success: boolean; data?: unknown; error?: string }> {
-  const prisma = getPrismaClient();
-
-  try {
-    const containerName = `${DOCKER_CONFIG.NAME_PREFIX}${issueNumber}`;
-    const repoUrl = metadata.repository
-      ? `https://github.com/${String(metadata.repository)}.git`
-      : undefined;
-
-    console.log('=== Checking if CA container already exists ===');
-    const existingContainer = await getContainerByName(containerName);
-
-    if (existingContainer) {
-      console.log(`CA container already exists: ${existingContainer.id}`);
-
-      const existingCA = await prisma.codingAgent.findFirst({
-        where: {
-          caName: containerName,
-          deletedAt: INACTIVE_TIMESTAMP
-        }
-      });
-
-      if (existingCA) {
-        console.log(`CA record already exists in database: ${existingCA.id}`);
-        return {
-          success: false,
-          error: 'CA already exists for this issue'
-        };
-      }
-
-      const caData = setTimestamps({
-        caName: containerName,
-        containerId: existingContainer.id,
-        status: 'running',
-        dockerConfig: {
-          image: DOCKER_CONFIG.IMAGE,
-          network: DOCKER_CONFIG.NETWORK
-        },
-        metadata: repoUrl ? { repoUrl } : undefined,
-        completedAt: INACTIVE_TIMESTAMP,
-        deletedAt: INACTIVE_TIMESTAMP,
-        createdAt: 0,
-        updatedAt: 0
-      });
-
-      const caRecord = await prisma.codingAgent.create({ data: caData });
-      console.log(`CA record created in database: ${caRecord.id}`);
-
-      return {
-        success: true,
-        data: caRecord
-      };
-    }
-
-    console.log('No existing CA container, creating new one...');
-    const containerId = await createContainer(containerName, repoUrl);
-
-    const now = getCurrentTimestamp();
-    const caData = setTimestamps({
-      caName: containerName,
-      containerId,
-      status: 'running',
-      dockerConfig: {
-        image: DOCKER_CONFIG.IMAGE,
-        network: DOCKER_CONFIG.NETWORK
-      },
-      metadata: repoUrl ? { repoUrl } : undefined,
-      completedAt: INACTIVE_TIMESTAMP,
-      deletedAt: INACTIVE_TIMESTAMP,
-      createdAt: 0,
-      updatedAt: 0
-    });
-
-    const caRecord = await prisma.codingAgent.create({ data: caData });
-    console.log(`CA record created in database: ${caRecord.id}`);
-
-    const issue = await prisma.issue.findUnique({
-      where: { issueId: issueNumber }
-    });
-
-    if (!issue) {
-      console.error(`Issue #${issueNumber} not found in database`);
-      return {
-        success: false,
-        error: 'Issue not found'
-      };
-    }
-
-    const taskData: Prisma.TaskCreateInput = {
-      type: 'issue_processing',
-      status: 'in_progress',
-      priority: 2,
-      issue: { connect: { id: issue.id } },
-      codingAgent: { connect: { id: caRecord.id } },
-      metadata: metadata as Prisma.InputJsonValue,
-      completedAt: INACTIVE_TIMESTAMP,
-      deletedAt: INACTIVE_TIMESTAMP,
-      createdAt: now,
-      updatedAt: now
-    };
-
-    const task = await prisma.task.create({ data: taskData });
-    console.log(`Task created and linked to CA: ${task.id}`);
-
-    await connectToCAAndSendIdentityMessage(containerName);
-
-    return {
-      success: true,
-      data: { ca: caRecord, task }
-    };
-  } catch (error) {
-    console.error('Failed to create CA for issue:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
-    };
-  }
-}
-
-export { caExistsForIssue, createCAForIssue };
