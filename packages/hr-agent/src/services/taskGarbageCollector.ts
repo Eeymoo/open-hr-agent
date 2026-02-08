@@ -3,6 +3,13 @@ import { TASK_STATUS } from '../config/taskStatus.js';
 import { TASK_CONFIG } from '../config/taskConfig.js';
 import { TaskLogger } from '../utils/taskLogger.js';
 
+const HOURS_PER_DAY = 24;
+const MINUTES_PER_HOUR = 60;
+const SECONDS_PER_MINUTE = 60;
+const MS_PER_SECOND = 1000;
+const LONG_RUNNING_ERROR_THRESHOLD =
+  HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MS_PER_SECOND;
+
 export interface GarbageCollectionStats {
   caCreationFailed: number;
   caLost: number;
@@ -14,7 +21,8 @@ export interface GarbageCollectionStats {
 
 export class TaskGarbageCollector {
   private logger: TaskLogger;
-  private readonly LONG_RUNNING_ERROR_THRESHOLD = 86400000;
+  private readonly LONG_RUNNING_ERROR_THRESHOLD = LONG_RUNNING_ERROR_THRESHOLD;
+  private readonly MS_PER_SECOND = MS_PER_SECOND;
 
   constructor() {
     this.logger = new TaskLogger();
@@ -56,7 +64,7 @@ export class TaskGarbageCollector {
       stats.cancelledTasks;
 
     if (stats.totalCleaned > 0) {
-      await this.logger.info(0, 'GarbageCollector', `垃圾回收完成`, stats as unknown as Record<string, unknown>);
+      await this.logger.info(0, 'GarbageCollector', '垃圾回收完成', stats as unknown as Record<string, unknown>);
     }
 
     return stats;
@@ -129,25 +137,7 @@ export class TaskGarbageCollector {
       }
     });
 
-    const lostCAIds: number[] = [];
-
-    for (const ca of allCA) {
-      const caRecord = ca as {
-        id: number;
-        status: string;
-        containerId: string | null;
-        createdAt: number;
-      };
-
-      const isOldAndCreating =
-        caRecord.status === 'creating' && now - caRecord.createdAt > TASK_CONFIG.TASK_TIMEOUT;
-
-      const isIdleWithoutContainer = caRecord.status === 'idle' && !caRecord.containerId;
-
-      if (isOldAndCreating || isIdleWithoutContainer) {
-        lostCAIds.push(caRecord.id);
-      }
-    }
+    const lostCAIds = this.identifyLostCAIds(allCA, now);
 
     if (lostCAIds.length === 0) {
       return 0;
@@ -208,6 +198,32 @@ export class TaskGarbageCollector {
     return cleaned;
   }
 
+  private identifyLostCAIds(allCA: unknown[], now: number): number[] {
+    const lostCAIds: number[] = [];
+
+    for (const ca of allCA) {
+      const caRecord = ca as {
+        id: number;
+        status: string;
+        containerId: string | null;
+        createdAt: number;
+      };
+
+      if (this.isCALost(caRecord, now)) {
+        lostCAIds.push(caRecord.id);
+      }
+    }
+
+    return lostCAIds;
+  }
+
+  private isCALost(caRecord: { status: string; containerId: string | null; createdAt: number }, now: number): boolean {
+    const isOldAndCreating = caRecord.status === 'creating' && now - caRecord.createdAt > TASK_CONFIG.TASK_TIMEOUT;
+    const isIdleWithoutContainer = caRecord.status === 'idle' && !caRecord.containerId;
+
+    return isOldAndCreating || isIdleWithoutContainer;
+  }
+
   private async cleanupLongRunningErrorTasks(prisma: unknown, now: number): Promise<number> {
     const errorTasks = await (
       prisma as { task: { findMany: (args: unknown) => Promise<unknown[]> } }
@@ -216,7 +232,7 @@ export class TaskGarbageCollector {
         status: TASK_STATUS.ERROR,
         deletedAt: -2,
         createdAt: {
-          lt: now - this.LONG_RUNNING_ERROR_THRESHOLD / 1000
+          lt: now - this.LONG_RUNNING_ERROR_THRESHOLD / this.MS_PER_SECOND
         }
       },
       orderBy: {

@@ -83,14 +83,16 @@ describe('TaskGarbageCollector', () => {
       ];
 
       let callCount = 0;
-      mockPrisma.codingAgent.findMany = vi.fn().mockResolvedValue(errorCA);
-      mockPrisma.task.findMany = vi.fn().mockImplementation(() => {
+      const mockTaskFindMany = (): Promise<unknown[]> => {
         callCount++;
         if (callCount === 1) {
           return Promise.resolve(tasks);
         }
         return Promise.resolve([]);
-      });
+      };
+
+      mockPrisma.codingAgent.findMany = vi.fn().mockResolvedValue(errorCA);
+      mockPrisma.task.findMany = vi.fn().mockImplementation(mockTaskFindMany);
       mockPrisma.task.update = vi.fn().mockResolvedValue({});
 
       const stats = await garbageCollector.collect();
