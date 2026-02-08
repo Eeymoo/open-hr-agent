@@ -113,7 +113,6 @@ export class ErrorHandlerTask extends BaseTask {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async execute(_params: Record<string, unknown>, _context: TaskContext): Promise<TaskResult> {
     return {
       success: true
