@@ -22,7 +22,12 @@ export class AiCodingTask extends BaseTask {
     try {
       const issue = await this.fetchIssue(issueNumber);
       const client = this.createClient(caName);
-      const sessionId = await this.createOpenCodeSession(client, issue, context.taskId, issueNumber);
+      const sessionId = await this.createOpenCodeSession(
+        client,
+        issue,
+        context.taskId,
+        issueNumber
+      );
       await this.updateTaskMetadata(context.taskId, {
         caName,
         issueNumber,
