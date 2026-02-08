@@ -6,6 +6,12 @@ import dotenv from 'dotenv';
 import toonMiddleware from './middleware/responseFormat/toonMiddleware.js';
 import autoLoadRoutes from './middleware/autoLoadRoutes.js';
 import caProxyMiddleware from './middleware/caProxy.js';
+import { EventBus } from './services/eventBus.js';
+import { TaskLogger } from './utils/taskLogger.js';
+import { TaskRegistry } from './tasks/taskRegistry.js';
+import { TaskScheduler } from './services/taskScheduler.js';
+import { TaskManager } from './services/taskManager.js';
+import type { BaseTask } from './tasks/baseTask.js';
 
 dotenv.config();
 
@@ -24,6 +30,20 @@ await autoLoadRoutes(app, ROUTES_DIR);
 
 app.use(caProxyMiddleware);
 
+const eventBus = new EventBus();
+const logger = new TaskLogger();
+const taskRegistry = new TaskRegistry(eventBus, logger);
+const taskMap = new Map<string, BaseTask>(taskRegistry.getAll().map((task) => [task.name, task]));
+const taskScheduler = new TaskScheduler(eventBus, taskMap);
+const taskManager = new TaskManager(eventBus, taskScheduler);
+
+global.eventBus = eventBus;
+global.taskManager = taskManager;
+global.taskRegistry = taskRegistry;
+
+taskManager.start();
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log('Task Manager has been initialized');
 });

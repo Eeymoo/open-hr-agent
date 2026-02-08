@@ -76,7 +76,7 @@ function caProxyMiddleware(req: Request, res: Response, next: NextFunction): voi
           } else if (key.toLowerCase() === 'content-security-policy') {
             const csp = String(value).replace(
               /default-src [^;]+/gi,
-              'default-src \'self\' http://rha.onemue.cn'
+              "default-src 'self' http://rha.onemue.cn"
             );
             res.setHeader(key, csp);
           } else {
