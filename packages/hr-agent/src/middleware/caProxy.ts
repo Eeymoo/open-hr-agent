@@ -16,6 +16,20 @@ function injectBaseTag(html: string, basePath: string): string {
   return html;
 }
 
+function modifySetCookie(cookies: string | string[], caName: string): string[] {
+  const cookieArray = Array.isArray(cookies) ? cookies : cookies.split(',').map((c) => c.trim());
+  return cookieArray.map((cookie) => {
+    let modified = cookie;
+    if (modified.includes('Domain=')) {
+      modified = modified.replace(/Domain=[^;]+/i, 'Domain=');
+    }
+    if (modified.includes('Path=/') && !modified.includes('Path=/ca/')) {
+      modified = modified.replace(/Path=\/[^;]*/i, `Path=/ca/${caName}/`);
+    }
+    return modified;
+  });
+}
+
 function caProxyMiddleware(req: Request, res: Response, next: NextFunction): void {
   const originalUrl = req.originalUrl ?? req.url;
   const match = originalUrl.match(new RegExp(`^${CA_PROXY_PATH}/([^/]+)(.*)$`));
@@ -28,35 +42,59 @@ function caProxyMiddleware(req: Request, res: Response, next: NextFunction): voi
   const [caName, subPath = '/'] = [match[1], match[2]];
   const targetUrl = `http://ca-${caName}:${DOCKER_CONFIG.PORT}`;
 
-  const proxyReq = http.request(targetUrl + subPath, (proxyRes) => {
-    const chunks: Buffer[] = [];
+  const proxyReq = http.request(
+    targetUrl + subPath,
+    {
+      method: req.method,
+      headers: {
+        ...req.headers,
+        host: `ca-${caName}:${DOCKER_CONFIG.PORT}`,
+        'x-forwarded-host': req.get('host'),
+        'x-forwarded-proto': req.protocol
+      }
+    },
+    (proxyRes) => {
+      const chunks: Buffer[] = [];
 
-    proxyRes.on('data', (chunk) => {
-      chunks.push(chunk);
-    });
-
-    proxyRes.on('end', () => {
-      const buffer = Buffer.concat(chunks);
-      const contentType = proxyRes.headers['content-type'];
-
-      res.status(proxyRes.statusCode ?? HTTP_OK);
-
-      Object.entries(proxyRes.headers).forEach(([key, value]) => {
-        if (value) {
-          res.setHeader(key, value);
-        }
+      proxyRes.on('data', (chunk) => {
+        chunks.push(chunk);
       });
 
-      if (contentType?.includes('text/html')) {
-        const html = buffer.toString('utf8');
-        const basePath = `${CA_PROXY_PATH}/${caName}/`;
-        const modifiedHtml = injectBaseTag(html, basePath);
-        res.send(modifiedHtml);
-      } else {
-        res.send(buffer);
-      }
-    });
-  });
+      proxyRes.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        const contentType = proxyRes.headers['content-type'];
+
+        res.status(proxyRes.statusCode ?? HTTP_OK);
+
+        Object.entries(proxyRes.headers).forEach(([key, value]) => {
+          if (!value) {
+            return;
+          }
+
+          if (key.toLowerCase() === 'set-cookie') {
+            res.setHeader(key, modifySetCookie(value, caName));
+          } else if (key.toLowerCase() === 'content-security-policy') {
+            const csp = String(value).replace(
+              /default-src [^;]+/gi,
+              'default-src \'self\' http://rha.onemue.cn'
+            );
+            res.setHeader(key, csp);
+          } else {
+            res.setHeader(key, value);
+          }
+        });
+
+        if (contentType?.includes('text/html')) {
+          const html = buffer.toString('utf8');
+          const basePath = `${CA_PROXY_PATH}/${caName}/`;
+          const modifiedHtml = injectBaseTag(html, basePath);
+          res.send(modifiedHtml);
+        } else {
+          res.send(buffer);
+        }
+      });
+    }
+  );
 
   proxyReq.on('error', (err) => {
     console.error(`Proxy error for ${originalUrl}:`, err.message);
