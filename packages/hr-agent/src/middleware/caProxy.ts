@@ -47,7 +47,7 @@ function caProxyMiddleware(req: Request, res: Response, next: NextFunction): voi
         }
       });
 
-      if (contentType && contentType.includes('text/html')) {
+      if (contentType?.includes('text/html')) {
         const html = buffer.toString('utf8');
         const basePath = `${CA_PROXY_PATH}/${caName}/`;
         const modifiedHtml = injectBaseTag(html, basePath);
