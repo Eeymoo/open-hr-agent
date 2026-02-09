@@ -5,13 +5,7 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined
 } from '@ant-design/icons';
-import type { Task } from '../../types/task';
-import {
-  TASK_STATUS_LABELS,
-  TASK_STATUS_COLORS,
-  PRIORITY_LABELS,
-  PRIORITY_COLORS
-} from '../../types/task';
+import { TASK_STATUS_LABELS, TASK_STATUS_COLORS, PRIORITY_LABELS, PRIORITY_COLORS, type Task } from '../../types/task';
 import { formatTimestamp, formatDuration, TIMESTAMP_NEGATIVE_TWO } from '../../utils/formatters';
 
 const { Paragraph } = Typography;

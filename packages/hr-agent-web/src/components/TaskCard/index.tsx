@@ -1,11 +1,6 @@
 import { Card, Tag, Button, Space } from 'antd';
 import { GithubOutlined, LinkOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import type { Task } from '../../types/task';
-import {
-  TASK_STATUS_LABELS,
-  TASK_STATUS_COLORS,
-  PRIORITY_COLORS
-} from '../../types/task';
+import { TASK_STATUS_LABELS, TASK_STATUS_COLORS, PRIORITY_COLORS, type Task } from '../../types/task';
 import { formatTimestamp, formatPriority } from '../../utils/formatters';
 import './index.css';
 

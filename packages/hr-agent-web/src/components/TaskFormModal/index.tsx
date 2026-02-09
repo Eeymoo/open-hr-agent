@@ -1,6 +1,5 @@
 import { Modal, Form, Input, Select, InputNumber, Button } from 'antd';
-import type { Task, CreateTaskDto, UpdateTaskDto } from '../../types/task';
-import { TASK_STATUS_LABELS } from '../../types/task';
+import { TASK_STATUS_LABELS, type Task, type CreateTaskDto, type UpdateTaskDto } from '../../types/task';
 
 interface TaskFormModalProps {
   open: boolean;
