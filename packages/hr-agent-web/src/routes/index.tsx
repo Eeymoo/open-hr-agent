@@ -1,0 +1,38 @@
+import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
+import { Login } from '../pages/Login';
+import { TaskOrchestration } from '../pages/TaskOrchestration';
+import { TaskView } from '../pages/TaskView';
+import { AppLayout } from '../components/Layout';
+
+function LayoutWithOutlet() {
+  return (
+    <AppLayout>
+      <Outlet />
+    </AppLayout>
+  );
+}
+
+export const router = createBrowserRouter([
+  {
+    path: '/login',
+    element: <Login />
+  },
+  {
+    path: '/',
+    element: <LayoutWithOutlet />,
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/orchestration" replace />
+      },
+      {
+        path: 'orchestration',
+        element: <TaskOrchestration />
+      },
+      {
+        path: 'tasks',
+        element: <TaskView />
+      }
+    ]
+  }
+]);

@@ -1,0 +1,41 @@
+.task-card {
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+}
+
+.task-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.task-id {
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.task-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-type {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.task-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.task-link .ant-btn-link {
+  padding: 0;
+  height: auto;
+  margin: 0;
+}
+
+.task-meta {
+  margin-top: 8px;
+  color: #8c8c8c;
+}

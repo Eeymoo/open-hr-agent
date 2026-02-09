@@ -1,0 +1,166 @@
+import js from '@eslint/js';
+import tseslint from '@typescript-eslint/eslint-plugin';
+import tsparser from '@typescript-eslint/parser';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+
+export default [
+  {
+    ignores: ['dist']
+  },
+  js.configs.recommended,
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true
+        },
+        project: './tsconfig.json'
+      },
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        global: 'writable',
+        setTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        NodeJS: 'readonly',
+        window: 'readonly',
+        document: 'readonly',
+        localStorage: 'readonly'
+      }
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+      'react-hooks': reactHooks,
+      'react-refresh': reactRefresh
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      ...js.configs.recommended.rules,
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          args: 'after-used',
+          ignoreRestSiblings: true
+        }
+      ],
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
+      'no-console': 'off',
+      'no-debugger': 'error',
+      'no-alert': 'warn',
+      'no-var': 'error',
+      'prefer-const': 'error',
+      'no-duplicate-imports': 'error',
+      'no-empty': ['error', { allowEmptyCatch: true }],
+      'no-eval': 'error',
+      'no-implied-eval': 'error',
+      'no-new-func': 'error',
+      'no-return-await': 'error',
+      'no-throw-literal': 'error',
+      'no-undef-init': 'error',
+      'no-unneeded-ternary': 'error',
+      'no-useless-constructor': 'error',
+      'no-useless-return': 'error',
+      radix: 'error',
+      yoda: ['error', 'never'],
+      eqeqeq: ['error', 'always', { null: 'ignore' }],
+      curly: ['error', 'all'],
+      'default-case': 'error',
+      'no-fallthrough': 'error',
+      'no-multi-spaces': 'error',
+      'no-trailing-spaces': 'error',
+      'no-multiple-empty-lines': ['error', { max: 1, maxEOF: 1 }],
+      'comma-dangle': ['error', 'never'],
+      quotes: ['error', 'single', { avoidEscape: true }],
+      semi: ['error', 'always'],
+      'arrow-parens': ['error', 'always'],
+      'arrow-spacing': 'error',
+      'no-prototype-builtins': 'error',
+      'no-array-constructor': 'error',
+      'no-new-object': 'error',
+      'max-depth': ['error', 3],
+      'max-nested-callbacks': ['error', 3],
+      'max-lines-per-function': ['warn', 150],
+      'max-params': ['warn', 5],
+      complexity: ['warn', 15],
+      'max-statements': ['warn', 40],
+      'max-statements-per-line': ['error', { max: 1 }],
+      camelcase: ['error', { properties: 'never', ignoreDestructuring: true }],
+      'no-magic-numbers': [
+        'warn',
+        {
+          ignore: [-1, 0, 1, 2, 50, 16, 401, 60000],
+          ignoreArrayIndexes: true,
+          ignoreDefaultValues: true
+        }
+      ],
+      'no-shadow': 'off',
+      'no-use-before-define': ['error', { functions: false }],
+      'no-else-return': ['error', { allowElseIf: false }],
+      'prefer-template': 'error',
+      'object-shorthand': ['error', 'always'],
+      'prefer-destructuring': [
+        'warn',
+        {
+          array: true,
+          object: true
+        },
+        {
+          enforceForRenamedProperties: false
+        }
+      ],
+      'no-redeclare': 'error',
+      'no-sequences': 'error',
+      'no-delete-var': 'error',
+      'no-extend-native': 'error',
+      'no-extra-boolean-cast': 'error',
+      'no-lone-blocks': 'error',
+      'no-loop-func': 'off',
+      'no-self-compare': 'error',
+      'no-void': 'error',
+      'no-with': 'error',
+      indent: ['error', 2, { SwitchCase: 1 }],
+      'space-before-function-paren': [
+        'error',
+        {
+          anonymous: 'always',
+          named: 'never',
+          asyncArrow: 'always'
+        }
+      ],
+      'keyword-spacing': 'error',
+      'key-spacing': 'error',
+      'space-infix-ops': 'error',
+      'space-unary-ops': 'error',
+      'brace-style': ['error', '1tbs', { allowSingleLine: true }],
+      'block-spacing': 'error',
+      'comma-spacing': 'error',
+      'func-call-spacing': 'error',
+      'func-style': ['error', 'declaration', { allowArrowFunctions: true }],
+      'array-bracket-spacing': 'error',
+      'object-curly-spacing': ['error', 'always'],
+      'computed-property-spacing': 'error',
+      'no-spaced-func': 'error',
+      'no-whitespace-before-property': 'error',
+      'wrap-iife': 'error',
+      'no-mixed-spaces-and-tabs': 'error',
+      'padded-blocks': ['error', 'never']
+    }
+  },
+  {
+    files: ['**/*.{test,spec}.{ts,tsx}'],
+    rules: {
+      'max-lines-per-function': 'off',
+      'no-magic-numbers': 'off'
+    }
+  }
+];
