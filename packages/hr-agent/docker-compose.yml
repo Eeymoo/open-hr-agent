@@ -19,3 +19,29 @@ services:
         max-size: "100m"
         max-file: "3"
     tty: true
+    networks:
+      - hr-network
+
+  hr-agent-web:
+    build:
+      context: ../hr-agent-web
+      dockerfile: Dockerfile
+    container_name: hr-agent-web
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_BASE_URL=/api
+    depends_on:
+      - hra
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+    networks:
+      - hr-network
+
+networks:
+  hr-network:
+    driver: bridge

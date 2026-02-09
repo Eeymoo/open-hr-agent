@@ -1,0 +1,29 @@
+.task-orchestration {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.task-orchestration-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.task-orchestration-header h2 {
+  margin: 0;
+}
+
+.task-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.task-orchestration-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}

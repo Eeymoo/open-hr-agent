@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm --filter hra dev",
+    "dev:web": "pnpm --filter hr-agent-web dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
