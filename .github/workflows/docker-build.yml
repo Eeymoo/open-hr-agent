@@ -55,8 +55,8 @@ jobs:
         run: pnpm install
 
       - name: Generate Prisma client
-        if: matrix.package.name == 'hra'
-        run: pnpm --filter hra exec prisma generate
+        if: matrix.package.needs_build
+        run: pnpm --filter hra exec prisma generate || true
 
       - name: Run type check
         if: matrix.package.needs_build
