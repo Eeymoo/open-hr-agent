@@ -28,6 +28,9 @@ jobs:
           - name: hra
             path: packages/hr-agent
             needs_build: true
+          - name: web
+            path: packages/hr-agent-web
+            needs_build: true
           - name: ca
             path: packages/coding-agent
             needs_build: false
@@ -52,7 +55,7 @@ jobs:
         run: pnpm install
 
       - name: Generate Prisma client
-        if: matrix.package.needs_build
+        if: matrix.package.name == 'hra'
         run: pnpm --filter hra exec prisma generate
 
       - name: Run type check
