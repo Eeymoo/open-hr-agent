@@ -2,13 +2,12 @@
 
 ## Project Overview
 
-GitHub-based AI self-orchestrated task management tool Monorepo. Uses pnpm workspace to manage packages: hra (HR Agent) handles Issue task management and PR reviews, ca (Coding Agent) handles coding tasks.
+GitHub-based AI self-orchestrated task management tool Monorepo. Uses pnpm workspace: hra (HR Agent) handles Issue/PR management, ca (Coding Agent) handles coding tasks.
 
 ## Environment
 
 - Project Type: TypeScript Monorepo (pnpm workspace)
 - Package Manager: pnpm >= 9.0.0
-- Module System: ES Modules
 - Runtime: Node.js >= 22.0.0
 - Packages: hra, ca
 
@@ -30,6 +29,12 @@ GitHub-based AI self-orchestrated task management tool Monorepo. Uses pnpm works
 - Run single test file: `pnpm --filter hra test src/routes.test.ts`
 - Run test by pattern: `pnpm --filter hra test -- --grep "test name"`
 - Run tests with coverage: `pnpm --filter hra test:coverage`
+
+### Database (Prisma)
+- Generate client: `pnpm --filter hra prisma:generate`
+- Run migrations: `pnpm --filter hra prisma:migrate`
+- Push schema: `pnpm --filter hra prisma:push`
+- Open Prisma Studio: `pnpm --filter hra prisma:studio`
 
 ### Running Applications
 - HRA Dev: `pnpm --filter hra dev`
@@ -53,16 +58,15 @@ GitHub-based AI self-orchestrated task management tool Monorepo. Uses pnpm works
 ## Code Style & Conventions
 
 ### Import Ordering
-1. Standard library imports (node:*)
-2. Third-party package imports
-3. Internal module imports (from src/ or packages/)
+1. Standard library (node:*)
+2. Third-party packages
+3. Internal modules (from src/ or packages/)
 4. Type imports (group separately if using import type)
 
 ```typescript
 import fs from "node:fs";
 import crypto from "node:crypto";
 import { Request, Response } from "express";
-import { encode } from "@toon-format/toon";
 import Result from "./utils/Result.js";
 ```
 
@@ -75,22 +79,22 @@ import Result from "./utils/Result.js";
 
 ### Naming Conventions
 - Variables/Functions: camelCase
-- Constants (true constants): UPPER_SNAKE_CASE
+- Constants: UPPER_SNAKE_CASE
 - Classes/Interfaces: PascalCase
 - Private members: _leadingUnderscore
 - Files: camelCase.ts (matching exports)
 - Directories: camelCase
-- Dynamic routes: [id].ts → :id parameter
+- HTTP method suffix: routeName.post.ts, routeName.get.ts
 
 ### Type Rules
 - Explicit return types preferred (warn)
-- No `any` type allowed (error) - use `unknown`
+- No `any` type - use `unknown`
 - Prefer optional chaining (?.) and nullish coalescing (??)
 - Non-null assertions discouraged (warn)
 
 ### Error Handling
 
-Use `Result` class from packages/hr-agent/src/utils/Result.ts for API responses:
+Use `Result` class from packages/hr-agent/src/utils/Result.ts:
 - Success: `new Result(data, 200, message)` or `new Result(data).success(data, message?)`
 - Error: `new Result().error(code, message, data?)`
 
@@ -98,7 +102,7 @@ Use `Result` class from packages/hr-agent/src/utils/Result.ts for API responses:
 app.get('/api/v1/endpoint', (_req: Request, res: Response) => {
   const data = processData();
   res.json(new Result(data));
-));
+});
 ```
 
 ### Code Complexity
@@ -137,12 +141,13 @@ app.get('/api/v1/endpoint', (_req: Request, res: Response) => {
 
 ### Auto-Load Routes
 - Location: packages/hr-agent/src/middleware/autoLoadRoutes.ts
-- Supports Next.js style dynamic routes: [id].ts → :id
-- Route structure: src/routes/v1/hello.ts → /v1/hello
+- Supports Next.js style: [id].ts → :id parameter
+- HTTP method suffix: routeName.get.ts, routeName.post.ts
+- Route structure: src/routes/v1/hello.get.ts → GET /v1/hello
 
 ### GitHub Webhooks
-- Issues webhook: packages/hr-agent/src/routes/v1/webhooks/issues.ts
-- PR webhook: packages/hr-agent/src/routes/v1/webhooks/pullRequests.ts
+- Issues webhook: packages/hr-agent/src/routes/v1/webhooks/issues.post.ts
+- PR webhook: packages/hr-agent/src/routes/v1/webhooks/pullRequests.post.ts
 - HMAC signature verification using crypto.timingSafeEqual
 
 ### Response Structure
@@ -170,4 +175,5 @@ app.get('/api/v1/endpoint', (_req: Request, res: Response) => {
 - `packages/hr-agent/src/routes/` - API route handlers (auto-loaded)
 - `packages/hr-agent/src/middleware/` - Express middleware
 - `packages/hr-agent/src/utils/` - Utility classes/functions
+- `packages/hr-agent/src/services/` - Business logic services
 - `packages/hr-agent/dist/` - Compiled output (gitignored)
