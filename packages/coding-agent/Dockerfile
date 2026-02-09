@@ -23,8 +23,8 @@ RUN npm install -g opencode-ai
 # 创建 .config 目录和目标目录，建立软链接
 RUN mkdir -p ~/.config /opencode && rm -rf ~/.config/opencode && ln -s /opencode ~/.config/opencode
 
-# 复制启动脚本
-COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+# 复制启动脚本（从根目录的 packages/coding-agent/scripts/ 复制）
+COPY packages/coding-agent/scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # 定义运行时环境变量（仓库地址）
