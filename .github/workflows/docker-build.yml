@@ -27,35 +27,44 @@ jobs:
         package:
           - name: hra
             path: packages/hr-agent
+            needs_build: true
           - name: ca
             path: packages/coding-agent
+            needs_build: false
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install pnpm
+        if: matrix.package.needs_build
         uses: pnpm/action-setup@v4
 
       - name: Set up Node.js
+        if: matrix.package.needs_build
         uses: actions/setup-node@v4
         with:
           node-version: "22.21.1"
           cache: "pnpm"
 
       - name: Install dependencies
+        if: matrix.package.needs_build
         run: pnpm install
 
       - name: Generate Prisma client
+        if: matrix.package.needs_build
         run: pnpm --filter hra exec prisma generate
 
       - name: Run type check
+        if: matrix.package.needs_build
         run: pnpm run typecheck
 
       - name: Run lint
+        if: matrix.package.needs_build
         run: pnpm run lint
 
       - name: Build
+        if: matrix.package.needs_build
         run: pnpm run build
 
       - name: Set up Docker Buildx
