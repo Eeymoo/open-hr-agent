@@ -1,6 +1,7 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { createOpencodeClient } from '@opencode-ai/sdk';
 import { DOCKER_CONFIG } from '../config/docker.js';
+import { readPrompt } from '../utils/promptReader.js';
 
 interface MessagePart {
   type: string;
@@ -190,10 +191,11 @@ export class CaStatusCheckTask extends BaseTask {
     client: ReturnType<typeof createOpencodeClient>,
     sessionId: string
   ): Promise<void> {
+    const continuePrompt = readPrompt('next');
     await client.session.prompt({
       path: { id: sessionId },
       body: {
-        parts: [{ type: 'text', text: '继续' }]
+        parts: [{ type: 'text', text: continuePrompt }]
       }
     });
   }
@@ -202,11 +204,12 @@ export class CaStatusCheckTask extends BaseTask {
     client: ReturnType<typeof createOpencodeClient>,
     sessionId: string
   ): Promise<unknown> {
+    const checkCommand = readPrompt('check');
     const result = await client.session.shell({
       path: { id: sessionId },
       body: {
         agent: 'agent',
-        command: 'pnpm run check'
+        command: checkCommand
       }
     });
     return result.data;

@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CaStatusCheckTask } from './caStatusCheckTask.js';
 import { EventBus } from '../services/eventBus.js';
 import { TaskLogger } from '../utils/taskLogger.js';
+import { readPrompt } from '../utils/promptReader.js';
+
+vi.mock('../utils/promptReader.js', () => ({
+  readPrompt: vi.fn()
+}));
 
 type TaskPrivateMethods = {
   checkForXML: (message: { parts?: { type: string; text?: string }[] } | undefined) => boolean;
@@ -25,12 +30,23 @@ describe('CaStatusCheckTask', () => {
   beforeEach(() => {
     eventBus = new EventBus();
     logger = new TaskLogger();
-    task = new CaStatusCheckTask(eventBus, logger);
 
-    vi.spyOn(task as unknown as { createClient: () => typeof mockClient }, 'createClient').mockReturnValue(mockClient);
+    vi.mocked(readPrompt).mockImplementation((name: string) => {
+      if (name === 'next') {
+        return '继续';
+      }
+      if (name === 'check') {
+        return 'pnpm run check';
+      }
+      return '';
+    });
     vi.spyOn(logger, 'info').mockResolvedValue(undefined);
     vi.spyOn(logger, 'warn').mockResolvedValue(undefined);
     vi.spyOn(logger, 'error').mockResolvedValue(undefined);
+
+    task = new CaStatusCheckTask(eventBus, logger);
+
+    vi.spyOn(task as unknown as { createClient: () => typeof mockClient }, 'createClient').mockReturnValue(mockClient);
   });
 
   afterEach(() => {
