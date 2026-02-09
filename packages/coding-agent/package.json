@@ -3,10 +3,26 @@
   "version": "1.0.0",
   "description": "Coding Agent - 基于 OpenCode 的编码 Agent",
   "type": "module",
+  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
-    "typecheck": "echo 'No typecheck configured for ca'",
-    "lint": "echo 'No lint configured for ca'",
-    "build": "echo 'No build configured for ca'"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "build": "tsc",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.10",
+    "@typescript-eslint/parser": "^8.54.0",
+    "eslint": "^9.39.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.54.0"
   },
   "engines": {
     "node": ">=22.0.0",
