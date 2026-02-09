@@ -30,7 +30,7 @@ RUN corepack enable && pnpm install --prod --no-frozen-lockfile --ignore-scripts
 RUN pnpm add -D prisma@5.22.0 --ignore-scripts && pnpm exec prisma generate
 
 COPY --from=builder /app/packages/hr-agent/dist ./dist
-COPY packages/hr-agent/docker-entrypoint.sh ./docker-entrypoint.sh
+COPY packages/hr-agent/scripts/docker-entrypoint.sh ./docker-entrypoint.sh
 
 RUN chown -R nodeuser:nodejs /app && chmod +x docker-entrypoint.sh
 

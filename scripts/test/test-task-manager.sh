@@ -2,6 +2,10 @@
 
 set -e
 
+# 获取脚本所在目录并返回项目根目录
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "${SCRIPT_DIR}/../.."
+
 # 颜色定义
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
