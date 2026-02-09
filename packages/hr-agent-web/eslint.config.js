@@ -6,7 +6,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 
 export default [
   {
-    ignores: ['dist']
+    ignores: ['dist', 'vite.config.ts'],
   },
   js.configs.recommended,
   {
@@ -17,9 +17,9 @@ export default [
         ecmaVersion: 'latest',
         sourceType: 'module',
         ecmaFeatures: {
-          jsx: true
+          jsx: true,
         },
-        project: './tsconfig.json'
+        project: './tsconfig.json',
       },
       globals: {
         console: 'readonly',
@@ -31,13 +31,13 @@ export default [
         NodeJS: 'readonly',
         window: 'readonly',
         document: 'readonly',
-        localStorage: 'readonly'
-      }
+        localStorage: 'readonly',
+      },
     },
     plugins: {
       '@typescript-eslint': tseslint,
       'react-hooks': reactHooks,
-      'react-refresh': reactRefresh
+      'react-refresh': reactRefresh,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -49,8 +49,8 @@ export default [
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
           args: 'after-used',
-          ignoreRestSiblings: true
-        }
+          ignoreRestSiblings: true,
+        },
       ],
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/prefer-nullish-coalescing': 'off',
@@ -100,8 +100,8 @@ export default [
         {
           ignore: [-1, 0, 1, 2, 50, 16, 401, 60000],
           ignoreArrayIndexes: true,
-          ignoreDefaultValues: true
-        }
+          ignoreDefaultValues: true,
+        },
       ],
       'no-shadow': 'off',
       'no-use-before-define': ['error', { functions: false }],
@@ -112,11 +112,11 @@ export default [
         'warn',
         {
           array: true,
-          object: true
+          object: true,
         },
         {
-          enforceForRenamedProperties: false
-        }
+          enforceForRenamedProperties: false,
+        },
       ],
       'no-redeclare': 'error',
       'no-sequences': 'error',
@@ -134,8 +134,8 @@ export default [
         {
           anonymous: 'always',
           named: 'never',
-          asyncArrow: 'always'
-        }
+          asyncArrow: 'always',
+        },
       ],
       'keyword-spacing': 'error',
       'key-spacing': 'error',
@@ -153,14 +153,15 @@ export default [
       'no-whitespace-before-property': 'error',
       'wrap-iife': 'error',
       'no-mixed-spaces-and-tabs': 'error',
-      'padded-blocks': ['error', 'never']
-    }
+      'padded-blocks': ['error', 'never'],
+    },
   },
   {
     files: ['**/*.{test,spec}.{ts,tsx}'],
     rules: {
       'max-lines-per-function': 'off',
-      'no-magic-numbers': 'off'
-    }
-  }
+      'no-magic-numbers': 'off',
+    },
+  },
 ];
+

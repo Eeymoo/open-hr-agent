@@ -9,8 +9,11 @@ import './index.css';
 interface TaskKanbanProps {
   tasks: Task[];
   loading?: boolean;
+  // eslint-disable-next-line no-unused-vars
   onTaskClick?: (task: Task) => void;
+  // eslint-disable-next-line no-unused-vars
   onEdit?: (task: Task) => void;
+  // eslint-disable-next-line no-unused-vars
   onDelete?: (task: Task) => void;
 }
 
@@ -32,12 +35,12 @@ export function TaskKanban({ tasks, loading, onTaskClick, onEdit, onDelete }: Ta
 
   useEffect(() => {
     const grouped = tasks.reduce(
-      (acc, task) => {
-        const status = task.status;
+      (acc, _task) => {
+        const { status } = _task;
         if (!acc[status]) {
           acc[status] = [];
         }
-        acc[status].push(task);
+        acc[status].push(_task);
         return acc;
       },
       {} as Record<string, Task[]>
@@ -47,7 +50,9 @@ export function TaskKanban({ tasks, loading, onTaskClick, onEdit, onDelete }: Ta
   }, [tasks]);
 
   const handleDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
+    if (!result.destination) {
+      return;
+    }
 
     const sourceColumn = result.source.droppableId;
     const destinationColumn = result.destination.droppableId;

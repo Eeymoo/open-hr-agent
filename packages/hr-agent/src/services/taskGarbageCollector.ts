@@ -64,7 +64,12 @@ export class TaskGarbageCollector {
       stats.cancelledTasks;
 
     if (stats.totalCleaned > 0) {
-      await this.logger.info(0, 'GarbageCollector', '垃圾回收完成', stats as unknown as Record<string, unknown>);
+      await this.logger.info(
+        0,
+        'GarbageCollector',
+        '垃圾回收完成',
+        stats as unknown as Record<string, unknown>
+      );
     }
 
     return stats;
@@ -103,7 +108,8 @@ export class TaskGarbageCollector {
       const taskType = (task as { type: string }).type;
 
       const existingMetadata = (task as { metadata: Record<string, unknown> | unknown }).metadata;
-      const metadataObj = typeof existingMetadata === 'object' && existingMetadata !== null ? existingMetadata : {};
+      const metadataObj =
+        typeof existingMetadata === 'object' && existingMetadata !== null ? existingMetadata : {};
 
       await (prisma as { task: { update: (args: unknown) => Promise<unknown> } }).task.update({
         where: { id: taskId },
@@ -161,7 +167,8 @@ export class TaskGarbageCollector {
       const taskCAId = (task as { caId?: number }).caId;
 
       const existingMetadata = (task as { metadata: Record<string, unknown> | unknown }).metadata;
-      const metadataObj = typeof existingMetadata === 'object' && existingMetadata !== null ? existingMetadata : {};
+      const metadataObj =
+        typeof existingMetadata === 'object' && existingMetadata !== null ? existingMetadata : {};
 
       await (prisma as { task: { update: (args: unknown) => Promise<unknown> } }).task.update({
         where: { id: taskId },
@@ -217,8 +224,12 @@ export class TaskGarbageCollector {
     return lostCAIds;
   }
 
-  private isCALost(caRecord: { status: string; containerId: string | null; createdAt: number }, now: number): boolean {
-    const isOldAndCreating = caRecord.status === 'creating' && now - caRecord.createdAt > TASK_CONFIG.TASK_TIMEOUT;
+  private isCALost(
+    caRecord: { status: string; containerId: string | null; createdAt: number },
+    now: number
+  ): boolean {
+    const isOldAndCreating =
+      caRecord.status === 'creating' && now - caRecord.createdAt > TASK_CONFIG.TASK_TIMEOUT;
     const isIdleWithoutContainer = caRecord.status === 'idle' && !caRecord.containerId;
 
     return isOldAndCreating || isIdleWithoutContainer;
@@ -288,7 +299,8 @@ export class TaskGarbageCollector {
       const taskType = (task as { type: string }).type;
 
       const existingMetadata = (task as { metadata: Record<string, unknown> | unknown }).metadata;
-      const metadataObj = typeof existingMetadata === 'object' && existingMetadata !== null ? existingMetadata : {};
+      const metadataObj =
+        typeof existingMetadata === 'object' && existingMetadata !== null ? existingMetadata : {};
 
       await (prisma as { task: { update: (args: unknown) => Promise<unknown> } }).task.update({
         where: { id: taskId },

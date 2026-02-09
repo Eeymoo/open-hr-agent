@@ -5,27 +5,48 @@ import 'dayjs/locale/zh-cn';
 dayjs.extend(relativeTime);
 dayjs.locale('zh-cn');
 
+export const TIMESTAMP_NEGATIVE_TWO = -2;
+const SECONDS_PER_MINUTE = 60;
+const SECONDS_PER_HOUR = 3600;
+const SECONDS_PER_DAY = 86400;
+const PRIORITY_HIGH = 80;
+const PRIORITY_MEDIUM = 50;
+
 export const formatTimestamp = (timestamp: number): string => {
-  if (timestamp === -2) return '-';
+  if (timestamp === TIMESTAMP_NEGATIVE_TWO) {
+    return '-';
+  }
   return dayjs.unix(timestamp).format('YYYY-MM-DD HH:mm:ss');
 };
 
 export const formatRelativeTime = (timestamp: number): string => {
-  if (timestamp === -2) return '-';
+  if (timestamp === TIMESTAMP_NEGATIVE_TWO) {
+    return '-';
+  }
   return dayjs.unix(timestamp).fromNow();
 };
 
 export const formatDuration = (start: number, end: number): string => {
-  if (start === -2 || end === -2) return '-';
+  if (start === TIMESTAMP_NEGATIVE_TWO || end === TIMESTAMP_NEGATIVE_TWO) {
+    return '-';
+  }
   const diff = end - start;
-  if (diff < 60) return `${diff}秒`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}分钟`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}小时`;
-  return `${Math.floor(diff / 86400)}天`;
+  if (diff < SECONDS_PER_MINUTE) {
+    return `${diff}秒`;
+  }
+  if (diff < SECONDS_PER_HOUR) {
+    return `${Math.floor(diff / SECONDS_PER_MINUTE)}分钟`;
+  }
+  if (diff < SECONDS_PER_DAY) {
+    return `${Math.floor(diff / SECONDS_PER_HOUR)}小时`;
+  }
+  return `${Math.floor(diff / SECONDS_PER_DAY)}天`;
 };
 
 export const truncateText = (text: string, maxLength: number = 100): string => {
-  if (text.length <= maxLength) return text;
+  if (text.length <= maxLength) {
+    return text;
+  }
   return `${text.slice(0, maxLength)}...`;
 };
 
@@ -48,7 +69,11 @@ export const formatStatus = (status: string): string => {
 };
 
 export const formatPriority = (priority: number): string => {
-  if (priority >= 80) return '高';
-  if (priority >= 50) return '中';
+  if (priority >= PRIORITY_HIGH) {
+    return '高';
+  }
+  if (priority >= PRIORITY_MEDIUM) {
+    return '中';
+  }
   return '低';
 };

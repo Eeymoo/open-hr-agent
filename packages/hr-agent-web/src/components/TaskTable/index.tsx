@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Spin } from 'antd';
 import { useTasks } from '../../hooks/useTasks';
-import type { Task } from '../../types/task';
-import type { TaskQueryParams } from '../../types/task';
-import { TASK_STATUS_LABELS } from '../../types/task';
+import { TASK_STATUS_LABELS, type Task, type TaskQueryParams } from '../../types/task';
 import { formatTimestamp } from '../../utils/formatters';
 import './index.css';
 
 interface TaskTableProps {
   params?: TaskQueryParams;
-  onTaskClick?: (task: Task) => void;
+  // eslint-disable-next-line no-unused-vars
+  onTaskClick?: (_task: Task) => void;
 }
 
 export function TaskTable({ params, onTaskClick }: TaskTableProps) {
@@ -34,6 +33,7 @@ export function TaskTable({ params, onTaskClick }: TaskTableProps) {
     { prop: 'updatedAt', name: '更新时间', size: 180, columnType: 'timestamp' }
   ];
 
+  // eslint-disable-next-line complexity
   const formatCellValue = (prop: string, row: Task) => {
     const value = row[prop as keyof Task];
 
@@ -64,7 +64,7 @@ export function TaskTable({ params, onTaskClick }: TaskTableProps) {
 
   const getCellClass = (prop: string, row: Task) => {
     if (prop === 'status') {
-      const status = row.status;
+      const { status } = row;
       const colorMap: Record<string, string> = {
         queued: 'status-queued',
         running: 'status-running',

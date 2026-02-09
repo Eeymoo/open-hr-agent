@@ -12,7 +12,7 @@ import {
   PRIORITY_LABELS,
   PRIORITY_COLORS
 } from '../../types/task';
-import { formatTimestamp, formatDuration } from '../../utils/formatters';
+import { formatTimestamp, formatDuration, TIMESTAMP_NEGATIVE_TWO } from '../../utils/formatters';
 
 const { Paragraph } = Typography;
 
@@ -23,11 +23,13 @@ interface TaskModalProps {
 }
 
 export function TaskModal({ open, task, onClose }: TaskModalProps) {
-  if (!task) return null;
+  if (!task) {
+    return null;
+  }
 
   const handleCAUrlClick = () => {
     if (task.codingAgent) {
-      window.open(`http://localhost:4096`, '_blank');
+      window.open('http://localhost:4096', '_blank');
     }
   };
 
@@ -55,10 +57,10 @@ export function TaskModal({ open, task, onClose }: TaskModalProps) {
       </Descriptions.Item>
       <Descriptions.Item label="创建时间">{formatTimestamp(task.createdAt)}</Descriptions.Item>
       <Descriptions.Item label="更新时间">{formatTimestamp(task.updatedAt)}</Descriptions.Item>
-      {task.completedAt !== -2 && (
+      {task.completedAt !== TIMESTAMP_NEGATIVE_TWO && (
         <Descriptions.Item label="完成时间">{formatTimestamp(task.completedAt)}</Descriptions.Item>
       )}
-      {task.completedAt !== -2 && task.createdAt !== -2 && (
+      {task.completedAt !== TIMESTAMP_NEGATIVE_TWO && task.createdAt !== TIMESTAMP_NEGATIVE_TWO && (
         <Descriptions.Item label="执行时长">
           {formatDuration(task.createdAt, task.completedAt)}
         </Descriptions.Item>

@@ -1,7 +1,11 @@
 import { Card, Tag, Button, Space } from 'antd';
 import { GithubOutlined, LinkOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { Task } from '../../types/task';
-import { TASK_STATUS_LABELS, TASK_STATUS_COLORS, PRIORITY_COLORS } from '../../types/task';
+import {
+  TASK_STATUS_LABELS,
+  TASK_STATUS_COLORS,
+  PRIORITY_COLORS
+} from '../../types/task';
 import { formatTimestamp, formatPriority } from '../../utils/formatters';
 import './index.css';
 
@@ -16,7 +20,7 @@ interface TaskCardProps {
 export function TaskCard({ task, onClick, onEdit, onDelete, showActions = true }: TaskCardProps) {
   const handleCAUrlClick = () => {
     if (task.codingAgent) {
-      window.open(`http://localhost:4096`, '_blank');
+      window.open('http://localhost:4096', '_blank');
     }
   };
 

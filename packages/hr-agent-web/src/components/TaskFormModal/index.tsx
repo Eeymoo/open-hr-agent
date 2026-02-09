@@ -7,7 +7,8 @@ interface TaskFormModalProps {
   task: Task | null;
   mode: 'create' | 'edit';
   onCancel: () => void;
-  onSubmit: (data: CreateTaskDto | UpdateTaskDto) => void;
+  // eslint-disable-next-line no-unused-vars
+  onSubmit: (_data: CreateTaskDto | UpdateTaskDto) => void;
   loading?: boolean;
 }
 
@@ -24,8 +25,8 @@ export function TaskFormModal({
   const isEdit = mode === 'edit';
 
   const handleSubmit = () => {
-    form.validateFields().then((values) => {
-      onSubmit(values);
+    form.validateFields().then((_values) => {
+      onSubmit(_values as CreateTaskDto | UpdateTaskDto);
     });
   };
 

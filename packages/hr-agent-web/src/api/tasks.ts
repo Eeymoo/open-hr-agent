@@ -23,5 +23,5 @@ export const deleteTask = (id: number) => {
 };
 
 export const executeTask = (id: number) => {
-  return apiClient.post<ApiResponse<void>>(`/v1/tasks/execute`, { taskId: id });
+  return apiClient.post<ApiResponse<void>>('/v1/tasks/execute', { taskId: id });
 };
