@@ -1,5 +1,8 @@
 import { TaskQueue, type QueuedTask } from '../utils/taskQueue.js';
-import { CAResourceManager } from './caResourceManager.js';
+import {
+  CAResourceManager,
+  type CAResource
+} from './caResourceManager.js';
 import { EventBus } from './eventBus.js';
 import { RetryManager } from '../utils/retryManager.js';
 import { TaskLogger } from '../utils/taskLogger.js';
@@ -10,6 +13,16 @@ import { TASK_EVENTS } from '../config/taskEvents.js';
 import { TASK_STATUS } from '../config/taskStatus.js';
 import type { BaseTask } from '../tasks/baseTask.js';
 import type { Prisma } from '@prisma/client';
+
+interface CAState {
+  caId: number;
+  caName: string;
+  checkTime: number;
+  sessionId: string | null;
+  messageCount: number;
+  lastMessageContent: string | null;
+  sessionStatus: string;
+}
 
 export interface SchedulerStatus {
   running: boolean;
@@ -35,6 +48,12 @@ export class TaskScheduler {
   private runningTasks: Set<number> = new Set();
   private monitoringInterval: NodeJS.Timeout | null = null;
   private isRunning: boolean = false;
+
+  private pollTimeout: NodeJS.Timeout | null = null;
+  private pollIntervalIndex: number = 0;
+  private readonly pollIntervals: readonly number[] = TASK_CONFIG.CA_STATUS_CHECK_INTERVALS;
+  private lastCheckStates: Map<number, CAState> = new Map();
+  private hasStateDifference: boolean = false;
 
   constructor(eventBus: EventBus, taskRegistry: Map<string, BaseTask>) {
     this.taskQueue = new TaskQueue();
@@ -113,6 +132,8 @@ export class TaskScheduler {
 
     this.loadQueuedTasks();
 
+    this.startStatusPolling();
+
     this.scheduleNext();
   }
 
@@ -173,6 +194,176 @@ export class TaskScheduler {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
     }
+
+    this.stopStatusPolling();
+  }
+
+  private startStatusPolling(): void {
+    if (this.pollTimeout) {
+      return;
+    }
+
+    this.scheduleNextPoll();
+  }
+
+  private stopStatusPolling(): void {
+    if (this.pollTimeout) {
+      global.clearTimeout(this.pollTimeout);
+      this.pollTimeout = null;
+    }
+  }
+
+  private scheduleNextPoll(): void {
+    const interval = this.pollIntervals[this.pollIntervalIndex];
+
+    this.pollTimeout = setTimeout(async () => {
+      await this.performStatusCheck();
+      this.scheduleNextPoll();
+    }, interval);
+  }
+
+  private incrementPollInterval(): void {
+    if (this.pollIntervalIndex < this.pollIntervals.length - 1) {
+      this.pollIntervalIndex++;
+    }
+  }
+
+  private resetPollInterval(): void {
+    this.pollIntervalIndex = 0;
+  }
+
+  private getCurrentPollInterval(): number {
+    return this.pollIntervals[this.pollIntervalIndex];
+  }
+
+  private async performStatusCheck(): Promise<void> {
+    const allCA = await this.caManager.getAllCA();
+
+    await this.logger.info(0, 'Scheduler', '开始状态轮询', {
+      interval: this.getCurrentPollInterval(),
+      caCount: allCA.length
+    });
+
+    const checkPromises = allCA.map(async (ca) => {
+      try {
+        await this.runCACheck(ca);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        await this.logger.error(0, 'Scheduler', 'CA 状态检查失败', {
+          caId: ca.id,
+          caName: ca.name,
+          error: errorMessage
+        });
+      }
+    });
+
+    await Promise.allSettled(checkPromises);
+
+    if (this.hasStateDifference) {
+      this.resetPollInterval();
+      this.hasStateDifference = false;
+      await this.logger.info(0, 'Scheduler', '检测到状态差异，重置轮询间隔为 10s');
+    } else {
+      this.incrementPollInterval();
+    }
+
+    await this.logger.info(0, 'Scheduler', '状态检查完成，下次检查间隔', {
+      interval: this.getCurrentPollInterval()
+    });
+  }
+
+  private async runCACheck(ca: CAResource): Promise<void> {
+    const now = getCurrentTimestamp();
+
+    const task = this.taskRegistry.get('ca_status_check');
+    if (!task) {
+      throw new Error('ca_status_check task not found');
+    }
+
+    const checkResult = await task.execute(
+      { caId: ca.id, caName: ca.name },
+      {
+        taskId: 0,
+        taskName: 'ca_status_check',
+        caId: ca.id,
+        issueId: undefined,
+        prId: undefined,
+        retryCount: 0
+      }
+    );
+
+    const currentState: CAState = {
+      caId: ca.id,
+      caName: ca.name,
+      checkTime: now,
+      sessionId: null,
+      messageCount: 0,
+      lastMessageContent: null,
+      sessionStatus: 'unknown'
+    };
+
+    if (checkResult.success && checkResult.data) {
+      const data = checkResult.data as Record<string, unknown>;
+      currentState.sessionId = data.sessionId as string;
+      currentState.messageCount = data.messageCount as number;
+      currentState.lastMessageContent = data.lastMessageContent as string | null;
+      currentState.sessionStatus = data.hasXMLError ? 'has_xml_error' : 'normal';
+    }
+
+    const lastState = this.lastCheckStates.get(ca.id);
+    if (lastState) {
+      const hasDiff = this.compareState(currentState, lastState);
+      if (hasDiff) {
+        this.hasStateDifference = true;
+        await this.logger.info(0, 'Scheduler', '检测到 CA 状态变化', {
+          caId: ca.id,
+          caName: ca.name,
+          changes: this.getStateChanges(currentState, lastState)
+        });
+      }
+    }
+
+    this.lastCheckStates.set(ca.id, currentState);
+  }
+
+  private compareState(current: CAState, last: CAState): boolean {
+    if (current.messageCount !== last.messageCount) {
+      return true;
+    }
+
+    if (current.sessionStatus !== last.sessionStatus) {
+      return true;
+    }
+
+    if (current.lastMessageContent !== last.lastMessageContent) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private getStateChanges(current: CAState, last: CAState): Record<string, unknown> {
+    const changes: Record<string, unknown> = {};
+
+    if (current.messageCount !== last.messageCount) {
+      changes.messageCount = {
+        from: last.messageCount,
+        to: current.messageCount
+      };
+    }
+
+    if (current.sessionStatus !== last.sessionStatus) {
+      changes.sessionStatus = {
+        from: last.sessionStatus,
+        to: current.sessionStatus
+      };
+    }
+
+    if (current.lastMessageContent !== last.lastMessageContent) {
+      changes.lastMessageChanged = true;
+    }
+
+    return changes;
   }
 
   // eslint-disable-next-line max-params

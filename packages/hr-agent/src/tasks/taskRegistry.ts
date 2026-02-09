@@ -7,6 +7,7 @@ import { AiCodingTask } from './aiCodingTask.js';
 import { CreatePrTask } from './createPrTask.js';
 import { DestroyCaTask } from './destroyCaTask.js';
 import { CheckCaTask } from './checkCaTask.js';
+import { CaStatusCheckTask } from './caStatusCheckTask.js';
 import { ErrorHandlerTask } from './errorHandlerTask.js';
 
 export class TaskRegistry {
@@ -19,6 +20,7 @@ export class TaskRegistry {
     this.register(new CreatePrTask(eventBus, logger));
     this.register(new DestroyCaTask(eventBus, logger));
     this.register(new CheckCaTask(eventBus, logger));
+    this.register(new CaStatusCheckTask(eventBus, logger));
     this.register(new ErrorHandlerTask(eventBus, logger));
   }
 
