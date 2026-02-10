@@ -10,7 +10,9 @@ vi.mock('../utils/promptReader.js', () => ({
 
 type TaskPrivateMethods = {
   checkForXML: (message: { parts?: { type: string; text?: string }[] } | undefined) => boolean;
-  getMessageContent: (message: { parts?: { type: string; text?: string }[] } | undefined) => string | null;
+  getMessageContent: (
+    message: { parts?: { type: string; text?: string }[] } | undefined
+  ) => string | null;
 };
 
 describe('CaStatusCheckTask', () => {
@@ -46,7 +48,10 @@ describe('CaStatusCheckTask', () => {
 
     task = new CaStatusCheckTask(eventBus, logger);
 
-    vi.spyOn(task as unknown as { createClient: () => typeof mockClient }, 'createClient').mockReturnValue(mockClient);
+    vi.spyOn(
+      task as unknown as { createClient: () => typeof mockClient },
+      'createClient'
+    ).mockReturnValue(mockClient);
   });
 
   afterEach(() => {
@@ -94,9 +99,7 @@ describe('CaStatusCheckTask', () => {
         expect.objectContaining({
           path: { id: 'session-1' },
           body: expect.objectContaining({
-            parts: expect.arrayContaining([
-              expect.objectContaining({ type: 'text', text: '继续' })
-            ])
+            parts: expect.arrayContaining([expect.objectContaining({ type: 'text', text: '继续' })])
           })
         })
       );
@@ -189,9 +192,7 @@ describe('CaStatusCheckTask', () => {
     });
 
     it('应该处理连接错误', async () => {
-      mockClient.session.list.mockRejectedValue(
-        new Error('Connection refused')
-      );
+      mockClient.session.list.mockRejectedValue(new Error('Connection refused'));
 
       const result = await task.execute(
         { caId: 1, caName: 'hra_123' },
@@ -213,27 +214,21 @@ describe('CaStatusCheckTask', () => {
   describe('checkForXML', () => {
     it('应该检测到 XML 标签', () => {
       const message = {
-        parts: [
-          { type: 'text', text: '错误信息<error>执行失败</error>' }
-        ]
+        parts: [{ type: 'text', text: '错误信息<error>执行失败</error>' }]
       };
       expect((task as unknown as TaskPrivateMethods).checkForXML(message)).toBe(true);
     });
 
     it('应该检测到不同类型的 XML 标签', () => {
       const message = {
-        parts: [
-          { type: 'text', text: '结果<function_results>error</function_results>' }
-        ]
+        parts: [{ type: 'text', text: '结果<function_results>error</function_results>' }]
       };
       expect((task as unknown as TaskPrivateMethods).checkForXML(message)).toBe(true);
     });
 
     it('应该忽略非 XML 文本', () => {
       const message = {
-        parts: [
-          { type: 'text', text: '正常消息，没有标签' }
-        ]
+        parts: [{ type: 'text', text: '正常消息，没有标签' }]
       };
       expect((task as unknown as TaskPrivateMethods).checkForXML(message)).toBe(false);
     });

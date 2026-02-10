@@ -84,9 +84,32 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
+      - name: Wait before metadata extraction
+        run: sleep 5
+
+      - name: Extract metadata (attempt 1)
         id: meta
         uses: docker/metadata-action@v5
+        timeout-minutes: 5
+        continue-on-error: true
+        with:
+          images: ${{ env.REGISTRY }}/${{ matrix.package.name == 'hra' && env.IMAGE_NAME || format('{0}-{1}', env.IMAGE_NAME, matrix.package.name) }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+
+      - name: Wait for retry
+        if: steps.meta.outcome == 'failure'
+        run: sleep 10
+
+      - name: Extract metadata (attempt 2)
+        id: meta_retry
+        uses: docker/metadata-action@v5
+        timeout-minutes: 5
+        if: steps.meta.outcome == 'failure'
         with:
           images: ${{ env.REGISTRY }}/${{ matrix.package.name == 'hra' && env.IMAGE_NAME || format('{0}-{1}', env.IMAGE_NAME, matrix.package.name) }}
           tags: |
@@ -102,7 +125,7 @@ jobs:
           context: ${{ matrix.package.context || '.' }}
           file: ${{ matrix.package.path }}/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta_retry.outputs.tags || steps.meta.outputs.tags }}
+          labels: ${{ steps.meta_retry.outputs.labels || steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
