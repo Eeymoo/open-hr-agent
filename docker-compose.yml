@@ -50,8 +50,29 @@ services:
     networks:
       - hr-network
 
+  hr-agent-web:
+    build:
+      context: .
+      dockerfile: packages/hr-agent-web/Dockerfile
+    container_name: hr-agent-web
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_BASE_URL=/api
+      - HRA_URL=${HRA_URL:-http://open-hr-agent:3000}
+    depends_on:
+      - open-hr-agent
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+    networks:
+      - hr-network
+
 volumes:
-  postgres_data:
+  postgres_data
 
 networks:
   hr-network:
