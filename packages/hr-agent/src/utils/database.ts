@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { getEnvValue } from './envSecrets.js';
 
 const TIMESTAMP_DIVISOR = 1000;
 const SOFT_DELETE_FLAG = -2;
@@ -9,7 +10,13 @@ let prismaClient: PrismaClient | null = null;
 export { SOFT_DELETE_FLAG, INACTIVE_TIMESTAMP, TIMESTAMP_DIVISOR };
 
 export function getPrismaClient(): PrismaClient {
-  prismaClient ??= new PrismaClient();
+  if (prismaClient === null) {
+    const databaseUrl = getEnvValue('DATABASE_URL');
+    if (databaseUrl) {
+      process.env.DATABASE_URL = databaseUrl;
+    }
+    prismaClient = new PrismaClient();
+  }
   return prismaClient;
 }
 

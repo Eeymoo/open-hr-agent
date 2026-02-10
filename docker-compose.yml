@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_DB: hr_agent_test
       POSTGRES_USER: hr_user
-      POSTGRES_PASSWORD: hr_password
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
     ports:
       - '5432:5432'
     volumes:
@@ -18,6 +18,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    secrets:
+      - postgres_password
     networks:
       - hr-network
 
@@ -33,10 +35,16 @@ services:
       - PUID=1000
       - PGID=10
       - PORT=3000
-      - DATABASE_URL=postgresql://hr_user:hr_password@postgres:5432/hr_agent_test
-      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
-      - DOCKER_CA_SECRET=${DOCKER_CA_SECRET}
+      - DATABASE_URL_FILE=/run/secrets/database_url
+      - GITHUB_WEBHOOK_SECRET_FILE=/run/secrets/github_webhook_secret
+      - DOCKER_CA_SECRET_FILE=/run/secrets/docker_ca_secret
+      - CSP_DOMAIN_FILE=/run/secrets/csp_domain
       - HR_NETWORK=${HR_NETWORK:-hr-network}
+    secrets:
+      - database_url
+      - github_webhook_secret
+      - docker_ca_secret
+      - csp_domain
     depends_on:
       postgres:
         condition: service_healthy
@@ -77,3 +85,15 @@ volumes:
 networks:
   hr-network:
     external: false
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  database_url:
+    file: ./secrets/database_url.txt
+  github_webhook_secret:
+    file: ./secrets/github_webhook_secret.txt
+  docker_ca_secret:
+    file: ./secrets/docker_ca_secret.txt
+  csp_domain:
+    file: ./secrets/csp_domain.txt
