@@ -129,8 +129,13 @@ async function processFile(
   const defaultExport = routeModule.default;
 
   if (typeof defaultExport === 'function') {
-    const routePath = convertNextRouteName(routeName);
-    const expressPath = buildExpressPath(basePath, routePath);
+    let expressPath: string;
+    if (routeName === 'index') {
+      expressPath = basePath ? `/${basePath}` : '/';
+    } else {
+      const routePath = convertNextRouteName(routeName);
+      expressPath = buildExpressPath(basePath, routePath);
+    }
     registerRoute(router, method, expressPath, defaultExport);
   }
 }
