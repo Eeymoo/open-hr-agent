@@ -1,1 +1,1 @@
-pnpm run check
+运行代码检查：执行 `pnpm run check` 进行类型检查和 lint。确保所有新增/修改的代码符合项目规范，无类型错误和代码问题。
