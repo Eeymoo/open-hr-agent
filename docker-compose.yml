@@ -5,10 +5,11 @@ services:
     image: postgres:18-alpine
     container_name: hr-postgres
     restart: always
+    user: "${UID:-70}:${GID:-70}"
     environment:
       POSTGRES_DB: hr_agent_test
       POSTGRES_USER: hr_user
-      POSTGRES_PASSWORD: hr_password
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
     ports:
       - '5432:5432'
     volumes:
@@ -18,8 +19,20 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    secrets:
+      - postgres_password
+    security_opt:
+      - no-new-privileges:true
     networks:
       - hr-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
   open-hr-agent:
     build:
@@ -30,15 +43,22 @@ services:
       - "3000:3000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
-    user: root
+      - /tmp:/tmp
+    user: "${UID:-1000}:${GID:-1000}"
     environment:
       - PUID=1000
       - PGID=10
       - PORT=3000
-      - DATABASE_URL=postgresql://hr_user:hr_password@postgres:5432/hr_agent_test
-      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
-      - DOCKER_CA_SECRET=${DOCKER_CA_SECRET}
+      - DATABASE_URL_FILE=/run/secrets/database_url
+      - GITHUB_WEBHOOK_SECRET_FILE=/run/secrets/github_webhook_secret
+      - DOCKER_CA_SECRET_FILE=/run/secrets/docker_ca_secret
+      - CSP_DOMAIN_FILE=/run/secrets/csp_domain
       - HR_NETWORK=${HR_NETWORK:-hr-network}
+    secrets:
+      - database_url
+      - github_webhook_secret
+      - docker_ca_secret
+      - csp_domain
     depends_on:
       postgres:
         condition: service_healthy
@@ -49,8 +69,22 @@ services:
         max-size: "100m"
         max-file: "3"
     tty: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
     networks:
       - hr-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
   hr-agent-web:
     build:
@@ -59,6 +93,7 @@ services:
     container_name: hr-agent-web
     ports:
       - "80:80"
+    user: "${UID:-1000}:${GID:-1000}"
     environment:
       - VITE_API_BASE_URL=/api
       - HRA_URL=${HRA_URL:-http://open-hr-agent:3000}
@@ -70,8 +105,22 @@ services:
       options:
         max-size: "100m"
         max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
     networks:
       - hr-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
 volumes:
   postgres_data
@@ -79,3 +128,15 @@ volumes:
 networks:
   hr-network:
     external: false
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  database_url:
+    file: ./secrets/database_url.txt
+  github_webhook_secret:
+    file: ./secrets/github_webhook_secret.txt
+  docker_ca_secret:
+    file: ./secrets/docker_ca_secret.txt
+  csp_domain:
+    file: ./secrets/csp_domain.txt

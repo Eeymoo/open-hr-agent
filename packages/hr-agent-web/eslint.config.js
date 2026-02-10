@@ -32,6 +32,9 @@ export default [
         window: 'readonly',
         document: 'readonly',
         localStorage: 'readonly',
+        sessionStorage: 'readonly',
+        btoa: 'readonly',
+        atob: 'readonly',
       },
     },
     plugins: {

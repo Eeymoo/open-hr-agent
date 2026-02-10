@@ -8,6 +8,7 @@ const HTTP = {
 };
 
 const DEFAULT_PAGE_SIZE = 10;
+const ALLOWED_ORDER_BY_FIELDS = ['createdAt', 'updatedAt', 'priority', 'status', 'type'] as const;
 
 function parseQueryParams(req: Request): {
   page: number;
@@ -25,7 +26,10 @@ function parseQueryParams(req: Request): {
   const rawPageSize = Number(req.query.pageSize);
   const pageSize =
     Number.isFinite(rawPageSize) && rawPageSize > 0 ? Math.floor(rawPageSize) : DEFAULT_PAGE_SIZE;
-  const orderBy = (req.query.orderBy as string) ?? 'createdAt';
+  const rawOrderBy = req.query.orderBy as string;
+  const orderBy = ALLOWED_ORDER_BY_FIELDS.includes(rawOrderBy as (typeof ALLOWED_ORDER_BY_FIELDS)[number])
+    ? rawOrderBy
+    : 'createdAt';
 
   return {
     page,

@@ -2,10 +2,13 @@ import type { Request, Response, NextFunction } from 'express';
 import http from 'node:http';
 import { Buffer } from 'node:buffer';
 import { DOCKER_CONFIG } from '../config/docker.js';
+import { getOptionalEnvValue } from '../utils/envSecrets.js';
 
 const CA_PROXY_PATH = '/ca';
 const HTTP_OK = 200;
 const HTTP_BAD_GATEWAY = 502;
+
+const CSP_DOMAIN = getOptionalEnvValue('CSP_DOMAIN', 'http://rha.onemue.cn');
 
 function injectBaseTag(html: string, basePath: string): string {
   const baseTag = `<base href="${basePath}">`;
@@ -74,10 +77,7 @@ function caProxyMiddleware(req: Request, res: Response, next: NextFunction): voi
           if (key.toLowerCase() === 'set-cookie') {
             res.setHeader(key, modifySetCookie(value, caName));
           } else if (key.toLowerCase() === 'content-security-policy') {
-            const csp = String(value).replace(
-              /default-src [^;]+/gi,
-              "default-src 'self' http://rha.onemue.cn"
-            );
+            const csp = String(value).replace(/default-src [^;]+/gi, `default-src 'self' ${CSP_DOMAIN}`);
             res.setHeader(key, csp);
           } else {
             res.setHeader(key, value);
