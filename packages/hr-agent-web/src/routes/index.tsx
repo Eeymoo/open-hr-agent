@@ -3,12 +3,15 @@ import { Login } from '../pages/Login';
 import { TaskOrchestration } from '../pages/TaskOrchestration';
 import { TaskView } from '../pages/TaskView';
 import { AppLayout } from '../components/Layout';
+import { AuthGuard } from '../components/AuthGuard';
 
-function LayoutWithOutlet() {
+function ProtectedLayout() {
   return (
-    <AppLayout>
-      <Outlet />
-    </AppLayout>
+    <AuthGuard>
+      <AppLayout>
+        <Outlet />
+      </AppLayout>
+    </AuthGuard>
   );
 }
 
@@ -19,7 +22,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/',
-    element: <LayoutWithOutlet />,
+    element: <ProtectedLayout />,
     children: [
       {
         index: true,
