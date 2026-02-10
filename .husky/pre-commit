@@ -1,1 +1,6 @@
+pnpm run check
+if [ $? -ne 0 ]; then
+  echo "❌ Check failed. Please fix typecheck and lint errors before committing."
+  exit 1
+fi
 npx lint-staged
