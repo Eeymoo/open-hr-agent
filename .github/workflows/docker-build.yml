@@ -32,7 +32,7 @@ jobs:
           - name: web
             path: packages/hr-agent-web
             needs_build: true
-            context: packages/hr-agent-web
+            context: .
           - name: ca
             path: packages/coding-agent
             needs_build: false
