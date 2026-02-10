@@ -22,7 +22,9 @@ services:
       - hr-network
 
   open-hr-agent:
-    image: ghcr.io/eeymoo/open-hr-agent:main
+    build:
+      context: .
+      dockerfile: packages/hr-agent/Dockerfile
     container_name: open-hr-agent
     ports:
       - "3000:3000"
