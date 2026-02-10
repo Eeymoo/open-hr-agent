@@ -1,9 +1,14 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import React from 'react';
+import { Navigate } from 'react-router-dom';
 import { Spin } from 'antd';
 import { useAuth } from '../../hooks/useAuth';
 import './index.css';
 
-export function AuthGuard() {
+interface AuthGuardProps {
+  children: React.ReactNode;
+}
+
+export function AuthGuard({ children }: AuthGuardProps) {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -18,5 +23,5 @@ export function AuthGuard() {
     return <Navigate to="/login" replace />;
   }
 
-  return <Outlet />;
+  return <>{children}</>;
 }

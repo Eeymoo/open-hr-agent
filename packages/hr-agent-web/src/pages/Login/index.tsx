@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Form, Input, Button, Card, Typography } from 'antd';
+import { useState, useEffect } from 'react';
+import { Form, Input, Button, Card, Typography, message } from 'antd';
 import { LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -13,15 +13,21 @@ interface LoginForm {
 
 export function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/orchestration', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (values: LoginForm) => {
     setLoading(true);
     try {
       await login(values.secret);
-      navigate('/orchestration');
     } catch (error) {
+      message.error('登录失败，请重试');
       console.error('Login failed:', error);
     } finally {
       setLoading(false);
