@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../utils/constants';
+import { getSecret } from '../utils/auth';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -10,8 +11,8 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(
-  (config) => {
-    const secret = localStorage.getItem('hra_secret');
+  async (config) => {
+    const secret = await getSecret();
     if (secret) {
       config.headers['X-Secret'] = secret;
     }
@@ -26,7 +27,7 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('hra_secret');
+      sessionStorage.removeItem('hra_secret');
       window.location.href = '/login';
     }
     return Promise.reject(error);

@@ -6,13 +6,17 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const secret = getSecret();
-    setIsAuthenticated(!!secret);
-    setIsLoading(false);
+    const checkAuth = async () => {
+      const secret = await getSecret();
+      setIsAuthenticated(!!secret);
+      setIsLoading(false);
+    };
+
+    checkAuth();
   }, []);
 
-  const login = (secret: string) => {
-    setSecret(secret);
+  const login = async (secret: string) => {
+    await setSecret(secret);
     setIsAuthenticated(true);
   };
 

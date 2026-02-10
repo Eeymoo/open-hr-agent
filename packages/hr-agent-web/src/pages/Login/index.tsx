@@ -19,7 +19,7 @@ export function Login() {
   const handleSubmit = async (values: LoginForm) => {
     setLoading(true);
     try {
-      login(values.secret);
+      await login(values.secret);
       navigate('/orchestration');
     } catch (error) {
       console.error('Login failed:', error);
