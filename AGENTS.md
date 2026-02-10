@@ -2,58 +2,54 @@
 
 ## Project Overview
 
-GitHub-based AI self-orchestrated task management tool Monorepo. Uses pnpm workspace: hra (HR Agent) handles Issue/PR management, ca (Coding Agent) handles coding tasks.
+GitHub-based AI task management monorepo using pnpm workspace. Packages: hra (Issue/PR management), ca (coding tasks).
 
 ## Environment
 
-- Project Type: TypeScript Monorepo (pnpm workspace)
+- TypeScript Monorepo (pnpm workspace, ES modules)
 - Package Manager: pnpm >= 9.0.0
 - Runtime: Node.js >= 22.0.0
-- Packages: hra, ca
 
 ## Primary Commands
 
-### Dependency & Build
+### Build & Type Check
 - Install: `pnpm install`
 - Build all: `pnpm run build`
 - Build specific: `pnpm --filter hra build`
-- Type check all: `pnpm run typecheck`
+- Type check: `pnpm run typecheck`
 
 ### Code Quality
-- Lint all: `pnpm run lint`
-- Format all: `pnpm run format`
+- Lint: `pnpm run lint`
+- Format: `pnpm run format`
 - Check: `pnpm run check` (typecheck + lint)
 
 ### Testing
-- Run all tests: `pnpm --filter hra test`
-- Run single test file: `pnpm --filter hra test src/routes.test.ts`
-- Run test by pattern: `pnpm --filter hra test -- --grep "test name"`
-- Run tests with coverage: `pnpm --filter hra test:coverage`
+- Run all: `pnpm --filter hra test`
+- Single file: `pnpm --filter hra test src/routes.test.ts`
+- By pattern: `pnpm --filter hra test -- --grep "test name"`
+- Coverage: `pnpm --filter hra test:coverage`
 
 ### Database (Prisma)
-- Generate client: `pnpm --filter hra prisma:generate`
-- Run migrations: `pnpm --filter hra prisma:migrate`
-- Push schema: `pnpm --filter hra prisma:push`
-- Open Prisma Studio: `pnpm --filter hra prisma:studio`
+- Generate: `pnpm --filter hra prisma:generate`
+- Migrate: `pnpm --filter hra prisma:migrate`
+- Push: `pnpm --filter hra prisma:push`
+- Studio: `pnpm --filter hra prisma:studio`
 
-### Running Applications
-- HRA Dev: `pnpm --filter hra dev`
-- HRA Prod: `pnpm --filter hra start`
+### Running
+- Dev: `pnpm --filter hra dev`
+- Prod: `pnpm --filter hra start`
 
 ## Development Workflow
 
 1. Create feature branch from main
 2. Develop feature
-3. **Add test cases for all new/modified APIs**
-4. Run tests: `pnpm --filter hra test` (must pass before commit)
+3. **Write tests for all new/modified APIs**
+4. Run tests: `pnpm --filter hra test` (must pass)
 5. Format: `pnpm run format`
 6. Type check: `pnpm run typecheck`
 7. Commit and push
 
-**Testing Requirements:**
-- All new/modified APIs must have test cases
-- Tests must pass before committing (mandatory)
-- Test files: sourceFileName.test.ts or sourceFileName.spec.ts
+**Testing:** All new/modified APIs require test cases (*.test.ts or *.spec.ts). Tests must pass before commit.
 
 ## Code Style & Conventions
 
@@ -65,32 +61,26 @@ GitHub-based AI self-orchestrated task management tool Monorepo. Uses pnpm works
 
 ```typescript
 import fs from "node:fs";
-import crypto from "node:crypto";
 import { Request, Response } from "express";
 import Result from "./utils/Result.js";
 ```
 
-### TypeScript Config
-- Strict mode: enabled
-- Target: ES2022, Module: ESNext with bundler resolution
-- No unused variables/parameters (ignored if prefixed with _)
+### TypeScript Rules
+- Strict mode enabled, target ES2022, ESNext modules with bundler resolution
+- Explicit return types preferred (warn)
+- No `any` type - use `unknown`
+- No unused vars/params unless prefixed with `_`
 - Implicit returns: error
-- No inferrable types: off
+- Prefer optional chaining (?.) and nullish coalescing (??)
+- Non-null assertions discouraged (warn)
 
 ### Naming Conventions
 - Variables/Functions: camelCase
 - Constants: UPPER_SNAKE_CASE
 - Classes/Interfaces: PascalCase
 - Private members: _leadingUnderscore
-- Files: camelCase.ts (matching exports)
-- Directories: camelCase
-- HTTP method suffix: routeName.post.ts, routeName.get.ts
-
-### Type Rules
-- Explicit return types preferred (warn)
-- No `any` type - use `unknown`
-- Prefer optional chaining (?.) and nullish coalescing (??)
-- Non-null assertions discouraged (warn)
+- Files: camelCase.ts
+- Routes: name.method.ts (e.g., issues.post.ts)
 
 ### Error Handling
 
@@ -109,71 +99,57 @@ app.get('/api/v1/endpoint', (_req: Request, res: Response) => {
 - Max depth: 3
 - Max params: 4 (warn)
 - Max lines per function: 100 (warn)
-- Max statements: 30 (warn)
 - Complexity: C10 (warn)
+- No magic numbers (except -1, 0, 1, 2)
 
-### Formatting Rules
-- Indent: 2 spaces
-- Quotes: single (use double for escape)
-- Semicolons: required
-- Trailing commas: never
-- Arrow function parens: always `() => {}`
-- No multiple empty lines (max 1)
+### Formatting (Prettier)
+- 2 space indent, single quotes (double for escape)
+- Semicolons required, trailing commas: never
+- Arrow parens: always, max 1 empty line
 
 ### Best Practices
-- Prefer const over let
-- Use template literals over concatenation
+- Prefer const over let, template literals, destructuring
 - Object shorthand: `{ x }` over `{ x: x }`
-- Destructuring preferred
-- No magic numbers - use named constants
 - No console/debugger in production
 - Avoid eval, new Function
 - Use async/await
 
 ## Testing Guidelines
 
-- Use describe/it pattern
-- Mock external dependencies
-- All public APIs, utilities, and error scenarios must be tested
-- Test framework: Vitest (node environment, globals enabled)
+- Vitest (node environment, globals enabled)
+- Use describe/it pattern, mock external dependencies
+- All public APIs, utilities, error scenarios must be tested
 
 ## Special Features
 
 ### Auto-Load Routes
 - Location: packages/hr-agent/src/middleware/autoLoadRoutes.ts
-- Supports Next.js style: [id].ts → :id parameter
 - HTTP method suffix: routeName.get.ts, routeName.post.ts
-- Route structure: src/routes/v1/hello.get.ts → GET /v1/hello
+- Dynamic routes: [id].ts → :id parameter
+- Example: routes/v1/hello.get.ts → GET /v1/hello
 
 ### GitHub Webhooks
-- Issues webhook: packages/hr-agent/src/routes/v1/webhooks/issues.post.ts
-- PR webhook: packages/hr-agent/src/routes/v1/webhooks/pullRequests.post.ts
-- HMAC signature verification using crypto.timingSafeEqual
+- Issues: routes/v1/webhooks/issues.post.ts
+- PRs: routes/v1/webhooks/pullRequests.post.ts
+- HMAC verification: crypto.timingSafeEqual
 
 ### Response Structure
 ```typescript
 { code: number, message: string, data: T }
 ```
 
-## Commit Strategy
+## Commit & Safety
 
 - Format: `type(scope): description` (feat, fix, refactor, style, docs, test, chore)
-- Run format, lint, and tests before committing
+- Run format, lint, tests before commit
 - Never commit secrets
-- Test failure must block commit
+- Never modify git config, force push without request, or push to main/master without confirmation
 
-## Safety Rules
+## File Organization (HRA)
 
-- Never modify git config
-- Never force push unless requested
-- Never push to remote main/master without confirmation
-- Validate no secrets in commits/logs
-
-## File Organization (HRA Package)
-
-- `packages/hr-agent/src/index.ts` - Main entry point, Express app setup
-- `packages/hr-agent/src/routes/` - API route handlers (auto-loaded)
+- `packages/hr-agent/src/index.ts` - Express app setup
+- `packages/hr-agent/src/routes/` - API handlers (auto-loaded)
 - `packages/hr-agent/src/middleware/` - Express middleware
-- `packages/hr-agent/src/utils/` - Utility classes/functions
-- `packages/hr-agent/src/services/` - Business logic services
+- `packages/hr-agent/src/utils/` - Utilities
+- `packages/hr-agent/src/services/` - Business logic
 - `packages/hr-agent/dist/` - Compiled output (gitignored)
