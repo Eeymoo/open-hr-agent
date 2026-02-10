@@ -1,8 +1,5 @@
 import { TaskQueue, type QueuedTask } from '../utils/taskQueue.js';
-import {
-  CAResourceManager,
-  type CAResource
-} from './caResourceManager.js';
+import { CAResourceManager, type CAResource } from './caResourceManager.js';
 import { EventBus } from './eventBus.js';
 import { RetryManager } from '../utils/retryManager.js';
 import { TaskLogger } from '../utils/taskLogger.js';

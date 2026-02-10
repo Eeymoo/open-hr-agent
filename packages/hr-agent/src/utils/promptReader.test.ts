@@ -17,10 +17,7 @@ describe('readPrompt', () => {
     vi.mocked(fs.readFileSync).mockReturnValue('  继续  ');
     const result = readPrompt('next');
     expect(result).toBe('继续');
-    expect(fs.readFileSync).toHaveBeenCalledWith(
-      expect.stringContaining('next.md'),
-      'utf-8'
-    );
+    expect(fs.readFileSync).toHaveBeenCalledWith(expect.stringContaining('next.md'), 'utf-8');
   });
 
   it('应该 trim 文件内容', async () => {
@@ -56,10 +53,7 @@ describe('readPrompt', () => {
     const { readPrompt } = await import('./promptReader.js');
     vi.mocked(fs.readFileSync).mockReturnValue('test content');
     readPrompt('example');
-    expect(fs.readFileSync).toHaveBeenCalledWith(
-      expect.stringContaining('example.md'),
-      'utf-8'
-    );
+    expect(fs.readFileSync).toHaveBeenCalledWith(expect.stringContaining('example.md'), 'utf-8');
   });
 
   it('应该使用 UTF-8 编码读取文件', async () => {
@@ -67,9 +61,6 @@ describe('readPrompt', () => {
     vi.mocked(fs.readFileSync).mockReturnValue('测试内容');
     const result = readPrompt('chinese');
     expect(result).toBe('测试内容');
-    expect(fs.readFileSync).toHaveBeenCalledWith(
-      expect.any(String),
-      'utf-8'
-    );
+    expect(fs.readFileSync).toHaveBeenCalledWith(expect.any(String), 'utf-8');
   });
 });
