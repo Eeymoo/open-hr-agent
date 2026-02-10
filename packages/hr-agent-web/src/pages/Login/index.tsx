@@ -25,7 +25,7 @@ export function Login() {
   const handleSubmit = async (values: LoginForm) => {
     setLoading(true);
     try {
-      login(values.secret);
+      await login(values.secret);
     } catch (error) {
       message.error('登录失败，请重试');
       console.error('Login failed:', error);

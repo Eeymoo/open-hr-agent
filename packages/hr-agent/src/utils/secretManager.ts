@@ -1,18 +1,18 @@
-export type SecretName = `${string}_SECRET`;
+import { type SecretName, getEnvValue } from './envSecrets.js';
 
 const GLOBAL_SECRET_NAME = 'HRA_SECRET';
 
 export function getSecret(secretName: SecretName): string {
   if (secretName === GLOBAL_SECRET_NAME) {
-    return process.env[GLOBAL_SECRET_NAME] ?? 'hr-agent-secret';
+    return getEnvValue(GLOBAL_SECRET_NAME) ?? 'hr-agent-secret';
   }
 
-  const specificSecret = process.env[secretName];
+  const specificSecret = getEnvValue(secretName);
   if (specificSecret !== undefined && specificSecret !== '') {
     return specificSecret;
   }
 
-  return process.env[GLOBAL_SECRET_NAME] ?? 'hr-agent-secret';
+  return getEnvValue(GLOBAL_SECRET_NAME) ?? 'hr-agent-secret';
 }
 
 export function getDockerCASecret(): string {

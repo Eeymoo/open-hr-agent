@@ -1,17 +1,27 @@
+import { encrypt, decrypt, clearEncryptionKey } from './crypto';
+
 const SECRET_KEY = 'hra_secret';
 
-export const setSecret = (secret: string): void => {
-  localStorage.setItem(SECRET_KEY, secret);
+export const setSecret = async (secret: string): Promise<void> => {
+  const encrypted = await encrypt(secret);
+  sessionStorage.setItem(SECRET_KEY, encrypted);
 };
 
-export const getSecret = (): string | null => {
-  return localStorage.getItem(SECRET_KEY);
+export const getSecret = async (): Promise<string | null> => {
+  const encrypted = sessionStorage.getItem(SECRET_KEY);
+  if (!encrypted) {
+    return null;
+  }
+  const decrypted = await decrypt(encrypted);
+  return decrypted;
 };
 
 export const clearSecret = (): void => {
-  localStorage.removeItem(SECRET_KEY);
+  sessionStorage.removeItem(SECRET_KEY);
+  clearEncryptionKey();
 };
 
-export const isAuthenticated = (): boolean => {
-  return !!getSecret();
+export const isAuthenticated = async (): Promise<boolean> => {
+  const secret = await getSecret();
+  return !!secret;
 };
