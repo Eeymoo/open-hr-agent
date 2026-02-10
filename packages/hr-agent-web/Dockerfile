@@ -16,4 +16,4 @@ COPY nginx.conf /etc/nginx/templates/nginx.conf.template
 
 EXPOSE 80
 
-CMD ["sh", "-c", "export HRA_URL=\"${HRA_URL:-http://open-hr-agent:3000}\" && envsubst '\$HRA_URL' < /etc/nginx/templates/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"]
+CMD /bin/sh -c 'export HRA_URL=${HRA_URL:-http://open-hr-agent:3000} && envsubst < /etc/nginx/templates/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g "daemon off;"'
