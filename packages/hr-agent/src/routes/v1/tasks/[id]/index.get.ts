@@ -21,6 +21,11 @@ export default async function getTaskByIdRoute(req: Request, res: Response): Pro
       where: {
         id: parseInt(Array.isArray(id) ? id[0] : id, 10),
         deletedAt: -2
+      },
+      include: {
+        issue: true,
+        pullRequest: true,
+        codingAgent: true
       }
     });
 

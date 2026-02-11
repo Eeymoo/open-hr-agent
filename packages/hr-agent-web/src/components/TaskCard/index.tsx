@@ -139,7 +139,7 @@ export function TaskCard({ task, onClick, onEdit, onDelete, showActions = true }
 
   const handlePRClick = () => {
     if (task.pullRequest) {
-      window.open(task.pullRequest.prId.toString(), '_blank');
+      window.open(task.pullRequest.prUrl, '_blank');
     }
   };
 

@@ -27,6 +27,7 @@ model PullRequest {
   prId        Int      @unique
   prTitle     String
   prContent   String?  @db.Text
+  prUrl       String
   issueId     Int?
   createdAt   Int      @default(-2)
   updatedAt   Int      @default(-2)

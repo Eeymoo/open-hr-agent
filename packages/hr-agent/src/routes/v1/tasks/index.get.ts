@@ -86,7 +86,12 @@ export default async function getTasksRoute(req: Request, res: Response): Promis
         where,
         skip,
         take: params.pageSize,
-        orderBy: { [params.orderBy]: 'desc' }
+        orderBy: { [params.orderBy]: 'desc' },
+        include: {
+          issue: true,
+          pullRequest: true,
+          codingAgent: true
+        }
       }),
       prisma.task.count({ where })
     ]);
