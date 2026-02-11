@@ -275,6 +275,8 @@ export class CAResourceManager {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
+      await this.cleanupFailedContainer(containerName);
+
       const prisma = getPrismaClient();
       await prisma.codingAgent.update({
         where: { id: caId },
@@ -295,6 +297,30 @@ export class CAResourceManager {
         error: errorMessage,
         issueNumber
       });
+    }
+  }
+
+  private async cleanupFailedContainer(containerName: string): Promise<void> {
+    try {
+      const dockerContainers = await listContainers();
+      const failedContainer = dockerContainers.find(
+        (dc) => dc.names.includes(`/${containerName}`)
+      );
+
+      if (failedContainer) {
+        console.log(`Cleaning up failed container: ${containerName}`);
+        try {
+          await deleteContainer(failedContainer.id);
+          console.log(`Successfully cleaned up failed container: ${containerName}`);
+        } catch (deleteError) {
+          const deleteErrorMessage =
+            deleteError instanceof Error ? deleteError.message : 'Unknown error';
+          console.error(`Failed to delete container ${containerName}: ${deleteErrorMessage}`);
+        }
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`Failed to cleanup container ${containerName}: ${errorMessage}`);
     }
   }
 
