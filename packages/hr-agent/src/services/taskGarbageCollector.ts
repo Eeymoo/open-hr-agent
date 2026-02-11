@@ -2,6 +2,7 @@ import { getPrismaClient, getCurrentTimestamp } from '../utils/database.js';
 import { TASK_STATUS } from '../config/taskStatus.js';
 import { TASK_CONFIG } from '../config/taskConfig.js';
 import { TaskLogger } from '../utils/taskLogger.js';
+import { listContainers } from '../utils/docker/listContainers.js';
 
 const HOURS_PER_DAY = 24;
 const MINUTES_PER_HOUR = 60;
@@ -143,7 +144,26 @@ export class TaskGarbageCollector {
       }
     });
 
-    const lostCAIds = this.identifyLostCAIds(allCA, now);
+    const dockerContainers = await listContainers();
+    const dockerContainerMap = new Map(
+      dockerContainers.map((dc) => [dc.names[0].replace('/', ''), dc])
+    );
+
+    const lostCAIds: number[] = [];
+
+    for (const ca of allCA) {
+      const caRecord = ca as {
+        id: number;
+        status: string;
+        containerId: string | null;
+        createdAt: number;
+        caName: string;
+      };
+
+      if (this.isCALost(caRecord, dockerContainerMap, now)) {
+        lostCAIds.push(caRecord.id);
+      }
+    }
 
     if (lostCAIds.length === 0) {
       return 0;
@@ -177,7 +197,8 @@ export class TaskGarbageCollector {
           metadata: {
             ...metadataObj,
             garbageCollected: true,
-            reason: 'CA丢失'
+            reason: 'CA丢失',
+            caStatusAtCollection: (task as { caId?: number }).caId ? 'lost' : 'unknown'
           },
           completedAt: now,
           deletedAt: now,
@@ -205,34 +226,33 @@ export class TaskGarbageCollector {
     return cleaned;
   }
 
-  private identifyLostCAIds(allCA: unknown[], now: number): number[] {
-    const lostCAIds: number[] = [];
-
-    for (const ca of allCA) {
-      const caRecord = ca as {
-        id: number;
-        status: string;
-        containerId: string | null;
-        createdAt: number;
-      };
-
-      if (this.isCALost(caRecord, now)) {
-        lostCAIds.push(caRecord.id);
-      }
-    }
-
-    return lostCAIds;
-  }
-
   private isCALost(
-    caRecord: { status: string; containerId: string | null; createdAt: number },
+    caRecord: { status: string; containerId: string | null; createdAt: number; caName: string },
+    dockerContainerMap: Map<string, unknown>,
     now: number
   ): boolean {
     const isOldAndCreating =
       caRecord.status === 'creating' && now - caRecord.createdAt > TASK_CONFIG.TASK_TIMEOUT;
+
+    if (isOldAndCreating) {
+      const dockerContainer = dockerContainerMap.get(caRecord.caName);
+      if (!dockerContainer) {
+        return true;
+      }
+      return false;
+    }
+
     const isIdleWithoutContainer = caRecord.status === 'idle' && !caRecord.containerId;
 
-    return isOldAndCreating || isIdleWithoutContainer;
+    if (isIdleWithoutContainer) {
+      const dockerContainer = dockerContainerMap.get(caRecord.caName);
+      if (!dockerContainer) {
+        return true;
+      }
+      return false;
+    }
+
+    return false;
   }
 
   private async cleanupLongRunningErrorTasks(prisma: unknown, now: number): Promise<number> {
