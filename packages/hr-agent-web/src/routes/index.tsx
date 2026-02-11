@@ -5,6 +5,7 @@ import { IssuesList } from '../pages/Issues';
 import { IssueDetail } from '../pages/IssueDetail';
 import { PRsList } from '../pages/PRs';
 import { PRDetail } from '../pages/PRDetail';
+import { CAsList } from '../pages/CAs';
 import { AppLayout } from '../components/Layout';
 import { AuthGuard } from '../components/AuthGuard';
 
@@ -50,6 +51,10 @@ export const router = createBrowserRouter([
       {
         path: 'prs/:id',
         element: <PRDetail />
+      },
+      {
+        path: 'cas',
+        element: <CAsList />
       }
     ]
   }

@@ -526,7 +526,9 @@ webhooks.on('pull_request.opened', async ({ payload }) => {
     const prNumber = data.pull_request.number ?? 0;
     const prTitle = data.pull_request.title ?? 'Untitled';
     const prBody = data.pull_request.body ?? null;
-    const prHtmlUrl = data.pull_request.html_url ?? `https://github.com/${data.repository?.full_name}/pull/${prNumber}`;
+    const prHtmlUrl =
+      data.pull_request.html_url ??
+      `https://github.com/${data.repository?.full_name}/pull/${prNumber}`;
     const issueNumber = extractIssueNumberFromTitle(prTitle);
 
     const now = getCurrentTimestamp();

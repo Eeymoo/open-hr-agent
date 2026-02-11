@@ -40,17 +40,32 @@ model PullRequest {
 }
 
 model CodingAgent {
-  id             Int      @id @default(autoincrement())
-  caName         String   @unique
+  id             Int              @id @default(autoincrement())
+  caName         String           @unique
   containerId    String?
-  status         String   @default("pending")
+  status         String           @default("pending")
   dockerConfig   Json?
-  createdAt      Int      @default(-2)
-  updatedAt      Int      @default(-2)
-  completedAt    Int      @default(-2)
-  deletedAt      Int      @default(-2)
+  createdAt      Int              @default(-2)
+  updatedAt      Int              @default(-2)
+  completedAt    Int              @default(-2)
+  deletedAt      Int              @default(-2)
   tasks          Task[]
+  logs           CodingAgentLog[]
   @@index([deletedAt])
+  @@index([status])
+}
+
+model CodingAgentLog {
+  id           Int      @id @default(autoincrement())
+  caId         Int
+  codingAgent  CodingAgent @relation(fields: [caId], references: [id])
+  action       String
+  oldValue     String?
+  newValue     String?
+  metadata     Json?
+  createdAt    Int      @default(-2)
+  @@index([caId])
+  @@index([createdAt])
 }
 
 model Task {

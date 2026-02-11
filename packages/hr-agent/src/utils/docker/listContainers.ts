@@ -24,7 +24,7 @@ export async function listContainers(): Promise<ContainerInfo[]> {
   const containers = await docker.listContainers({ all: true });
 
   return containers
-    .filter((container) => container.Names.some((name) => name.startsWith('/ca-')))
+    .filter((container) => container.Names.some((name) => name.startsWith('/hra_')))
     .map((container) => ({
       id: container.Id,
       names: container.Names,

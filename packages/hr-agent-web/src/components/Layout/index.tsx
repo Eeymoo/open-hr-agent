@@ -6,7 +6,8 @@ import {
   UserOutlined,
   RobotOutlined,
   IssuesCloseOutlined,
-  PullRequestOutlined
+  PullRequestOutlined,
+  CodeOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -52,6 +53,11 @@ export function AppLayout({ children }: LayoutProps) {
       key: '/prs',
       icon: <PullRequestOutlined />,
       label: 'Pull Requests'
+    },
+    {
+      key: '/cas',
+      icon: <CodeOutlined />,
+      label: 'Coding Agents'
     }
   ];
 
@@ -78,6 +84,9 @@ export function AppLayout({ children }: LayoutProps) {
     }
     if (location.pathname.startsWith('/prs')) {
       return 'Pull Requests 管理';
+    }
+    if (location.pathname.startsWith('/cas')) {
+      return 'Coding Agents 管理';
     }
     if (location.pathname === '/orchestration') {
       return '任务编排工作台';

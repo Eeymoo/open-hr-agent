@@ -40,7 +40,13 @@ export default async function getCAsRoute(req: Request, res: Response): Promise<
         where,
         skip,
         take,
-        orderBy: { [orderBy]: 'desc' }
+        orderBy: { [orderBy]: 'desc' },
+        include: {
+          logs: {
+            orderBy: { createdAt: 'desc' },
+            take: 10
+          }
+        }
       }),
       prisma.codingAgent.count({ where })
     ]);

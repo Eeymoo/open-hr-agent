@@ -18,10 +18,7 @@ interface CreateIssueFormData {
 interface IssuesListProps {
   navigate: (path: string) => void;
   searchParams: URLSearchParams;
-  setSearchParams: (params: {
-    page: string;
-    pageSize: string;
-  }) => void;
+  setSearchParams: (params: { page: string; pageSize: string }) => void;
   issues: Issue[];
   pagination?: { total: number };
   isLoading: boolean;
@@ -42,10 +39,7 @@ const getIssueColumns = (navigate: (path: string) => void) => [
     key: 'issueTitle',
     ellipsis: true,
     render: (title: string, record: Issue) => (
-      <a
-        className="issue-title-link"
-        onClick={() => navigate(`/issues/${record.id}`)}
-      >
+      <a className="issue-title-link" onClick={() => navigate(`/issues/${record.id}`)}>
         {title}
       </a>
     )

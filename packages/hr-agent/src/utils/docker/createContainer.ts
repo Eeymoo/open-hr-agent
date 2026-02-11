@@ -30,7 +30,7 @@ export async function createContainer(name: string, repoUrl?: string): Promise<s
 
   try {
     console.log('Creating Docker container...');
-    const containerName = `ca-${name}`;
+    const containerName = name;
     const envVars = [
       `PORT=${DOCKER_CONFIG.PORT}`,
       `OPENCODE_SERVER_PASSWORD=${DOCKER_CONFIG.SECRET}`
