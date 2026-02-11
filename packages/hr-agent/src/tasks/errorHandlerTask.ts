@@ -1,6 +1,7 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
 import { getPrismaClient } from '../utils/database.js';
+import { createGitHubClient } from '../utils/github.js';
 import type { EventBus } from '../services/eventBus.js';
 import type { TaskLogger } from '../utils/taskLogger.js';
 
@@ -95,21 +96,45 @@ export class ErrorHandlerTask extends BaseTask {
 
   private async postIssueComment(issueId: number, comment: string): Promise<void> {
     try {
-      await this.logger.info(
-        issueId,
-        'ErrorHandler',
-        `应在 Issue #${issueId} 创建评论: ${comment}`
-      );
+      const prisma = getPrismaClient();
+      const issue = await prisma.issue.findUnique({
+        where: { id: issueId }
+      });
+
+      if (!issue) {
+        await this.logger.warn(issueId, 'ErrorHandler', `Issue #${issueId} not found`);
+        return;
+      }
+
+      const githubClient = createGitHubClient();
+      await githubClient.createIssueComment(issue.issueId, comment);
+
+      await this.logger.info(issueId, 'ErrorHandler', `已在 Issue #${issue.issueId} 创建评论`);
     } catch (error) {
-      await this.logger.error(issueId, 'ErrorHandler', `创建 Issue 评论失败: ${error}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      await this.logger.error(issueId, 'ErrorHandler', `创建 Issue 评论失败: ${errorMessage}`);
     }
   }
 
   private async postPRComment(prId: number, comment: string): Promise<void> {
     try {
-      await this.logger.info(prId, 'ErrorHandler', `应在 PR #${prId} 创建评论: ${comment}`);
+      const prisma = getPrismaClient();
+      const pullRequest = await prisma.pullRequest.findUnique({
+        where: { id: prId }
+      });
+
+      if (!pullRequest) {
+        await this.logger.warn(prId, 'ErrorHandler', `PR #${prId} not found`);
+        return;
+      }
+
+      const githubClient = createGitHubClient();
+      await githubClient.createPRComment(pullRequest.prId, comment);
+
+      await this.logger.info(prId, 'ErrorHandler', `已在 PR #${pullRequest.prId} 创建评论`);
     } catch (error) {
-      await this.logger.error(prId, 'ErrorHandler', `创建 PR 评论失败: ${error}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      await this.logger.error(prId, 'ErrorHandler', `创建 PR 评论失败: ${errorMessage}`);
     }
   }
 
