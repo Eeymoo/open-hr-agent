@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Spin, Tag } from 'antd';
 import { useTasks } from '../../hooks/useTasks';
-import { TASK_STATUS_LABELS, TASK_STATUS_COLORS, type Task, type TaskQueryParams } from '../../types/task';
+import {
+  TASK_STATUS_LABELS,
+  TASK_STATUS_COLORS,
+  type Task,
+  type TaskQueryParams
+} from '../../types/task';
 import { formatTimestamp } from '../../utils/formatters';
 import './index.css';
 
 interface TaskTableProps {
   params?: TaskQueryParams;
-  onTaskClick?: (task: Task) => void;
+  onTaskClick?: (_task: Task) => void;
 }
 
 export function TaskTable({ params, onTaskClick }: TaskTableProps) {
@@ -98,9 +103,7 @@ export function TaskTable({ params, onTaskClick }: TaskTableProps) {
             {tasks.map((task) => (
               <tr key={task.id} onClick={() => handleRowClick(task)} className="task-row">
                 {columns.map((col) => (
-                  <td key={col.prop}>
-                    {formatCellValue(col.prop, task)}
-                  </td>
+                  <td key={col.prop}>{formatCellValue(col.prop, task)}</td>
                 ))}
               </tr>
             ))}

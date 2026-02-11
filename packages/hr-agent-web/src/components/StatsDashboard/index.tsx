@@ -28,9 +28,8 @@ export function StatsDashboard({ tasks }: StatsDashboardProps) {
   const ANIMATION_DURATION = 2000;
   const PROGRESS_STROKE_WIDTH = 12;
 
-  const completionRate = stats.total > 0
-    ? Math.round((stats.completed / stats.total) * PERCENTAGE_MAX)
-    : 0;
+  const completionRate =
+    stats.total > 0 ? Math.round((stats.completed / stats.total) * PERCENTAGE_MAX) : 0;
 
   return (
     <div className="stats-dashboard">

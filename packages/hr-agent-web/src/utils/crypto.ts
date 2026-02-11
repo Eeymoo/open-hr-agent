@@ -91,8 +91,16 @@ export async function decrypt(data: string): Promise<string | null> {
     const key = await getEncryptionKey();
     const [ivBase64, encryptedBase64] = data.split(':');
 
-    const iv = new Uint8Array(atob(ivBase64).split('').map((c) => c.charCodeAt(0)));
-    const encrypted = new Uint8Array(atob(encryptedBase64).split('').map((c) => c.charCodeAt(0)));
+    const iv = new Uint8Array(
+      atob(ivBase64)
+        .split('')
+        .map((c) => c.charCodeAt(0))
+    );
+    const encrypted = new Uint8Array(
+      atob(encryptedBase64)
+        .split('')
+        .map((c) => c.charCodeAt(0))
+    );
 
     const decrypted = await window.crypto.subtle.decrypt(
       {

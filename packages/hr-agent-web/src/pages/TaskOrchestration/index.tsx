@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { Button, Radio, Space, Empty, Spin } from 'antd';
-import { PlusOutlined, TableOutlined, AppstoreOutlined, DashboardOutlined } from '@ant-design/icons';
+import {
+  PlusOutlined,
+  TableOutlined,
+  AppstoreOutlined,
+  DashboardOutlined
+} from '@ant-design/icons';
 import { TaskCard } from '../../components/TaskCard';
 import { TaskTable } from '../../components/TaskTable';
 import { TaskFormModal } from '../../components/TaskFormModal';
@@ -101,17 +106,19 @@ export function TaskOrchestration() {
                 <TableOutlined /> 表格
               </Radio.Button>
             </Radio.Group>
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAddTask} className="add-task-btn">
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleAddTask}
+              className="add-task-btn"
+            >
               添加任务
             </Button>
           </Space>
         </div>
 
         {tasks.length === 0 ? (
-          <Empty
-            description="暂无任务"
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-          />
+          <Empty description="暂无任务" image={Empty.PRESENTED_IMAGE_SIMPLE} />
         ) : viewMode === 'kanban' ? (
           <TaskKanban
             tasks={tasks}

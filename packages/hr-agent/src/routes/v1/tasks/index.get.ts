@@ -32,7 +32,9 @@ function parseQueryParams(req: Request): {
   const pageSize =
     Number.isFinite(rawPageSize) && rawPageSize > 0 ? Math.floor(rawPageSize) : DEFAULT_PAGE_SIZE;
   const rawOrderBy = req.query.orderBy as string;
-  const orderBy = ALLOWED_ORDER_BY_FIELDS.includes(rawOrderBy as (typeof ALLOWED_ORDER_BY_FIELDS)[number])
+  const orderBy = ALLOWED_ORDER_BY_FIELDS.includes(
+    rawOrderBy as (typeof ALLOWED_ORDER_BY_FIELDS)[number]
+  )
     ? rawOrderBy
     : 'createdAt';
 

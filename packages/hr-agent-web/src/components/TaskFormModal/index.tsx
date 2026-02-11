@@ -1,12 +1,16 @@
 import { Modal, Form, Input, Select, InputNumber, Button } from 'antd';
-import { TASK_STATUS_LABELS, type Task, type CreateTaskDto, type UpdateTaskDto } from '../../types/task';
+import {
+  TASK_STATUS_LABELS,
+  type Task,
+  type CreateTaskDto,
+  type UpdateTaskDto
+} from '../../types/task';
 
 interface TaskFormModalProps {
   open: boolean;
   task: Task | null;
   mode: 'create' | 'edit';
   onCancel: () => void;
-  // eslint-disable-next-line no-unused-vars
   onSubmit: (_data: CreateTaskDto | UpdateTaskDto) => void;
   loading?: boolean;
 }

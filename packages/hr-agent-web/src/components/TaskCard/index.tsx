@@ -7,7 +7,12 @@ import {
   RobotOutlined,
   ClockCircleOutlined
 } from '@ant-design/icons';
-import { TASK_STATUS_LABELS, TASK_STATUS_COLORS, PRIORITY_COLORS, type Task } from '../../types/task';
+import {
+  TASK_STATUS_LABELS,
+  TASK_STATUS_COLORS,
+  PRIORITY_COLORS,
+  type Task
+} from '../../types/task';
 import { formatTimestamp, formatPriority } from '../../utils/formatters';
 import './index.css';
 
@@ -52,7 +57,13 @@ function getProgressByStatus(task: Task) {
   return PROGRESS_QUEUED;
 }
 
-function TaskCardContent({ task, handleIssueClick, handlePRClick, handleCAUrlClick, isRunning }: TaskCardContentProps) {
+function TaskCardContent({
+  task,
+  handleIssueClick,
+  handlePRClick,
+  handleCAUrlClick,
+  isRunning
+}: TaskCardContentProps) {
   const progress = getProgressByStatus(task);
 
   return (
@@ -81,11 +92,7 @@ function TaskCardContent({ task, handleIssueClick, handlePRClick, handleCAUrlCli
         {task.issue && (
           <div className="task-link">
             <GithubOutlined />
-            <Button
-              type="link"
-              onClick={handleIssueClick}
-              className="link-btn"
-            >
+            <Button type="link" onClick={handleIssueClick} className="link-btn">
               #{task.issue.issueId}
             </Button>
           </div>
@@ -93,11 +100,7 @@ function TaskCardContent({ task, handleIssueClick, handlePRClick, handleCAUrlCli
         {task.pullRequest && (
           <div className="task-link">
             <GithubOutlined />
-            <Button
-              type="link"
-              onClick={handlePRClick}
-              className="link-btn"
-            >
+            <Button type="link" onClick={handlePRClick} className="link-btn">
               #{task.pullRequest.prId}
             </Button>
           </div>
@@ -105,11 +108,7 @@ function TaskCardContent({ task, handleIssueClick, handlePRClick, handleCAUrlCli
         {task.codingAgent && (
           <div className="task-link">
             <LinkOutlined />
-            <Button
-              type="link"
-              onClick={handleCAUrlClick}
-              className="link-btn"
-            >
+            <Button type="link" onClick={handleCAUrlClick} className="link-btn">
               {task.codingAgent.caName}
             </Button>
           </div>
@@ -143,7 +142,8 @@ export function TaskCard({ task, onClick, onEdit, onDelete, showActions = true }
     }
   };
 
-  const isRunning = task.status === 'running' || task.status === 'retrying' || task.status === 'in_development';
+  const isRunning =
+    task.status === 'running' || task.status === 'retrying' || task.status === 'in_development';
 
   return (
     <Card
@@ -153,16 +153,10 @@ export function TaskCard({ task, onClick, onEdit, onDelete, showActions = true }
       title={
         <Space size={8}>
           <span className="task-id">#{task.id}</span>
-          <Tag
-            color={TASK_STATUS_COLORS[task.status]}
-            className="status-tag"
-          >
+          <Tag color={TASK_STATUS_COLORS[task.status]} className="status-tag">
             {TASK_STATUS_LABELS[task.status]}
           </Tag>
-          <Tag
-            color={PRIORITY_COLORS[task.priority] ?? 'default'}
-            className="priority-tag"
-          >
+          <Tag color={PRIORITY_COLORS[task.priority] ?? 'default'} className="priority-tag">
             {formatPriority(task.priority)}
           </Tag>
         </Space>
