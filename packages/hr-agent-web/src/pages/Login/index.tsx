@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Form, Input, Button, Typography, Space } from 'antd';
+import { Form, Input, Button, Typography, Space, message } from 'antd';
 import { LockOutlined, RobotOutlined, ApiOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -29,6 +29,7 @@ export function Login() {
       await login(values.secret);
     } catch (error) {
       console.error('Login failed:', error);
+      message.error('登录失败，请检查 SECRET 是否正确');
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Button, Table, Space, Empty, Spin, Input, Modal, Form } from 'antd';
+import { Card, Button, Table, Space, Empty, Spin, Input, Modal, Form, message } from 'antd';
 import { PlusOutlined, LinkOutlined } from '@ant-design/icons';
 import { usePRs, useCreatePR } from '../../hooks/usePRs';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -129,8 +129,10 @@ function PRsListContent({
       await createPR.mutateAsync(values);
       setModalOpen(false);
       form.resetFields();
+      message.success('创建成功');
     } catch (error) {
       console.error('Failed to create PR:', error);
+      message.error('创建失败，请重试');
     }
   };
 

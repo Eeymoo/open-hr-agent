@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Button, Descriptions, Space, Empty, Spin, message, Modal } from 'antd';
 import { ArrowLeftOutlined, EditOutlined, LinkOutlined, DeleteOutlined } from '@ant-design/icons';
-import { useIssue } from '../../hooks/useIssues';
+import { useIssue, useDeleteIssue } from '../../hooks/useIssues';
 import { formatDate, getIssueStatusTag } from '../../utils/formatters';
 import './index.css';
 
@@ -12,13 +12,20 @@ export function IssueDetail() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const { data, isLoading } = useIssue(parseInt(id || '0', 10));
+  const deleteIssue = useDeleteIssue();
 
   const issue = data;
 
   const handleDelete = async () => {
-    message.success('删除成功');
-    setDeleteModalOpen(false);
-    navigate('/issues');
+    try {
+      await deleteIssue.mutateAsync(issue?.id ?? 0);
+      message.success('删除成功');
+      setDeleteModalOpen(false);
+      navigate('/issues');
+    } catch (error) {
+      console.error('Failed to delete issue:', error);
+      message.error('删除失败，请重试');
+    }
   };
 
   if (isLoading) {

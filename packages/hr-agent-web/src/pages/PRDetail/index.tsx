@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Button, Descriptions, Space, Empty, Spin, Modal } from 'antd';
+import { Card, Button, Descriptions, Space, Empty, Spin, Modal, message } from 'antd';
 import { ArrowLeftOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { usePR } from '../../hooks/usePRs';
+import { usePR, useDeletePR } from '../../hooks/usePRs';
 import { formatDate, getPRStatusTag } from '../../utils/formatters';
 import './index.css';
 
@@ -12,12 +12,20 @@ export function PRDetail() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const { data, isLoading } = usePR(parseInt(id || '0', 10));
+  const deletePR = useDeletePR();
 
   const pr = data;
 
   const handleDelete = async () => {
-    setDeleteModalOpen(false);
-    navigate('/prs');
+    try {
+      await deletePR.mutateAsync(pr?.id ?? 0);
+      message.success('删除成功');
+      setDeleteModalOpen(false);
+      navigate('/prs');
+    } catch (error) {
+      console.error('Failed to delete PR:', error);
+      message.error('删除失败，请重试');
+    }
   };
 
   if (isLoading) {
