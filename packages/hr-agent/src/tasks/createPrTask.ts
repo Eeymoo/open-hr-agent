@@ -1,6 +1,8 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
 import { getPrismaClient, getCurrentTimestamp, INACTIVE_TIMESTAMP } from '../utils/database.js';
+import { createGitHubClient } from '../utils/github.js';
+import { getGitHubOwner, getGitHubRepo } from '../utils/secretManager.js';
 
 export class CreatePrTask extends BaseTask {
   readonly name = 'create_pr';
@@ -49,11 +51,39 @@ export class CreatePrTask extends BaseTask {
         };
       }
 
+      const prTitle = `Fix #${issueNumber}: ${issue.issueTitle}`;
+      const prBody = `Automated PR created by HR Agent for Issue #${issueNumber}`;
+      const branchName = `fix/issue-${issueNumber}`;
+      const owner = getGitHubOwner();
+      const repo = getGitHubRepo();
+      const baseBranch = 'main';
+
+      await this.logger.info(context.taskId, this.name, '准备创建 GitHub PR', {
+        prTitle,
+        branchName,
+        owner,
+        repo
+      });
+
+      const githubClient = createGitHubClient();
+      const pr = await githubClient.createPullRequest(
+        prTitle,
+        prBody,
+        branchName,
+        baseBranch,
+        issueNumber
+      );
+
+      await this.logger.info(context.taskId, this.name, 'GitHub PR 创建成功', {
+        prNumber: pr.number,
+        prUrl: pr.htmlUrl
+      });
+
       const prRecord = await prisma.pullRequest.create({
         data: {
-          prId: 0,
-          prTitle: `Fix #${issueNumber}: ${issue.issueTitle}`,
-          prContent: 'Automated PR created by HR Agent',
+          prId: pr.number,
+          prTitle,
+          prContent: prBody,
           issueId: issue.id,
           completedAt: INACTIVE_TIMESTAMP,
           deletedAt: INACTIVE_TIMESTAMP,
@@ -62,12 +92,15 @@ export class CreatePrTask extends BaseTask {
         }
       });
 
-      await this.logger.info(context.taskId, this.name, 'PR 创建成功', { prId: prRecord.id });
+      await this.logger.info(context.taskId, this.name, 'PR 记录创建成功', { prId: prRecord.id });
 
       await this.updateTaskMetadata(context.taskId, {
         prId: prRecord.id,
         issueNumber,
-        prCreatedAt: now
+        prNumber: pr.number,
+        prUrl: pr.htmlUrl,
+        prCreatedAt: now,
+        branchName
       });
 
       await prisma.task.update({
@@ -81,7 +114,7 @@ export class CreatePrTask extends BaseTask {
 
       return {
         success: true,
-        data: { prId: prRecord.id, existing: false },
+        data: { prId: prRecord.id, prNumber: pr.number, prUrl: pr.htmlUrl, existing: false },
         nextEvent: TASK_EVENTS.PR_CREATED,
         nextTask: 'destroy_ca',
         nextParams: {
