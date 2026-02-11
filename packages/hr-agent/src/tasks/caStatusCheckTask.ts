@@ -169,7 +169,7 @@ export class CaStatusCheckTask extends BaseTask {
         }
       });
 
-      if (!task || !task.metadata) {
+      if (!task?.metadata) {
         return;
       }
 
@@ -216,7 +216,11 @@ export class CaStatusCheckTask extends BaseTask {
         }
       }
     } catch (error) {
-      await this.logger.error(taskId, this.name, `检查 AI 编码超时失败: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      await this.logger.error(
+        taskId,
+        this.name,
+        `检查 AI 编码超时失败: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -233,7 +237,7 @@ export class CaStatusCheckTask extends BaseTask {
         where: { id: taskId }
       });
 
-      if (!task || !task.metadata) {
+      if (!task?.metadata) {
         await this.sendContinue(client, sessionId);
         return {
           success: true,
