@@ -22,6 +22,7 @@ export class CaStatusCheckTask extends BaseTask {
   readonly name = 'ca_status_check';
   readonly dependencies: string[] = [];
   readonly needsCA = false;
+  private readonly MAX_CONTINUE_COUNT = 5;
 
   async execute(params: Record<string, unknown>, context: TaskContext): Promise<TaskResult> {
     await this.validateParams(params, ['caId', 'caName']);
@@ -84,11 +85,25 @@ export class CaStatusCheckTask extends BaseTask {
       });
 
       if (containsXML) {
-        await this.sendContinue(client, session.id);
+        const continueResult = await this.handleXMLContinue(
+          context.taskId,
+          client,
+          session.id,
+          messages.length
+        );
+
+        if (!continueResult.success) {
+          return {
+            success: false,
+            error: continueResult.error
+          };
+        }
+
         await this.logger.info(context.taskId, this.name, '已发送"继续"消息', {
           caId,
           caName,
-          sessionId: session.id
+          sessionId: session.id,
+          continueCount: continueResult.continueCount
         });
 
         return {
@@ -98,8 +113,9 @@ export class CaStatusCheckTask extends BaseTask {
             sessionId: session.id,
             messageCount: messages.length,
             hasXMLError: true,
-            action: 'sent_continue',
-            lastMessageContent: this.getMessageContent(latestMessage)
+            action: continueResult.action,
+            lastMessageContent: this.getMessageContent(latestMessage),
+            continueCount: continueResult.continueCount
           }
         };
       }
@@ -201,6 +217,104 @@ export class CaStatusCheckTask extends BaseTask {
       }
     } catch (error) {
       await this.logger.error(taskId, this.name, `检查 AI 编码超时失败: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  private async handleXMLContinue(
+    taskId: number,
+    client: ReturnType<typeof createOpencodeClient>,
+    sessionId: string,
+    _messageCount: number
+  ): Promise<{ success: boolean; action: string; continueCount: number; error?: string }> {
+    const prisma = getPrismaClient();
+
+    try {
+      const task = await prisma.task.findUnique({
+        where: { id: taskId }
+      });
+
+      if (!task || !task.metadata) {
+        await this.sendContinue(client, sessionId);
+        return {
+          success: true,
+          action: 'sent_continue',
+          continueCount: 0
+        };
+      }
+
+      const metadata = task.metadata as Record<string, unknown>;
+      let continueCount = (metadata.continueCount as number) ?? 0;
+      continueCount++;
+
+      if (continueCount > this.MAX_CONTINUE_COUNT) {
+        await this.logger.error(taskId, this.name, 'XML 继续次数超过限制', {
+          taskId,
+          sessionId,
+          continueCount,
+          maxContinueCount: this.MAX_CONTINUE_COUNT
+        });
+
+        await prisma.task.update({
+          where: { id: taskId },
+          data: {
+            status: 'error',
+            completedAt: getCurrentTimestamp(),
+            updatedAt: getCurrentTimestamp(),
+            metadata: {
+              ...metadata,
+              continueCount,
+              continueLimitExceeded: true,
+              error: `XML continue count exceeded limit of ${this.MAX_CONTINUE_COUNT}`
+            }
+          }
+        });
+
+        return {
+          success: false,
+          action: 'limit_exceeded',
+          continueCount,
+          error: `XML continue count exceeded limit of ${this.MAX_CONTINUE_COUNT}`
+        };
+      }
+
+      await this.logger.warn(taskId, this.name, '发送 XML 继续消息', {
+        taskId,
+        sessionId,
+        continueCount,
+        maxContinueCount: this.MAX_CONTINUE_COUNT
+      });
+
+      await this.sendContinue(client, sessionId);
+
+      await prisma.task.update({
+        where: { id: taskId },
+        data: {
+          metadata: {
+            ...metadata,
+            continueCount,
+            lastContinueAt: getCurrentTimestamp()
+          }
+        }
+      });
+
+      return {
+        success: true,
+        action: 'sent_continue',
+        continueCount
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      await this.logger.error(taskId, this.name, `处理 XML 继续失败: ${errorMessage}`, {
+        taskId,
+        sessionId
+      });
+
+      return {
+        success: false,
+        action: 'error',
+        continueCount: 0,
+        error: errorMessage
+      };
     }
   }
 
