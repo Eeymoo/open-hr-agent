@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Button, Descriptions, Tag, Space, Empty, Spin, message, Modal } from 'antd';
+import { Card, Button, Descriptions, Space, Empty, Spin, message, Modal } from 'antd';
 import { ArrowLeftOutlined, EditOutlined, LinkOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useIssue, useDeleteIssue } from '../../hooks/useIssues';
-import type { Issue } from '../../types/issue';
+import { formatDate, getIssueStatusTag } from '../../utils/formatters';
 import './index.css';
 
 export function IssueDetail() {
@@ -15,26 +15,6 @@ export function IssueDetail() {
   const deleteIssue = useDeleteIssue();
 
   const issue = data;
-
-  const formatDate = (timestamp: number) => {
-    if (!timestamp || timestamp < 0) {
-      return '-';
-    }
-    return new Date(timestamp).toLocaleString('zh-CN');
-  };
-
-  const getStatusTag = (issue?: Issue) => {
-    if (!issue) {
-      return null;
-    }
-    if (issue.deletedAt > -1) {
-      return <Tag color="default">已删除</Tag>;
-    }
-    if (issue.completedAt > -1) {
-      return <Tag color="success">已完成</Tag>;
-    }
-    return <Tag color="processing">进行中</Tag>;
-  };
 
   const handleDelete = async () => {
     try {
@@ -84,12 +64,12 @@ export function IssueDetail() {
           <h1 className="issue-title">
             <span className="issue-number">#{issue.issueId}</span> {issue.issueTitle}
           </h1>
-          <div className="issue-status">{getStatusTag(issue)}</div>
+          <div className="issue-status">{getIssueStatusTag(issue)}</div>
         </div>
 
         <Descriptions column={2} bordered className="issue-descriptions">
           <Descriptions.Item label="Issue ID">{issue.issueId}</Descriptions.Item>
-          <Descriptions.Item label="状态">{getStatusTag(issue)}</Descriptions.Item>
+          <Descriptions.Item label="状态">{getIssueStatusTag(issue)}</Descriptions.Item>
           <Descriptions.Item label="创建时间">{formatDate(issue.createdAt)}</Descriptions.Item>
           <Descriptions.Item label="更新时间">{formatDate(issue.updatedAt)}</Descriptions.Item>
           {issue.completedAt > -1 && (

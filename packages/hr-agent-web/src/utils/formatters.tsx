@@ -1,6 +1,9 @@
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/zh-cn';
+import { Tag } from 'antd';
+import type { Issue } from '../types/issue';
+import type { PullRequest } from '../types/pr';
 
 dayjs.extend(relativeTime);
 dayjs.locale('zh-cn');
@@ -109,4 +112,37 @@ export const formatPriority = (priority: number): string => {
     return '中';
   }
   return '低';
+};
+
+export const formatDate = (timestamp: number): string => {
+  if (!timestamp || timestamp < 0) {
+    return '-';
+  }
+  return dayjs.unix(timestamp).format('YYYY-MM-DD HH:mm:ss');
+};
+
+export const getIssueStatusTag = (issue?: Issue) => {
+  if (!issue) {
+    return null;
+  }
+  if (issue.deletedAt > -1) {
+    return <Tag color="default">已删除</Tag>;
+  }
+  if (issue.completedAt > -1) {
+    return <Tag color="success">已完成</Tag>;
+  }
+  return <Tag color="processing">进行中</Tag>;
+};
+
+export const getPRStatusTag = (pr?: PullRequest) => {
+  if (!pr) {
+    return null;
+  }
+  if (pr.deletedAt > -1) {
+    return <Tag color="default">已删除</Tag>;
+  }
+  if (pr.completedAt > -1) {
+    return <Tag color="success">已合并</Tag>;
+  }
+  return <Tag color="processing">进行中</Tag>;
 };

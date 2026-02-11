@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Card, Button, Table, Tag, Space, Empty, Spin, Input, Modal, Form, message } from 'antd';
+import { Card, Button, Table, Space, Empty, Spin, Input, Modal, Form, message } from 'antd';
 import { PlusOutlined, LinkOutlined } from '@ant-design/icons';
 import { usePRs, useCreatePR } from '../../hooks/usePRs';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { PullRequest } from '../../types/pr';
+import { formatDate, getPRStatusTag } from '../../utils/formatters';
 
 import './index.css';
 
@@ -26,23 +27,6 @@ interface PRsListProps {
   isLoading: boolean;
   createPR: ReturnType<typeof useCreatePR>;
 }
-
-const formatDate = (timestamp: number) => {
-  if (!timestamp || timestamp < 0) {
-    return '-';
-  }
-  return new Date(timestamp).toLocaleString('zh-CN');
-};
-
-const getStatusTag = (pr: PullRequest) => {
-  if (pr.deletedAt > -1) {
-    return <Tag color="default">已删除</Tag>;
-  }
-  if (pr.completedAt > -1) {
-    return <Tag color="success">已合并</Tag>;
-  }
-  return <Tag color="processing">进行中</Tag>;
-};
 
 const getPRColumns = (navigate: (path: string) => void) => [
   {
@@ -75,7 +59,7 @@ const getPRColumns = (navigate: (path: string) => void) => [
     title: '状态',
     key: 'status',
     width: 120,
-    render: (_: unknown, record: PullRequest) => getStatusTag(record)
+    render: (_: unknown, record: PullRequest) => getPRStatusTag(record)
   },
   {
     title: '创建时间',
