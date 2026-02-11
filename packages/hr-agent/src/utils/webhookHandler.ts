@@ -593,7 +593,7 @@ webhooks.on('pull_request.opened', async ({ payload }) => {
       issueId = issue?.id;
     }
 
-    await prisma.pullRequest.create({
+    const pr = await prisma.pullRequest.create({
       data: {
         prId: prNumber,
         prTitle,
@@ -607,9 +607,33 @@ webhooks.on('pull_request.opened', async ({ payload }) => {
       }
     });
 
+    if (issueId) {
+      const existingIssuePr = await prisma.issuePR.findUnique({
+        where: {
+          issueId_prId: {
+            issueId,
+            prId: pr.id
+          }
+        }
+      });
+
+      if (!existingIssuePr) {
+        await prisma.issuePR.create({
+          data: {
+            issueId,
+            prId: pr.id
+          }
+        });
+        console.log(`IssuePR relation created for issue ${issueId} and PR ${pr.id}`);
+      }
+    }
+
     console.log(`PR #${prNumber} created successfully`);
   } catch (error) {
-    console.error('Failed to process pull_request.opened:', error instanceof Error ? error.message : error);
+    console.error(
+      'Failed to process pull_request.opened:',
+      error instanceof Error ? error.message : error
+    );
   }
 });
 
@@ -677,7 +701,10 @@ webhooks.on('pull_request.closed', async ({ payload }) => {
 
     console.log(`Updated ${pr.tasks.length} tasks for PR #${prNumber}`);
   } catch (error) {
-    console.error('Failed to process pull_request.closed:', error instanceof Error ? error.message : error);
+    console.error(
+      'Failed to process pull_request.closed:',
+      error instanceof Error ? error.message : error
+    );
   }
 });
 

@@ -19,6 +19,7 @@ model Issue {
   completedAt  Int      @default(-2)
   deletedAt    Int      @default(-2)
   tasks        Task[]
+  issuePrs     IssuePR[]
   @@index([deletedAt])
 }
 
@@ -34,6 +35,7 @@ model PullRequest {
   completedAt Int      @default(-2)
   deletedAt   Int      @default(-2)
   tasks       Task[]
+  issuePrs    IssuePR[]
   @@index([deletedAt])
 }
 
@@ -70,4 +72,17 @@ model Task {
   @@index([deletedAt])
   @@index([status])
   @@index([priority])
+}
+
+model IssuePR {
+  id        Int          @id @default(autoincrement())
+  issueId   Int
+  prId      Int
+  createdAt Int          @default(-2)
+  issue     Issue        @relation(fields: [issueId], references: [id])
+  pr        PullRequest  @relation(fields: [prId], references: [id])
+
+  @@unique([issueId, prId])
+  @@index([issueId])
+  @@index([prId])
 }

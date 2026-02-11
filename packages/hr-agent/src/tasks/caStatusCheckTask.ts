@@ -169,7 +169,7 @@ export class CaStatusCheckTask extends BaseTask {
         }
       });
 
-      if (!task || !task.metadata) {
+      if (!task?.metadata) {
         return;
       }
 
@@ -237,7 +237,7 @@ export class CaStatusCheckTask extends BaseTask {
         where: { id: taskId }
       });
 
-      if (!task || !task.metadata) {
+      if (!task?.metadata) {
         await this.sendContinue(client, sessionId);
         return {
           success: true,
