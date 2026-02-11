@@ -8,16 +8,31 @@ const HTTP = {
   INTERNAL_SERVER_ERROR: 500
 };
 
+/**
+ * 创建任务请求体接口
+ */
 interface CreateTaskBody {
+  /** 任务类型 */
   type: string;
+  /** 任务状态 */
   status?: string;
+  /** 任务优先级 */
   priority?: number;
+  /** 关联的 Issue ID */
   issueId?: number;
+  /** 关联的 PR ID */
   prId?: number;
+  /** 关联的 CA ID */
   caId?: number;
+  /** 元数据 */
   metadata?: Record<string, unknown>;
 }
 
+/**
+ * POST /v1/tasks - 创建任务路由
+ * @param req - Express 请求对象
+ * @param res - Express 响应对象
+ */
 export default async function createTaskRoute(req: Request, res: Response): Promise<void> {
   const prisma = getPrismaClient();
   const body = req.body as CreateTaskBody;

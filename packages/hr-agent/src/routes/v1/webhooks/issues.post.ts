@@ -7,6 +7,11 @@ const HTTP = {
   INTERNAL_SERVER_ERROR: 500
 };
 
+/**
+ * POST /v1/webhooks/issues - 处理 GitHub Issues Webhook 路由
+ * @param req - Express 请求对象
+ * @param res - Express 响应对象
+ */
 export default async function issuesWebhook(req: Request, res: Response): Promise<void> {
   console.log('=== Issues Webhook Received ===');
   console.log('Headers:', JSON.stringify(req.headers, null, 2));

@@ -10,6 +10,11 @@ const HTTP = {
 const DEFAULT_PAGE_SIZE = 10;
 const ALLOWED_ORDER_BY_FIELDS = ['createdAt', 'updatedAt', 'priority', 'status', 'type'] as const;
 
+/**
+ * 解析查询参数
+ * @param req - Express 请求对象
+ * @returns 解析后的查询参数
+ */
 function parseQueryParams(req: Request): {
   page: number;
   pageSize: number;
@@ -44,6 +49,11 @@ function parseQueryParams(req: Request): {
   };
 }
 
+/**
+ * 构建查询条件
+ * @param params - 解析后的查询参数
+ * @returns Prisma 查询条件对象
+ */
 function buildWhereClause(params: ReturnType<typeof parseQueryParams>): Record<string, unknown> {
   return {
     deletedAt: SOFT_DELETE_FLAG,
@@ -56,6 +66,11 @@ function buildWhereClause(params: ReturnType<typeof parseQueryParams>): Record<s
   };
 }
 
+/**
+ * GET /v1/tasks - 获取任务列表路由
+ * @param req - Express 请求对象
+ * @param res - Express 响应对象
+ */
 export default async function getTasksRoute(req: Request, res: Response): Promise<void> {
   const prisma = getPrismaClient();
   const params = parseQueryParams(req);

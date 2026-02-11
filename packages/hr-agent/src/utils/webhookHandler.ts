@@ -14,17 +14,34 @@ declare global {
   var taskManager: import('../services/taskManager.js').TaskManager;
 }
 
+/**
+ * 模拟请求接口
+ */
 interface MockRequest {
+  /** 请求体 */
   body: unknown;
+  /** 请求头 */
   headers: Record<string, string>;
 }
 
+/**
+ * 模拟响应接口
+ */
 interface MockResponse {
+  /** 状态码 */
   statusCode?: number;
+  /** JSON 响应方法 */
   json: (_data: unknown) => void;
+  /** 结束响应方法 */
   end: () => void;
 }
 
+/**
+ * 创建模拟请求对象
+ * @param body - 请求体
+ * @param headers - 请求头
+ * @returns 模拟请求对象
+ */
 export function createMockRequest(
   body: unknown,
   headers: Record<string, string> = {}
@@ -38,6 +55,10 @@ export function createMockRequest(
   };
 }
 
+/**
+ * 创建模拟响应对象
+ * @returns 包含响应对象和响应数据获取函数的对象
+ */
 export function createMockResponse(): {
   res: MockResponse;
   getResponseData: () => { statusCode?: number; data?: unknown } | null;
@@ -73,14 +94,31 @@ const webhooks = new Webhooks({
   secret: webhookSecret || 'test-secret-for-development'
 });
 
+/**
+ * 获取 GitHub Webhooks 实例
+ * @returns Webhooks 实例
+ */
 export function getWebhooks(): Webhooks {
   return webhooks;
 }
 
+/**
+ * 检查标签中是否包含 'hra' 标签
+ * @param labels - 标签数组
+ * @returns 是否包含 hra 标签
+ */
 function hasHraLabel(labels: { name?: string }[] = []): boolean {
   return labels.some((l) => l.name?.toLowerCase() === 'hra');
 }
 
+/**
+ * 从 Webhook 创建 Issue 记录
+ * @param issueId - Issue ID
+ * @param issueUrl - Issue URL
+ * @param issueTitle - Issue 标题
+ * @param issueContent - Issue 内容
+ * @returns 操作结果
+ */
 export async function createIssueFromWebhook(
   issueId: number,
   issueUrl: string,
