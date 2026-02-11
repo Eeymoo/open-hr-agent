@@ -13,6 +13,7 @@ import {
   type Task
 } from '../../types/task';
 import { formatTimestamp, formatDuration, TIMESTAMP_NEGATIVE_TWO } from '../../utils/formatters';
+import { CA_BASE_URL } from '../../utils/constants';
 
 const { Paragraph } = Typography;
 
@@ -29,7 +30,7 @@ export function TaskModal({ open, task, onClose }: TaskModalProps) {
 
   const handleCAUrlClick = () => {
     if (task.codingAgent) {
-      window.open('http://localhost:4096', '_blank');
+      window.open(CA_BASE_URL, '_blank');
     }
   };
 
