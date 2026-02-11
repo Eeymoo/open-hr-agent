@@ -1,0 +1,63 @@
+.prs-list {
+  padding: 24px;
+}
+
+.prs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header-left h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.pr-count {
+  margin-left: 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.prs-card {
+  background: rgba(30, 30, 30, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.prs-card .ant-card-body {
+  padding: 20px;
+}
+
+.pr-id {
+  font-weight: 600;
+  color: #9333EA;
+}
+
+.issue-id {
+  color: #9333EA;
+  font-weight: 600;
+}
+
+.no-issue {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.pr-title-link {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.pr-title-link:hover {
+  color: #9333EA;
+}
+
+.prs-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}

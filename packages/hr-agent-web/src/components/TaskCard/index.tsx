@@ -14,6 +14,7 @@ import {
   type Task
 } from '../../types/task';
 import { formatTimestamp, formatPriority } from '../../utils/formatters';
+import { CA_BASE_URL } from '../../utils/constants';
 import './index.css';
 
 const PROGRESS_QUEUED = 0;
@@ -126,7 +127,7 @@ function TaskCardContent({
 export function TaskCard({ task, onClick, onEdit, onDelete, showActions = true }: TaskCardProps) {
   const handleCAUrlClick = () => {
     if (task.codingAgent) {
-      window.open('http://localhost:4096', '_blank');
+      window.open(CA_BASE_URL, '_blank');
     }
   };
 

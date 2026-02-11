@@ -1,0 +1,95 @@
+.issue-detail {
+  padding: 24px;
+}
+
+.issue-detail-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.issue-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.issue-card {
+  background: rgba(30, 30, 30, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.issue-card .ant-card-body {
+  padding: 24px;
+}
+
+.issue-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.issue-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.4;
+}
+
+.issue-number {
+  color: #9333EA;
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+.issue-status {
+  flex-shrink: 0;
+}
+
+.issue-descriptions {
+  margin-bottom: 24px;
+}
+
+.issue-descriptions .ant-descriptions-item-label {
+  background: rgba(147, 51, 234, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+}
+
+.issue-descriptions .ant-descriptions-item-content {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.issue-descriptions a {
+  color: #9333EA;
+  word-break: break-all;
+}
+
+.issue-content {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.issue-content h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.issue-content-body {
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
