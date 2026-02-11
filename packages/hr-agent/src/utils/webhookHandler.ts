@@ -717,6 +717,20 @@ export async function receiveWebhook(
     const signature = headers['x-hub-signature-256'] as string | undefined;
     const id = (headers['x-github-delivery'] as string) ?? '';
 
+    if (!event) {
+      return {
+        success: false,
+        error: 'Missing X-GitHub-Event header'
+      };
+    }
+
+    if (!id) {
+      return {
+        success: false,
+        error: 'Missing X-GitHub-Delivery header'
+      };
+    }
+
     await webhooks.verifyAndReceive({
       id,
       name: event,
@@ -725,10 +739,11 @@ export async function receiveWebhook(
     });
 
     return { success: true };
-  } catch {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return {
       success: false,
-      error: 'Unknown error occurred'
+      error: errorMessage
     };
   }
 }
