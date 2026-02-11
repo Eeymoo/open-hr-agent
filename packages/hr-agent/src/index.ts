@@ -12,6 +12,7 @@ import { TaskLogger } from './utils/taskLogger.js';
 import { TaskRegistry } from './tasks/taskRegistry.js';
 import { TaskScheduler } from './services/taskScheduler.js';
 import { TaskManager } from './services/taskManager.js';
+import { CAStatusSyncService } from './services/caStatusSyncService.js';
 import type { BaseTask } from './tasks/baseTask.js';
 
 dotenv.config();
@@ -54,7 +55,25 @@ global.taskRegistry = taskRegistry;
 
 taskManager.start();
 
+const caStatusSyncService = new CAStatusSyncService();
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log('Task Manager has been initialized');
+  caStatusSyncService.start();
+  console.log('CA Status Sync Service has been initialized');
+});
+
+process.on('SIGTERM', () => {
+  console.log('Received SIGTERM, shutting down gracefully...');
+  taskManager.stop();
+  caStatusSyncService.stop();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('Received SIGINT, shutting down gracefully...');
+  taskManager.stop();
+  caStatusSyncService.stop();
+  process.exit(0);
 });

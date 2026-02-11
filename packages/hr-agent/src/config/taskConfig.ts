@@ -12,7 +12,7 @@ export const TASK_CONFIG = {
   MONITOR_INTERVAL: 30000,
 
   CA_STATUS_CHECK_ENABLED: true,
-  CA_STATUS_CHECK_INTERVALS: [10000, 20000, 30000, 60000] as const,
+  CA_STATUS_CHECK_INTERVALS: [10000, 20000, 30000, 60000, 120000] as const,
 
   RETRY_DELAYS: [
     TASK_CONSTANTS.INITIAL_RETRY_DELAY,
@@ -29,3 +29,4 @@ export const TASK_CONFIG = {
 } as const;
 
 export type RetryDelay = (typeof TASK_CONFIG.RETRY_DELAYS)[number];
+export type StatusCheckInterval = (typeof TASK_CONFIG.CA_STATUS_CHECK_INTERVALS)[number];
