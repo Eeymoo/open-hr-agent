@@ -24,7 +24,7 @@ importers:
         version: 14.2.0
       '@opencode-ai/sdk':
         specifier: latest
-        version: 1.1.53
+        version: 1.1.56
       '@prisma/client':
         specifier: ^5.22.0
         version: 5.22.0(prisma@5.22.0)
@@ -855,8 +855,8 @@ packages:
     resolution: {integrity: sha512-da6KbdNCV5sr1/txD896V+6W0iamFWrvVl8cHkBSPT+YlvmT3DwXa4jxZnQc+gnuTEqSWbBeoSZYTayXH9wXcw==}
     engines: {node: '>= 20'}
 
-  '@opencode-ai/sdk@1.1.53':
-    resolution: {integrity: sha512-RUIVnPOP1CyyU32FrOOYuE7Ge51lOBuhaFp2NSX98ncApT7ffoNetmwzqrhOiJQgZB1KrbCHLYOCK6AZfacxag==}
+  '@opencode-ai/sdk@1.1.56':
+    resolution: {integrity: sha512-VFIk4wS7chc1fbodMXstBHV6uj9z25g3c72SlwBYjzPZZLgtr9IUK+FyGMUYefXYeeXJ/l91CdmfjCjDZTmD1g==}
 
   '@paralleldrive/cuid2@2.3.1':
     resolution: {integrity: sha512-XO7cAxhnTZl0Yggq6jOgjiOHhbgcO4NqFqwSmQpjK3b6TEE6Uj/jfSk6wzYyemh3+I0sHirKSetjQwn5cZktFw==}
@@ -4177,7 +4177,7 @@ snapshots:
       '@octokit/request-error': 7.1.0
       '@octokit/webhooks-methods': 6.0.0
 
-  '@opencode-ai/sdk@1.1.53': {}
+  '@opencode-ai/sdk@1.1.56': {}
 
   '@paralleldrive/cuid2@2.3.1':
     dependencies:
