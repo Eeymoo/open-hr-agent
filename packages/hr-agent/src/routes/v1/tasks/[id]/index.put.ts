@@ -8,12 +8,23 @@ const HTTP = {
   NOT_FOUND: 404
 };
 
+/**
+ * 更新任务请求体接口
+ */
 interface UpdateTaskBody {
+  /** 任务状态 */
   status?: string;
+  /** 任务优先级 */
   priority?: number;
+  /** 元数据 */
   metadata?: Record<string, unknown>;
 }
 
+/**
+ * PUT /v1/tasks/:id - 更新任务路由
+ * @param req - Express 请求对象
+ * @param res - Express 响应对象
+ */
 export default async function updateTaskRoute(req: Request, res: Response): Promise<void> {
   const prisma = getPrismaClient();
   const { id } = req.params;

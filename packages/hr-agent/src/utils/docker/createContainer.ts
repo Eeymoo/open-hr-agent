@@ -4,6 +4,12 @@ import { DOCKER_CONFIG } from '../../config/docker.js';
 const docker = new Docker();
 const MAX_PORT = 65535;
 
+/**
+ * 创建 CA (Coding Agent) Docker 容器
+ * @param name - 容器名称
+ * @param repoUrl - 可选的仓库 URL
+ * @returns 容器 ID
+ */
 export async function createContainer(name: string, repoUrl?: string): Promise<string> {
   console.log('=== Creating CA Docker Container ===');
   console.log(`Container Name: ${name}`);

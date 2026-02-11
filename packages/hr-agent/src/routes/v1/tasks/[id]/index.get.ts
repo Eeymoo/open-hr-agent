@@ -7,6 +7,11 @@ const HTTP = {
   NOT_FOUND: 404
 };
 
+/**
+ * GET /v1/tasks/:id - 根据ID获取任务路由
+ * @param req - Express 请求对象
+ * @param res - Express 响应对象
+ */
 export default async function getTaskByIdRoute(req: Request, res: Response): Promise<void> {
   const prisma = getPrismaClient();
   const { id } = req.params;

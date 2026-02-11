@@ -1,6 +1,10 @@
 const ENCRYPTION_KEY_NAME = 'hra_encryption_key';
 const AES_GCM_IV_LENGTH = 12;
 
+/**
+ * 生成 AES-GCM 加密密钥
+ * @returns 加密密钥
+ */
 function generateKey(): Promise<CryptoKey> {
   return window.crypto.subtle.generateKey(
     {
@@ -12,6 +16,10 @@ function generateKey(): Promise<CryptoKey> {
   );
 }
 
+/**
+ * 获取或生成加密密钥
+ * @returns 加密密钥
+ */
 async function getEncryptionKey(): Promise<CryptoKey> {
   const storedKey = sessionStorage.getItem(ENCRYPTION_KEY_NAME);
 
@@ -35,6 +43,10 @@ async function getEncryptionKey(): Promise<CryptoKey> {
   return generateAndStoreKey();
 }
 
+/**
+ * 生成并存储加密密钥
+ * @returns 加密密钥
+ */
 async function generateAndStoreKey(): Promise<CryptoKey> {
   const key = await generateKey();
   const exportedKey = await window.crypto.subtle.exportKey('jwk', key);
@@ -42,6 +54,11 @@ async function generateAndStoreKey(): Promise<CryptoKey> {
   return key;
 }
 
+/**
+ * 使用 AES-GCM 加密数据
+ * @param data - 要加密的字符串
+ * @returns Base64 编码的加密数据（格式：iv:encryptedData）
+ */
 export async function encrypt(data: string): Promise<string> {
   try {
     const key = await getEncryptionKey();
@@ -64,6 +81,11 @@ export async function encrypt(data: string): Promise<string> {
   }
 }
 
+/**
+ * 使用 AES-GCM 解密数据
+ * @param data - Base64 编码的加密数据（格式：iv:encryptedData）
+ * @returns 解密后的字符串，失败则返回 null
+ */
 export async function decrypt(data: string): Promise<string | null> {
   try {
     const key = await getEncryptionKey();
@@ -87,6 +109,9 @@ export async function decrypt(data: string): Promise<string | null> {
   }
 }
 
+/**
+ * 清除存储的加密密钥
+ */
 export function clearEncryptionKey(): void {
   sessionStorage.removeItem(ENCRYPTION_KEY_NAME);
 }

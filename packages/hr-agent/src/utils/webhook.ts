@@ -5,6 +5,13 @@ import type { Response } from 'express';
 const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
 const HTTP_STATUS_UNAUTHORIZED = 401;
 
+/**
+ * 验证 GitHub Webhook 签名
+ * @param signatureHeader - 签名头，格式为 'sha256=...'
+ * @param webhookSecret - Webhook 密钥
+ * @param body - 请求体
+ * @returns 签名是否有效
+ */
 export function verifyWebhookSignature(
   signatureHeader: string | undefined,
   webhookSecret: string,
@@ -39,19 +46,37 @@ export function verifyWebhookSignature(
   );
 }
 
+/**
+ * 发送未授权响应
+ * @param res - Express Response 对象
+ */
 export function sendUnauthorizedResponse(res: Response): void {
   res.status(HTTP_STATUS_UNAUTHORIZED).json({ error: 'Invalid signature' });
 }
 
+/**
+ * 发送密钥未配置响应
+ * @param res - Express Response 对象
+ */
 export function sendSecretNotConfiguredResponse(res: Response): void {
   console.error('GitHub webhook secret is not configured.');
   res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).json({ error: 'Webhook secret not configured' });
 }
 
+/**
+ * 发送成功响应
+ * @param res - Express Response 对象
+ * @param event - 事件类型
+ */
 export function sendSuccessResponse(res: Response, event: string): void {
   res.json({ received: true, event });
 }
 
+/**
+ * 发送错误响应
+ * @param res - Express Response 对象
+ * @param error - 错误对象
+ */
 export function sendErrorResponse(res: Response, error: unknown): void {
   console.error('Error handling webhook:', error);
   if (!res.headersSent) {
@@ -61,18 +86,32 @@ export function sendErrorResponse(res: Response, error: unknown): void {
   }
 }
 
+/**
+ * 记录 Webhook 接收信息
+ * @param webhookType - Webhook 类型（如 'Issues'）
+ * @param event - 事件类型
+ */
 export function logWebhookReceived(webhookType: string, event: string): void {
   console.log(`=== GitHub ${webhookType} Webhook Received ===`);
   console.log(`Event Type: ${event}`);
   console.log(`Timestamp: ${new Date().toISOString()}`);
 }
 
+/**
+ * 记录 Webhook 载荷信息（仅在非生产环境）
+ * @param webhookData - Webhook 数据
+ */
 export function logWebhookPayload(webhookData: unknown): void {
   if (process.env.NODE_ENV !== 'production') {
     console.log('Payload keys:', Object.keys(webhookData ?? {}));
   }
 }
 
+/**
+ * 格式化标签列表为字符串
+ * @param labels - 标签数组
+ * @returns 格式化后的标签字符串
+ */
 export function formatLabels(labels: unknown): string {
   const labelsArray = Array.isArray(labels) ? labels : [];
   return labelsArray.length > 0

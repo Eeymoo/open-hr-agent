@@ -10,6 +10,11 @@ const HTTP = {
 
 const DEFAULT_PAGE_SIZE = 10;
 
+/**
+ * GET /v1/issues - 获取 Issue 列表路由
+ * @param req - Express 请求对象
+ * @param res - Express 响应对象
+ */
 export default async function getIssuesRoute(req: Request, res: Response): Promise<void> {
   const prisma = getPrismaClient();
   const rawPage = Number(req.query.page);
