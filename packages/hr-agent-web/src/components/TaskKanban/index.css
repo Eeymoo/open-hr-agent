@@ -70,3 +70,58 @@
 .kanban-actions .ant-btn-link:hover {
   color: var(--purple-main);
 }
+
+@media (max-width: 1024px) {
+  .kanban-column {
+    min-height: 250px;
+  }
+
+  .kanban-column-header {
+    font-size: 13px;
+  }
+
+  .task-list {
+    min-height: 150px;
+  }
+}
+
+@media (max-width: 768px) {
+  .task-kanban {
+    gap: 12px;
+  }
+
+  .kanban-column {
+    min-height: 200px;
+  }
+
+  .kanban-column-header {
+    padding: 12px;
+  }
+
+  .task-item {
+    margin-bottom: 8px;
+  }
+
+  .kanban-actions {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 375px) {
+  .task-kanban {
+    gap: 8px;
+  }
+
+  .kanban-column {
+    min-height: 150px;
+  }
+
+  .kanban-column-header {
+    font-size: 12px;
+  }
+
+  .task-count {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+}

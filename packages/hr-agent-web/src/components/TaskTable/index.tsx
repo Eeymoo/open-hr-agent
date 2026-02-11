@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Spin } from 'antd';
+import { Spin, Tag } from 'antd';
 import { useTasks } from '../../hooks/useTasks';
-import { TASK_STATUS_LABELS, type Task, type TaskQueryParams } from '../../types/task';
+import { TASK_STATUS_LABELS, TASK_STATUS_COLORS, type Task, type TaskQueryParams } from '../../types/task';
 import { formatTimestamp } from '../../utils/formatters';
 import './index.css';
 
 interface TaskTableProps {
   params?: TaskQueryParams;
-  // eslint-disable-next-line no-unused-vars
-  onTaskClick?: (_task: Task) => void;
+  onTaskClick?: (task: Task) => void;
 }
 
 export function TaskTable({ params, onTaskClick }: TaskTableProps) {
@@ -24,13 +23,13 @@ export function TaskTable({ params, onTaskClick }: TaskTableProps) {
   const columns = [
     { prop: 'id', name: 'ID', size: 80 },
     { prop: 'type', name: '类型', size: 150 },
-    { prop: 'status', name: '状态', size: 120, columnType: 'status' },
+    { prop: 'status', name: '状态', size: 120 },
     { prop: 'priority', name: '优先级', size: 100 },
-    { prop: 'issue', name: 'Issue', size: 100, columnType: 'link' },
-    { prop: 'pr', name: 'PR', size: 100, columnType: 'link' },
-    { prop: 'ca', name: 'CA', size: 120, columnType: 'link' },
-    { prop: 'createdAt', name: '创建时间', size: 180, columnType: 'timestamp' },
-    { prop: 'updatedAt', name: '更新时间', size: 180, columnType: 'timestamp' }
+    { prop: 'issue', name: 'Issue', size: 100 },
+    { prop: 'pr', name: 'PR', size: 100 },
+    { prop: 'ca', name: 'CA', size: 120 },
+    { prop: 'createdAt', name: '创建时间', size: 180 },
+    { prop: 'updatedAt', name: '更新时间', size: 180 }
   ];
 
   // eslint-disable-next-line complexity
@@ -39,7 +38,11 @@ export function TaskTable({ params, onTaskClick }: TaskTableProps) {
 
     switch (prop) {
       case 'status':
-        return TASK_STATUS_LABELS[value as keyof typeof TASK_STATUS_LABELS] || (value as string);
+        return (
+          <Tag color={TASK_STATUS_COLORS[value as keyof typeof TASK_STATUS_COLORS]}>
+            {TASK_STATUS_LABELS[value as keyof typeof TASK_STATUS_LABELS] || (value as string)}
+          </Tag>
+        );
       case 'priority':
         return value?.toString() ?? '-';
       case 'issue':
@@ -62,22 +65,6 @@ export function TaskTable({ params, onTaskClick }: TaskTableProps) {
     }
   };
 
-  const getCellClass = (prop: string, row: Task) => {
-    if (prop === 'status') {
-      const { status } = row;
-      const colorMap: Record<string, string> = {
-        queued: 'status-queued',
-        running: 'status-running',
-        pr_merged: 'status-completed',
-        error: 'status-error',
-        cancelled: 'status-cancelled',
-        timeout: 'status-timeout'
-      };
-      return colorMap[status] || '';
-    }
-    return '';
-  };
-
   const handleRowClick = (task: Task) => {
     if (onTaskClick) {
       onTaskClick(task);
@@ -86,8 +73,10 @@ export function TaskTable({ params, onTaskClick }: TaskTableProps) {
 
   if (isLoading) {
     return (
-      <div className="task-table-loading">
-        <Spin size="large" />
+      <div className="task-table-container">
+        <div className="task-table-loading">
+          <Spin size="large" tip="加载中..." />
+        </div>
       </div>
     );
   }
@@ -95,7 +84,7 @@ export function TaskTable({ params, onTaskClick }: TaskTableProps) {
   return (
     <div className="task-table-container">
       <div className="task-table">
-        <table className="ant-table">
+        <table>
           <thead>
             <tr>
               {columns.map((col) => (
@@ -109,7 +98,7 @@ export function TaskTable({ params, onTaskClick }: TaskTableProps) {
             {tasks.map((task) => (
               <tr key={task.id} onClick={() => handleRowClick(task)} className="task-row">
                 {columns.map((col) => (
-                  <td key={col.prop} className={getCellClass(col.prop, task)}>
+                  <td key={col.prop}>
                     {formatCellValue(col.prop, task)}
                   </td>
                 ))}

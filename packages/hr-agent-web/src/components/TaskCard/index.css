@@ -121,3 +121,58 @@
 .task-meta .anticon {
   font-size: 12px;
 }
+
+@media (max-width: 768px) {
+  .task-card {
+    border-radius: 12px !important;
+  }
+
+  .task-content {
+    gap: 10px;
+  }
+
+  .task-type {
+    font-size: 14px;
+  }
+
+  .type-icon {
+    font-size: 16px;
+  }
+
+  .task-progress {
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .progress-header {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+
+  .link-btn {
+    font-size: 12px;
+  }
+
+  .task-meta {
+    font-size: 11px;
+    padding-top: 6px;
+  }
+}
+
+@media (max-width: 375px) {
+  .task-card {
+    border-radius: 12px !important;
+  }
+
+  .task-content {
+    gap: 8px;
+  }
+
+  .task-type {
+    font-size: 13px;
+  }
+
+  .type-icon {
+    font-size: 16px;
+  }
+}

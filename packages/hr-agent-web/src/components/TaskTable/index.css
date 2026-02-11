@@ -1,5 +1,10 @@
 .task-table-container {
   padding: 16px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-glass);
+  border-radius: 16px;
+  overflow: hidden;
 }
 
 .task-table-loading {
@@ -7,6 +12,7 @@
   justify-content: center;
   align-items: center;
   min-height: 400px;
+  color: var(--text-secondary);
 }
 
 .task-table {
@@ -20,50 +26,62 @@
 }
 
 .task-table th {
-  background: #fafafa;
-  padding: 12px;
+  background: var(--bg-glass-light);
+  padding: 12px 16px;
   text-align: left;
   font-weight: 600;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-glass);
   white-space: nowrap;
+  color: var(--text-primary);
 }
 
 .task-table td {
-  padding: 12px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-glass);
+  color: var(--text-primary);
 }
 
 .task-row {
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
 }
 
 .task-row:hover {
-  background-color: #f5f5f5;
+  background: var(--bg-glass-hover);
+}
+
+.task-row td:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.task-row td:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 .status-queued {
-  color: #8c8c8c;
+  color: var(--text-secondary);
 }
 
 .status-running {
-  color: #1890ff;
+  color: var(--status-info);
 }
 
 .status-completed {
-  color: #52c41a;
+  color: var(--status-success);
 }
 
 .status-error {
-  color: #ff4d4f;
+  color: var(--status-error);
 }
 
 .status-cancelled {
-  color: #8c8c8c;
+  color: var(--text-muted);
 }
 
 .status-timeout {
-  color: #faad14;
+  color: var(--status-warning);
 }
 
 .task-pagination {
@@ -71,5 +89,23 @@
   justify-content: flex-end;
   align-items: center;
   padding: 16px;
-  color: #8c8c8c;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .task-table-container {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .task-table th,
+  .task-table td {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .task-pagination {
+    font-size: 12px;
+  }
 }
