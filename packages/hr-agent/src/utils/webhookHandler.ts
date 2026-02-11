@@ -185,6 +185,34 @@ interface IssueWebhookPayload {
   };
 }
 
+interface PullRequestWebhookPayload {
+  action?: string;
+  pull_request?: {
+    id?: number;
+    number?: number;
+    title?: string;
+    body?: string;
+    html_url?: string;
+    user?: { login?: string };
+    state?: string;
+    merged?: boolean;
+    head?: {
+      ref?: string;
+      sha?: string;
+    };
+    base?: {
+      ref?: string;
+    };
+  };
+  repository?: {
+    full_name?: string;
+    id?: number;
+  };
+  sender?: {
+    login?: string;
+  };
+}
+
 interface IssueInfo {
   issueNumber: number;
   issueUrl: string;
@@ -514,6 +542,149 @@ webhooks.on('issues.closed', async ({ payload }) => {
     console.error('Failed to update task status:', error instanceof Error ? error.message : error);
   }
 });
+
+webhooks.on('pull_request.opened', async ({ payload }) => {
+  const data = payload as PullRequestWebhookPayload;
+
+  if (!data.pull_request?.number || !data.repository?.full_name) {
+    console.log('Invalid pull_request.opened payload: missing data');
+    return;
+  }
+
+  console.log('=== Pull Request Webhook: opened ===');
+  console.log(`Repository: ${data.repository.full_name}`);
+  console.log(`PR #${data.pull_request.number}: ${data.pull_request.title}`);
+  console.log(`Branch: ${data.pull_request.head?.ref} -> ${data.pull_request.base?.ref}`);
+
+  try {
+    const prisma = getPrismaClient();
+    const prNumber = data.pull_request.number ?? 0;
+    const prTitle = data.pull_request.title ?? 'Untitled';
+    const prBody = data.pull_request.body ?? null;
+    const issueNumber = extractIssueNumberFromTitle(prTitle);
+
+    const now = getCurrentTimestamp();
+
+    const existingPR = await prisma.pullRequest.findUnique({
+      where: { prId: prNumber }
+    });
+
+    if (existingPR) {
+      console.log(`PR #${prNumber} already exists, updating...`);
+      await prisma.pullRequest.update({
+        where: { id: existingPR.id },
+        data: {
+          prTitle,
+          prContent: prBody,
+          updatedAt: now
+        }
+      });
+      console.log(`PR #${prNumber} updated successfully`);
+      return;
+    }
+
+    let issueId: number | undefined;
+    if (issueNumber) {
+      const issue = await prisma.issue.findUnique({
+        where: { issueId: issueNumber }
+      });
+      issueId = issue?.id;
+    }
+
+    await prisma.pullRequest.create({
+      data: {
+        prId: prNumber,
+        prTitle,
+        prContent: prBody,
+        issueId: issueId ?? null,
+        completedAt: INACTIVE_TIMESTAMP,
+        deletedAt: INACTIVE_TIMESTAMP,
+        createdAt: now,
+        updatedAt: now
+      }
+    });
+
+    console.log(`PR #${prNumber} created successfully`);
+  } catch (error) {
+    console.error('Failed to process pull_request.opened:', error instanceof Error ? error.message : error);
+  }
+});
+
+webhooks.on('pull_request.closed', async ({ payload }) => {
+  const data = payload as PullRequestWebhookPayload;
+
+  if (!data.pull_request?.number) {
+    console.log('Invalid pull_request.closed payload: missing data');
+    return;
+  }
+
+  console.log('=== Pull Request Webhook: closed ===');
+  console.log(`PR #${data.pull_request.number}: ${data.pull_request.title}`);
+  console.log(`Merged: ${data.pull_request.merged ?? false}`);
+
+  try {
+    const prisma = getPrismaClient();
+    const prNumber = data.pull_request.number ?? 0;
+    const isMerged = data.pull_request.merged ?? false;
+
+    const pr = await prisma.pullRequest.findUnique({
+      where: { prId: prNumber },
+      include: { tasks: true }
+    });
+
+    if (!pr) {
+      console.log(`PR #${prNumber} not found in database`);
+      return;
+    }
+
+    const now = getCurrentTimestamp();
+
+    if (isMerged) {
+      await prisma.pullRequest.update({
+        where: { id: pr.id },
+        data: {
+          completedAt: now,
+          updatedAt: now
+        }
+      });
+      console.log(`PR #${prNumber} marked as merged`);
+
+      if (pr.issueId) {
+        await prisma.issue.update({
+          where: { id: pr.issueId },
+          data: {
+            completedAt: now,
+            updatedAt: now
+          }
+        });
+        console.log(`Issue #${pr.issueId} marked as completed`);
+      }
+    }
+
+    for (const task of pr.tasks) {
+      await prisma.task.update({
+        where: { id: task.id },
+        data: {
+          status: 'completed',
+          completedAt: now,
+          updatedAt: now
+        }
+      });
+    }
+
+    console.log(`Updated ${pr.tasks.length} tasks for PR #${prNumber}`);
+  } catch (error) {
+    console.error('Failed to process pull_request.closed:', error instanceof Error ? error.message : error);
+  }
+});
+
+function extractIssueNumberFromTitle(title: string): number | null {
+  const match = title.match(/#(\d+)/);
+  if (match) {
+    return parseInt(match[1], 10);
+  }
+  return null;
+}
 
 webhooks.onError((error) => {
   console.error('Webhook error:', error);
