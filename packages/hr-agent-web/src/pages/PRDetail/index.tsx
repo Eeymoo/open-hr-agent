@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Button, Descriptions, Tag, Space, Empty, Spin, Modal } from 'antd';
+import { Card, Button, Descriptions, Space, Empty, Spin, Modal } from 'antd';
 import { ArrowLeftOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { usePR } from '../../hooks/usePRs';
-import type { PullRequest } from '../../types/pr';
+import { formatDate, getPRStatusTag } from '../../utils/formatters';
 import './index.css';
 
 export function PRDetail() {
@@ -14,26 +14,6 @@ export function PRDetail() {
   const { data, isLoading } = usePR(parseInt(id || '0', 10));
 
   const pr = data;
-
-  const formatDate = (timestamp: number) => {
-    if (!timestamp || timestamp < 0) {
-      return '-';
-    }
-    return new Date(timestamp).toLocaleString('zh-CN');
-  };
-
-  const getStatusTag = (pr?: PullRequest) => {
-    if (!pr) {
-      return null;
-    }
-    if (pr.deletedAt > -1) {
-      return <Tag color="default">已删除</Tag>;
-    }
-    if (pr.completedAt > -1) {
-      return <Tag color="success">已合并</Tag>;
-    }
-    return <Tag color="processing">进行中</Tag>;
-  };
 
   const handleDelete = async () => {
     setDeleteModalOpen(false);
@@ -73,12 +53,12 @@ export function PRDetail() {
           <h1 className="pr-title">
             <span className="pr-number">#{pr.prId}</span> {pr.prTitle}
           </h1>
-          <div className="pr-status">{getStatusTag(pr)}</div>
+          <div className="pr-status">{getPRStatusTag(pr)}</div>
         </div>
 
         <Descriptions column={2} bordered className="pr-descriptions">
           <Descriptions.Item label="PR ID">{pr.prId}</Descriptions.Item>
-          <Descriptions.Item label="状态">{getStatusTag(pr)}</Descriptions.Item>
+          <Descriptions.Item label="状态">{getPRStatusTag(pr)}</Descriptions.Item>
           <Descriptions.Item label="创建时间">{formatDate(pr.createdAt)}</Descriptions.Item>
           <Descriptions.Item label="更新时间">{formatDate(pr.updatedAt)}</Descriptions.Item>
           {pr.completedAt > -1 && (

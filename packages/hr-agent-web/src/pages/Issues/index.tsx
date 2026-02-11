@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Card, Button, Table, Tag, Space, Empty, Spin, Input, Modal, Form } from 'antd';
+import { Card, Button, Table, Space, Empty, Spin, Input, Modal, Form } from 'antd';
 import { PlusOutlined, LinkOutlined, EditOutlined } from '@ant-design/icons';
 import { useIssues, useCreateIssue } from '../../hooks/useIssues';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Issue } from '../../types/issue';
+import { formatDate, getIssueStatusTag } from '../../utils/formatters';
 
 import './index.css';
 
@@ -26,23 +27,6 @@ interface IssuesListProps {
   isLoading: boolean;
   createIssue: ReturnType<typeof useCreateIssue>;
 }
-
-const formatDate = (timestamp: number) => {
-  if (!timestamp || timestamp < 0) {
-    return '-';
-  }
-  return new Date(timestamp).toLocaleString('zh-CN');
-};
-
-const getStatusTag = (issue: Issue) => {
-  if (issue.deletedAt > -1) {
-    return <Tag color="default">已删除</Tag>;
-  }
-  if (issue.completedAt > -1) {
-    return <Tag color="success">已完成</Tag>;
-  }
-  return <Tag color="processing">进行中</Tag>;
-};
 
 const getIssueColumns = (navigate: (path: string) => void) => [
   {
@@ -70,7 +54,7 @@ const getIssueColumns = (navigate: (path: string) => void) => [
     title: '状态',
     key: 'status',
     width: 120,
-    render: (_: unknown, record: Issue) => getStatusTag(record)
+    render: (_: unknown, record: Issue) => getIssueStatusTag(record)
   },
   {
     title: '创建时间',
