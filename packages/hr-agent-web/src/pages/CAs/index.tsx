@@ -26,14 +26,9 @@ import {
   useUpdateCodingAgent,
   useDeleteCodingAgent
 } from '../../hooks/useCAs';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { formatDate } from '../../utils/formatters';
-import type {
-  CodingAgent,
-  CodingAgentLog,
-  CA_STATUS_LABELS,
-  CA_STATUS_COLORS
-} from '../../types/ca';
+import { type CodingAgent, type CodingAgentLog, CA_STATUS_LABELS, CA_STATUS_COLORS } from '../../types/ca';
 
 import './index.css';
 
@@ -44,7 +39,6 @@ interface CreateCAFormData {
 }
 
 interface CAsListProps {
-  navigate: (path: string) => void;
   searchParams: URLSearchParams;
   setSearchParams: (params: { page: string; pageSize: string }) => void;
   cas: CodingAgent[];
@@ -56,7 +50,6 @@ interface CAsListProps {
 }
 
 const getCAColumns = (
-  navigate: (path: string) => void,
   onOpenProxy: (ca: CodingAgent) => void,
   onEdit: (ca: CodingAgent) => void,
   onDelete: (ca: CodingAgent) => void,
@@ -149,7 +142,6 @@ const getCAColumns = (
 
 // eslint-disable-next-line max-lines-per-function
 function CAsListContent({
-  navigate,
   searchParams,
   setSearchParams,
   cas,
@@ -201,7 +193,12 @@ function CAsListContent({
       return;
     }
     try {
-      await updateCA.mutateAsync({ id: selectedCA.id, data: values });
+      const updateData = {
+        status: values.status,
+        containerId: values.containerId ?? undefined,
+        dockerConfig: values.dockerConfig ?? undefined
+      };
+      await updateCA.mutateAsync({ id: selectedCA.id, data: updateData });
       setEditModalOpen(false);
       editForm.resetFields();
       setSelectedCA(null);
@@ -248,7 +245,7 @@ function CAsListContent({
     setLogsDrawerOpen(true);
   };
 
-  const columns = getCAColumns(navigate, handleOpenProxy, handleEdit, handleDelete, handleViewLogs);
+  const columns = getCAColumns(handleOpenProxy, handleEdit, handleDelete, handleViewLogs);
 
   if (isLoading) {
     return (
@@ -398,7 +395,6 @@ function CAsListContent({
 }
 
 export function CAsList() {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const page = parseInt(searchParams.get('page') || '1', 10);
@@ -414,7 +410,6 @@ export function CAsList() {
 
   return (
     <CAsListContent
-      navigate={navigate}
       searchParams={searchParams}
       setSearchParams={setSearchParams}
       cas={cas}

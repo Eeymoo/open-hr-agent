@@ -5,22 +5,9 @@ import {
   createCodingAgent,
   updateCodingAgent,
   deleteCodingAgent,
-  getCAs,
   getCAStatus
 } from '../api/ca';
-import { POLLING_INTERVAL } from '../utils/constants';
 import type { PaginationParams } from '../types/ca';
-
-export function useCAs() {
-  return useQuery({
-    queryKey: ['cas'],
-    queryFn: async () => {
-      const response = await getCAs();
-      return response.data.data;
-    },
-    refetchInterval: POLLING_INTERVAL
-  });
-}
 
 export function useCodingAgents(params?: PaginationParams) {
   return useQuery({
