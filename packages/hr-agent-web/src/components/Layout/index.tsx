@@ -1,11 +1,6 @@
 import React from 'react';
 import { Layout, Menu, Button, Avatar, Dropdown, Spin, Space } from 'antd';
-import {
-  AppstoreOutlined,
-  LogoutOutlined,
-  UserOutlined,
-  RobotOutlined
-} from '@ant-design/icons';
+import { AppstoreOutlined, LogoutOutlined, UserOutlined, RobotOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ThemeSwitcher } from '../ThemeSwitcher';

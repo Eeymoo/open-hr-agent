@@ -178,11 +178,7 @@ export class CAResourceManager {
       });
     } catch (error) {
       if (error instanceof Error && 'code' in error && error.code === 'P2002') {
-        const existingCAResource = await this.handleDuplicateCA(
-          containerName,
-          taskId,
-          issueNumber
-        );
+        const existingCAResource = await this.handleDuplicateCA(containerName, taskId, issueNumber);
         if (existingCAResource) {
           return existingCAResource;
         }
