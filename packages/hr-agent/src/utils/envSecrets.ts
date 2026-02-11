@@ -14,7 +14,9 @@ function loadSecretFromFile(filePath: string): string {
     const content = fs.readFileSync(filePath, 'utf-8');
     return content.trim();
   } catch (error) {
-    throw new Error(`Failed to read secret file ${filePath}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to read secret file ${filePath}: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 }
 

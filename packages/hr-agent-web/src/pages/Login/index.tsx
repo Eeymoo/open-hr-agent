@@ -52,12 +52,8 @@ export function Login() {
             <Title level={2} className="login-title">
               HR Agent
             </Title>
-            <Text className="login-subtitle">
-              AI-Powered Task Orchestration Platform
-            </Text>
-            <Text className="login-subtitle-zh">
-              智能任务编排平台
-            </Text>
+            <Text className="login-subtitle">AI-Powered Task Orchestration Platform</Text>
+            <Text className="login-subtitle-zh">智能任务编排平台</Text>
           </div>
 
           <div className="login-card">

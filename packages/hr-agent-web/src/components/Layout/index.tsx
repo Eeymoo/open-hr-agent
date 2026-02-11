@@ -113,11 +113,7 @@ export function AppLayout({ children }: LayoutProps) {
           <div className="app-header-right">
             <Space size={16}>
               <ThemeSwitcher />
-              <Button
-                type="text"
-                icon={<BellOutlined />}
-                className="header-icon-btn"
-              >
+              <Button type="text" icon={<BellOutlined />} className="header-icon-btn">
                 <Badge count={3} size="small" />
               </Button>
               <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">

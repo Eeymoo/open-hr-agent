@@ -9,11 +9,8 @@ import './index.css';
 interface TaskKanbanProps {
   tasks: Task[];
   loading?: boolean;
-  // eslint-disable-next-line no-unused-vars
   onTaskClick?: (task: Task) => void;
-  // eslint-disable-next-line no-unused-vars
   onEdit?: (task: Task) => void;
-  // eslint-disable-next-line no-unused-vars
   onDelete?: (task: Task) => void;
 }
 

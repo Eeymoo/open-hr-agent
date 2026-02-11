@@ -14,23 +14,23 @@
   --bg-glass: rgba(30, 30, 30, 0.6);
   --bg-glass-light: rgba(40, 40, 40, 0.8);
   --bg-glass-hover: rgba(50, 50, 50, 0.7);
-  
-  --text-primary: #FFFFFF;
-  --text-secondary: #A1A1AA;
-  --text-muted: #71717A;
-  
+
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+
   --border-glass: rgba(255, 255, 255, 0.08);
   --border-glass-hover: rgba(255, 255, 255, 0.12);
   --border-purple: rgba(147, 51, 234, 0.5);
-  
-  --purple-main: #9333EA;
-  --purple-light: #A855F7;
-  --purple-dark: #7C3AED;
-  
-  --status-success: #10B981;
-  --status-warning: #F59E0B;
-  --status-error: #EF4444;
-  --status-info: #3B82F6;
+
+  --purple-main: #9333ea;
+  --purple-light: #a855f7;
+  --purple-dark: #7c3aed;
+
+  --status-success: #10b981;
+  --status-warning: #f59e0b;
+  --status-error: #ef4444;
+  --status-info: #3b82f6;
 }
 
 body {
@@ -41,7 +41,9 @@ body {
     'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 code {
@@ -79,7 +81,7 @@ code {
 }
 
 .bg-grid-pattern {
-  background-image: 
+  background-image:
     linear-gradient(var(--border-purple) 1px, transparent 1px),
     linear-gradient(90deg, var(--border-purple) 1px, transparent 1px);
   background-size: 50px 50px;
@@ -104,13 +106,23 @@ code {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .animate-float {

@@ -32,7 +32,8 @@ function App() {
               colorBorder: 'rgba(255, 255, 255, 0.08)',
               colorBgElevated: 'rgba(40, 40, 40, 0.8)',
               borderRadius: 16,
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial'
+              fontFamily:
+                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial'
             },
             components: {
               Button: {

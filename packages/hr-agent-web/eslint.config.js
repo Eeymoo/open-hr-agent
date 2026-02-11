@@ -45,6 +45,7 @@ export default [
     rules: {
       ...reactHooks.configs.recommended.rules,
       ...js.configs.recommended.rules,
+      'no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
