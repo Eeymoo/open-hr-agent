@@ -9,7 +9,10 @@ interface ThemeContextType {
   theme: Theme;
   themeName: ThemeName;
   toggleTheme: () => void;
-  setTheme(newThemeName: ThemeName): void;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  setTheme(
+    name: ThemeName
+  ): void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -32,11 +35,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [themeName]);
 
   const toggleTheme = () => {
-    setThemeNameState((prev) => prev === 'dark' ? 'light' : 'dark');
+    setThemeNameState((prev) => {
+      if (prev === 'dark') {
+        return 'light';
+      }
+      return 'dark';
+    });
   };
 
-  const setTheme = (newName: ThemeName) => {
-    setThemeNameState(newName);
+  const setTheme = (name) => {
+    setThemeNameState(name);
   };
 
   const theme = themeName === 'dark' ? darkTheme : lightTheme;

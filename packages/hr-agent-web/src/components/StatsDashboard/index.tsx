@@ -23,13 +23,18 @@ export function StatsDashboard({ tasks }: StatsDashboardProps) {
     error: tasks.filter((t) => t.status === 'error').length
   };
 
+  const PERCENTAGE_MAX = 100;
+  const GRID_GUTTER = 20;
+  const ANIMATION_DURATION = 2000;
+  const PROGRESS_STROKE_WIDTH = 12;
+
   const completionRate = stats.total > 0
-    ? Math.round((stats.completed / stats.total) * 100)
+    ? Math.round((stats.completed / stats.total) * PERCENTAGE_MAX)
     : 0;
 
   return (
     <div className="stats-dashboard">
-      <Row gutter={[20, 20]}>
+      <Row gutter={[GRID_GUTTER, GRID_GUTTER]}>
         <Col xs={24} sm={12} lg={6}>
           <Card className="stat-card stat-total">
             <div className="stat-icon total">
@@ -38,7 +43,7 @@ export function StatsDashboard({ tasks }: StatsDashboardProps) {
             <div className="stat-content">
               <div className="stat-label">总任务数</div>
               <div className="stat-value">
-                <CountUp end={stats.total} duration={2000} />
+                <CountUp end={stats.total} duration={ANIMATION_DURATION} />
               </div>
             </div>
           </Card>
@@ -52,7 +57,7 @@ export function StatsDashboard({ tasks }: StatsDashboardProps) {
             <div className="stat-content">
               <div className="stat-label">进行中</div>
               <div className="stat-value">
-                <CountUp end={stats.running} duration={2000} />
+                <CountUp end={stats.running} duration={ANIMATION_DURATION} />
               </div>
             </div>
             {stats.running > 0 && <div className="stat-pulse" />}
@@ -67,7 +72,7 @@ export function StatsDashboard({ tasks }: StatsDashboardProps) {
             <div className="stat-content">
               <div className="stat-label">已完成</div>
               <div className="stat-value">
-                <CountUp end={stats.completed} duration={2000} />
+                <CountUp end={stats.completed} duration={ANIMATION_DURATION} />
               </div>
             </div>
           </Card>
@@ -81,14 +86,14 @@ export function StatsDashboard({ tasks }: StatsDashboardProps) {
             <div className="stat-content">
               <div className="stat-label">错误</div>
               <div className="stat-value">
-                <CountUp end={stats.error} duration={2000} />
+                <CountUp end={stats.error} duration={ANIMATION_DURATION} />
               </div>
             </div>
           </Card>
         </Col>
       </Row>
 
-      <Row gutter={[20, 20]} style={{ marginTop: 20 }}>
+      <Row gutter={[GRID_GUTTER, GRID_GUTTER]} style={{ marginTop: GRID_GUTTER }}>
         <Col xs={24} lg={12}>
           <Card className="progress-card">
             <div className="progress-header">
@@ -98,7 +103,7 @@ export function StatsDashboard({ tasks }: StatsDashboardProps) {
             <Progress
               percent={completionRate}
               strokeColor="#9333EA"
-              strokeWidth={12}
+              strokeWidth={PROGRESS_STROKE_WIDTH}
               showInfo={false}
             />
           </Card>

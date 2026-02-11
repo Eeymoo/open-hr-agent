@@ -11,12 +11,117 @@ import { TASK_STATUS_LABELS, TASK_STATUS_COLORS, PRIORITY_COLORS, type Task } fr
 import { formatTimestamp, formatPriority } from '../../utils/formatters';
 import './index.css';
 
+const PROGRESS_QUEUED = 0;
+const PROGRESS_RUNNING = 50;
+const PROGRESS_IN_DEVELOPMENT = 70;
+const PROGRESS_PR_SUBMITTED = 90;
+const PROGRESS_PR_MERGED = 100;
+
 interface TaskCardProps {
   task: Task;
   onClick?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
   showActions?: boolean;
+}
+
+interface TaskCardContentProps {
+  task: Task;
+  handleIssueClick: () => void;
+  handlePRClick: () => void;
+  handleCAUrlClick: () => void;
+  isRunning: boolean;
+}
+
+function getProgressByStatus(task: Task) {
+  if (task.status === 'queued') {
+    return PROGRESS_QUEUED;
+  }
+  if (task.status === 'running' || task.status === 'retrying') {
+    return PROGRESS_RUNNING;
+  }
+  if (task.status === 'in_development') {
+    return PROGRESS_IN_DEVELOPMENT;
+  }
+  if (task.status === 'pr_submitted') {
+    return PROGRESS_PR_SUBMITTED;
+  }
+  if (task.status === 'pr_merged') {
+    return PROGRESS_PR_MERGED;
+  }
+  return PROGRESS_QUEUED;
+}
+
+function TaskCardContent({ task, handleIssueClick, handlePRClick, handleCAUrlClick, isRunning }: TaskCardContentProps) {
+  const progress = getProgressByStatus(task);
+
+  return (
+    <div className="task-content">
+      <div className="task-type">
+        <RobotOutlined className="type-icon" />
+        <strong>{task.type}</strong>
+      </div>
+
+      {isRunning && (
+        <div className="task-progress">
+          <div className="progress-header">
+            <ClockCircleOutlined />
+            <span>AI 处理中...</span>
+          </div>
+          <Progress
+            percent={progress}
+            size="small"
+            strokeColor="var(--purple-main)"
+            showInfo={false}
+          />
+        </div>
+      )}
+
+      <div className="task-links">
+        {task.issue && (
+          <div className="task-link">
+            <GithubOutlined />
+            <Button
+              type="link"
+              onClick={handleIssueClick}
+              className="link-btn"
+            >
+              #{task.issue.issueId}
+            </Button>
+          </div>
+        )}
+        {task.pullRequest && (
+          <div className="task-link">
+            <GithubOutlined />
+            <Button
+              type="link"
+              onClick={handlePRClick}
+              className="link-btn"
+            >
+              #{task.pullRequest.prId}
+            </Button>
+          </div>
+        )}
+        {task.codingAgent && (
+          <div className="task-link">
+            <LinkOutlined />
+            <Button
+              type="link"
+              onClick={handleCAUrlClick}
+              className="link-btn"
+            >
+              {task.codingAgent.caName}
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <div className="task-meta">
+        <ClockCircleOutlined />
+        <small>{formatTimestamp(task.createdAt)}</small>
+      </div>
+    </div>
+  );
 }
 
 export function TaskCard({ task, onClick, onEdit, onDelete, showActions = true }: TaskCardProps) {
@@ -39,25 +144,6 @@ export function TaskCard({ task, onClick, onEdit, onDelete, showActions = true }
   };
 
   const isRunning = task.status === 'running' || task.status === 'retrying' || task.status === 'in_development';
-
-  const progress = (() => {
-    if (task.status === 'queued') {
-      return 0;
-    }
-    if (task.status === 'running' || task.status === 'retrying') {
-      return 50;
-    }
-    if (task.status === 'in_development') {
-      return 70;
-    }
-    if (task.status === 'pr_submitted') {
-      return 90;
-    }
-    if (task.status === 'pr_merged') {
-      return 100;
-    }
-    return 0;
-  })();
 
   return (
     <Card
@@ -107,71 +193,13 @@ export function TaskCard({ task, onClick, onEdit, onDelete, showActions = true }
         )
       }
     >
-      <div className="task-content">
-        <div className="task-type">
-          <RobotOutlined className="type-icon" />
-          <strong>{task.type}</strong>
-        </div>
-
-        {isRunning && (
-          <div className="task-progress">
-            <div className="progress-header">
-              <ClockCircleOutlined />
-              <span>AI 处理中...</span>
-            </div>
-            <Progress
-              percent={progress}
-              size="small"
-              strokeColor="var(--purple-main)"
-              showInfo={false}
-            />
-          </div>
-        )}
-
-        <div className="task-links">
-          {task.issue && (
-            <div className="task-link">
-              <GithubOutlined />
-              <Button
-                type="link"
-                onClick={handleIssueClick}
-                className="link-btn"
-              >
-                #{task.issue.issueId}
-              </Button>
-            </div>
-          )}
-          {task.pullRequest && (
-            <div className="task-link">
-              <GithubOutlined />
-              <Button
-                type="link"
-                onClick={handlePRClick}
-                className="link-btn"
-              >
-                #{task.pullRequest.prId}
-              </Button>
-            </div>
-          )}
-          {task.codingAgent && (
-            <div className="task-link">
-              <LinkOutlined />
-              <Button
-                type="link"
-                onClick={handleCAUrlClick}
-                className="link-btn"
-              >
-                {task.codingAgent.caName}
-              </Button>
-            </div>
-          )}
-        </div>
-
-        <div className="task-meta">
-          <ClockCircleOutlined />
-          <small>{formatTimestamp(task.createdAt)}</small>
-        </div>
-      </div>
+      <TaskCardContent
+        task={task}
+        handleIssueClick={handleIssueClick}
+        handlePRClick={handlePRClick}
+        handleCAUrlClick={handleCAUrlClick}
+        isRunning={isRunning}
+      />
     </Card>
   );
 }
