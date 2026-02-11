@@ -19,11 +19,17 @@ const HTTP_STATUS = {
 vi.mock('@prisma/client', () => {
   const mockPrismaClient = {
     codingAgent: {
-      create: vi.fn().mockResolvedValue({ id: 1, caName: 'test-ca' }),
+      create: vi.fn().mockImplementation((data: { data: { caName: string } }) => ({
+        id: 1,
+        ...data.data
+      })),
       findMany: vi.fn().mockResolvedValue([]),
       findFirst: vi.fn().mockResolvedValue(null),
       findUnique: vi.fn().mockResolvedValue(null),
-      update: vi.fn().mockResolvedValue({ id: 1, caName: 'test-ca' }),
+      update: vi.fn().mockImplementation((data: { where: { id: number }; data: { caName?: string } }) => ({
+        id: data.where.id,
+        caName: data.data.caName ?? 'test-ca'
+      })),
       count: vi.fn().mockResolvedValue(0)
     },
     codingAgentLog: {

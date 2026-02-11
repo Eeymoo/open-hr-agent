@@ -3,6 +3,7 @@ import Result from '../../../../utils/Result.js';
 import { getPrismaClient } from '../../../../utils/database.js';
 
 const HTTP = {
+  BAD_REQUEST: 400,
   INTERNAL_SERVER_ERROR: 500,
   NOT_FOUND: 404
 };
@@ -16,10 +17,17 @@ export default async function getTaskByIdRoute(req: Request, res: Response): Pro
   const prisma = getPrismaClient();
   const { id } = req.params;
 
+  const idValue = parseInt(Array.isArray(id) ? id[0] : id, 10);
+
+  if (isNaN(idValue)) {
+    res.json(new Result().error(HTTP.BAD_REQUEST, 'Invalid task ID'));
+    return;
+  }
+
   try {
     const task = await prisma.task.findFirst({
       where: {
-        id: parseInt(Array.isArray(id) ? id[0] : id, 10),
+        id: idValue,
         deletedAt: -2
       },
       include: {

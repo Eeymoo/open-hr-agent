@@ -3,6 +3,7 @@ import Result from '../../../../utils/Result.js';
 import { getPrismaClient, setDeletedAt } from '../../../../utils/database.js';
 
 const HTTP = {
+  BAD_REQUEST: 400,
   INTERNAL_SERVER_ERROR: 500,
   NOT_FOUND: 404
 };
@@ -11,8 +12,14 @@ export default async function deleteTaskRoute(req: Request, res: Response): Prom
   const prisma = getPrismaClient();
   const { id } = req.params;
 
+  const idValue = parseInt(Array.isArray(id) ? id[0] : id, 10);
+
+  if (isNaN(idValue)) {
+    res.json(new Result().error(HTTP.BAD_REQUEST, 'Invalid task ID'));
+    return;
+  }
+
   try {
-    const idValue = parseInt(Array.isArray(id) ? id[0] : id, 10);
     const existingTask = await prisma.task.findFirst({
       where: {
         id: idValue,
