@@ -84,6 +84,7 @@ export class CreatePrTask extends BaseTask {
           prId: pr.number,
           prTitle,
           prContent: prBody,
+          prUrl: pr.htmlUrl,
           issueId: issue.id,
           completedAt: INACTIVE_TIMESTAMP,
           deletedAt: INACTIVE_TIMESTAMP,

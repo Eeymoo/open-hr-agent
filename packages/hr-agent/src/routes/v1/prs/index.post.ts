@@ -12,6 +12,7 @@ interface CreatePRBody {
   prId: number;
   prTitle: string;
   prContent?: string;
+  prUrl: string;
   issueId?: number;
 }
 
@@ -19,8 +20,8 @@ export default async function createPRRoute(req: Request, res: Response): Promis
   const prisma = getPrismaClient();
   const body = req.body as CreatePRBody;
 
-  if (!body.prId || !body.prTitle) {
-    res.json(new Result().error(HTTP.BAD_REQUEST, 'prId and prTitle are required'));
+  if (!body.prId || !body.prTitle || !body.prUrl) {
+    res.json(new Result().error(HTTP.BAD_REQUEST, 'prId, prTitle, and prUrl are required'));
     return;
   }
 
@@ -38,6 +39,7 @@ export default async function createPRRoute(req: Request, res: Response): Promis
       prId: body.prId,
       prTitle: body.prTitle,
       prContent: body.prContent ?? null,
+      prUrl: body.prUrl,
       issueId: body.issueId ?? null,
       completedAt: -2,
       deletedAt: -2,

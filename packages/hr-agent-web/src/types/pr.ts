@@ -3,6 +3,7 @@ export interface PullRequest {
   prId: number;
   prTitle: string;
   prContent?: string;
+  prUrl: string;
   issueId?: number;
   createdAt: number;
   updatedAt: number;
