@@ -93,8 +93,60 @@ export class TaskScheduler {
       await this.garbageCollector.collect();
     });
 
-    this.eventBus.register(TASK_EVENTS.CA_ERROR, async () => {
+    this.eventBus.register(TASK_EVENTS.CA_ERROR, async (data) => {
+      const eventData = data as { caId?: number; error?: string; issueNumber?: number };
+      const { caId } = eventData;
+
+      if (!caId) {
+        return;
+      }
+
       await this.garbageCollector.collect();
+
+      await this.logger.info(0, 'Scheduler', `CA ${caId} 创建失败，清理相关任务`);
+
+      const prisma = getPrismaClient();
+      const tasks = await prisma.task.findMany({
+        where: {
+          caId,
+          status: { in: [TASK_STATUS.RUNNING, TASK_STATUS.QUEUED, TASK_STATUS.RETRYING] },
+          deletedAt: -2
+        }
+      });
+
+      for (const task of tasks) {
+        const taskId = (task as { id: number }).id;
+        const taskType = (task as { type: string }).type;
+
+        const existingMetadata = (task as { metadata: Record<string, unknown> | unknown }).metadata;
+        const metadataObj =
+        typeof existingMetadata === 'object' && existingMetadata !== null ? existingMetadata : {};
+
+        await prisma.task.update({
+          where: { id: taskId },
+          data: {
+            status: TASK_STATUS.ERROR,
+            metadata: {
+              ...metadataObj,
+              caError: eventData.error
+            },
+            completedAt: Date.now(),
+            updatedAt: Date.now()
+          }
+        });
+
+        this.runningTasks.delete(taskId);
+
+        await this.logger.warn(taskId, taskType, '任务因 CA 创建失败而失败', {
+          caId,
+          error: eventData.error
+        });
+
+        await this.eventBus.emitAsync(TASK_EVENTS.TASK_FAILED, {
+          taskId,
+          error: eventData.error
+        });
+      }
     });
 
     this.eventBus.register(TASK_EVENTS.CA_CREATED, async () => {
