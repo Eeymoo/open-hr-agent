@@ -150,19 +150,45 @@ export class CAResourceManager {
     const prisma = getPrismaClient();
     const now = getCurrentTimestamp();
 
-    await this.cleanupOldErrorCA();
-
-    const caRecord = await prisma.codingAgent.create({
-      data: {
+    const existingCA = await prisma.codingAgent.findFirst({
+      where: {
         caName: containerName,
-        status: 'creating',
-        dockerConfig: {},
-        completedAt: -2,
-        deletedAt: -2,
-        createdAt: now,
-        updatedAt: now
+        deletedAt: -2
       }
     });
+
+    if (existingCA) {
+      await this.destroyCA(existingCA.id);
+    }
+
+    await this.cleanupOldErrorCA();
+
+    let caRecord;
+    try {
+      caRecord = await prisma.codingAgent.create({
+        data: {
+          caName: containerName,
+          status: 'creating',
+          dockerConfig: {},
+          completedAt: -2,
+          deletedAt: -2,
+          createdAt: now,
+          updatedAt: now
+        }
+      });
+    } catch (error) {
+      if (error instanceof Error && 'code' in error && error.code === 'P2002') {
+        const existingCAResource = await this.handleDuplicateCA(
+          containerName,
+          taskId,
+          issueNumber
+        );
+        if (existingCAResource) {
+          return existingCAResource;
+        }
+      }
+      throw error;
+    }
 
     const caResource: CAResource = {
       id: caRecord.id,
@@ -180,6 +206,40 @@ export class CAResourceManager {
     this.createContainerAsync(containerName, caRecord.id, issueNumber);
 
     return caResource;
+  }
+
+  private async handleDuplicateCA(
+    containerName: string,
+    taskId: number,
+    issueNumber: number
+  ): Promise<CAResource | null> {
+    const prisma = getPrismaClient();
+    const caRecord = await prisma.codingAgent.findFirst({
+      where: {
+        caName: containerName,
+        deletedAt: -2
+      }
+    });
+
+    if (!caRecord) {
+      return null;
+    }
+
+    if (caRecord.status === 'creating') {
+      return {
+        id: caRecord.id,
+        name: containerName,
+        containerId: caRecord.containerId ?? '',
+        status: 'creating' as CAResourceStatus,
+        createdAt: caRecord.createdAt,
+        updatedAt: caRecord.updatedAt,
+        currentTaskId: taskId,
+        issueNumber
+      };
+    }
+
+    await this.destroyCA(caRecord.id);
+    return null;
   }
 
   private async createContainerAsync(

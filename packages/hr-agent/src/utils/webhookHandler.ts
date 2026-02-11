@@ -357,6 +357,30 @@ async function startTaskChain(
     return;
   }
 
+  const errorTask = await prisma.task.findFirst({
+    where: {
+      issue: { issueId: issueNumber },
+      type: 'create_ca',
+      status: 'error'
+    },
+    orderBy: {
+      createdAt: 'desc'
+    }
+  });
+
+  if (errorTask) {
+    const now = getCurrentTimestamp();
+    const retryDelay = 60000;
+    const timeSinceError = (now - errorTask.updatedAt) * 1000;
+
+    if (timeSinceError < retryDelay) {
+      console.log(
+        `Recent error task exists for issue #${issueNumber}, waiting before retry. Time since error: ${timeSinceError}ms`
+      );
+      return;
+    }
+  }
+
   const { taskManager } = global;
 
   if (taskManager) {
