@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { Button, Radio, Space, Empty, Spin } from 'antd';
-import { PlusOutlined, TableOutlined, AppstoreOutlined } from '@ant-design/icons';
+import { PlusOutlined, TableOutlined, AppstoreOutlined, DashboardOutlined } from '@ant-design/icons';
 import { TaskCard } from '../../components/TaskCard';
 import { TaskTable } from '../../components/TaskTable';
 import { TaskFormModal } from '../../components/TaskFormModal';
 import { TaskModal } from '../../components/TaskModal';
+import { StatsDashboard } from '../../components/StatsDashboard';
+import { TaskKanban } from '../../components/TaskKanban';
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '../../hooks/useTasks';
 import type { Task, CreateTaskDto, UpdateTaskDto } from '../../types/task';
 import './index.css';
 
-type ViewMode = 'card' | 'table';
+type ViewMode = 'card' | 'table' | 'kanban';
 
 export function TaskOrchestration() {
-  const [viewMode, setViewMode] = useState<ViewMode>('card');
+  const [viewMode, setViewMode] = useState<ViewMode>('kanban');
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -74,44 +76,65 @@ export function TaskOrchestration() {
 
   return (
     <div className="task-orchestration">
-      <div className="task-orchestration-header">
-        <h2>任务编排</h2>
-        <Space>
-          <Radio.Group
-            value={viewMode}
-            onChange={(e) => setViewMode(e.target.value)}
-            buttonStyle="solid"
-          >
-            <Radio.Button value="card">
-              <AppstoreOutlined /> 卡片
-            </Radio.Button>
-            <Radio.Button value="table">
-              <TableOutlined /> 表格
-            </Radio.Button>
-          </Radio.Group>
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAddTask}>
-            添加任务
-          </Button>
-        </Space>
-      </div>
+      <StatsDashboard tasks={tasks} />
 
-      {tasks.length === 0 ? (
-        <Empty description="暂无任务" />
-      ) : viewMode === 'card' ? (
-        <div className="task-cards">
-          {tasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              onClick={() => handleTaskClick(task)}
-              onEdit={() => handleEditTask(task)}
-              onDelete={() => handleDeleteTask(task)}
-            />
-          ))}
+      <div className="task-orchestration-content">
+        <div className="task-orchestration-header">
+          <div className="header-left">
+            <h2>任务列表</h2>
+            <span className="task-count">{tasks.length} 个任务</span>
+          </div>
+          <Space>
+            <Radio.Group
+              value={viewMode}
+              onChange={(e) => setViewMode(e.target.value)}
+              buttonStyle="solid"
+              className="view-toggle"
+            >
+              <Radio.Button value="kanban">
+                <DashboardOutlined /> 看板
+              </Radio.Button>
+              <Radio.Button value="card">
+                <AppstoreOutlined /> 卡片
+              </Radio.Button>
+              <Radio.Button value="table">
+                <TableOutlined /> 表格
+              </Radio.Button>
+            </Radio.Group>
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleAddTask} className="add-task-btn">
+              添加任务
+            </Button>
+          </Space>
         </div>
-      ) : (
-        <TaskTable onTaskClick={handleTaskClick} />
-      )}
+
+        {tasks.length === 0 ? (
+          <Empty
+            description="暂无任务"
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          />
+        ) : viewMode === 'kanban' ? (
+          <TaskKanban
+            tasks={tasks}
+            onTaskClick={handleTaskClick}
+            onEdit={handleEditTask}
+            onDelete={handleDeleteTask}
+          />
+        ) : viewMode === 'card' ? (
+          <div className="task-cards">
+            {tasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                onClick={() => handleTaskClick(task)}
+                onEdit={() => handleEditTask(task)}
+                onDelete={() => handleDeleteTask(task)}
+              />
+            ))}
+          </div>
+        ) : (
+          <TaskTable onTaskClick={handleTaskClick} />
+        )}
+      </div>
 
       <TaskFormModal
         open={formModalOpen}

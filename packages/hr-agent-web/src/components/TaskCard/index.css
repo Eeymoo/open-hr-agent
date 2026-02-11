@@ -1,41 +1,123 @@
 .task-card {
-  margin-bottom: 16px;
+  background: var(--bg-glass) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-glass) !important;
+  border-radius: 16px !important;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .task-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(147, 51, 234, 0.2);
+  border-color: rgba(147, 51, 234, 0.3) !important;
+}
+
+.task-card.task-running {
+  border-color: rgba(147, 51, 234, 0.4) !important;
+  box-shadow: 0 0 20px rgba(147, 51, 234, 0.15);
 }
 
 .task-id {
-  font-weight: 600;
-  color: #1890ff;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.status-tag {
+  border-radius: 8px !important;
+  font-size: 12px;
+  padding: 2px 10px !important;
+  font-weight: 500;
+}
+
+.priority-tag {
+  border-radius: 8px !important;
+  font-size: 12px;
+  padding: 2px 10px !important;
+}
+
+.action-btn {
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+  color: var(--text-primary);
+  background: rgba(147, 51, 234, 0.15);
+  border-radius: 8px;
 }
 
 .task-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .task-type {
-  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.type-icon {
+  color: var(--purple-main);
+  font-size: 18px;
+}
+
+.task-progress {
+  padding: 12px;
+  background: rgba(147, 51, 234, 0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(147, 51, 234, 0.15);
+}
+
+.progress-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--purple-main);
+  font-weight: 500;
+}
+
+.task-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .task-link {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
 }
 
-.task-link .ant-btn-link {
+.link-btn {
   padding: 0;
   height: auto;
-  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.link-btn:hover {
+  color: var(--purple-main);
 }
 
 .task-meta {
-  margin-top: 8px;
-  color: #8c8c8c;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-glass);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.task-meta .anticon {
+  font-size: 12px;
 }

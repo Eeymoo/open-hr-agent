@@ -1,24 +1,7 @@
 .task-orchestration {
-  height: 100%;
   display: flex;
   flex-direction: column;
-}
-
-.task-orchestration-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.task-orchestration-header h2 {
-  margin: 0;
-}
-
-.task-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
+  gap: 24px;
 }
 
 .task-orchestration-loading {
@@ -26,4 +9,87 @@
   justify-content: center;
   align-items: center;
   min-height: 400px;
+}
+
+.task-orchestration-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.task-orchestration-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-glass);
+  border-radius: 16px;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.header-left h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.task-count {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.view-toggle {
+  display: flex;
+  background: var(--bg-glass-light);
+  border: 1px solid var(--border-glass);
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.view-toggle .ant-radio-button-wrapper {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.view-toggle .ant-radio-button-wrapper:hover {
+  color: var(--text-primary);
+  background: rgba(147, 51, 234, 0.1);
+}
+
+.view-toggle .ant-radio-button-wrapper-checked {
+  background: var(--purple-main);
+  color: var(--text-primary);
+}
+
+.add-task-btn {
+  background: var(--purple-main) !important;
+  border-color: var(--purple-main) !important;
+  height: 40px;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.add-task-btn:hover {
+  background: var(--purple-light) !important;
+  border-color: var(--purple-light) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(147, 51, 234, 0.3);
+}
+
+.task-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
 }

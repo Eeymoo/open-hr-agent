@@ -1,8 +1,17 @@
 import React from 'react';
-import { Layout, Menu, Button, Avatar, Dropdown, Spin } from 'antd';
-import { HomeOutlined, AppstoreOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons';
+import { Layout, Menu, Button, Avatar, Dropdown, Badge, Spin, Space } from 'antd';
+import {
+  AppstoreOutlined,
+  FileTextOutlined,
+  LogoutOutlined,
+  UserOutlined,
+  RobotOutlined,
+  BellOutlined,
+  SettingOutlined
+} from '@ant-design/icons';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { ThemeSwitcher } from '../ThemeSwitcher';
 import './index.css';
 import '../AuthGuard/index.css';
 
@@ -37,7 +46,7 @@ export function AppLayout({ children }: LayoutProps) {
     },
     {
       key: '/tasks',
-      icon: <HomeOutlined />,
+      icon: <FileTextOutlined />,
       label: '任务查看'
     }
   ];
@@ -52,6 +61,14 @@ export function AppLayout({ children }: LayoutProps) {
 
   const userMenuItems = [
     {
+      key: 'settings',
+      icon: <SettingOutlined />,
+      label: '设置'
+    },
+    {
+      type: 'divider' as const
+    },
+    {
       key: 'logout',
       icon: <LogoutOutlined />,
       label: '退出登录',
@@ -61,33 +78,64 @@ export function AppLayout({ children }: LayoutProps) {
 
   return (
     <Layout className="app-layout">
-      <Sider theme="light" width={200} className="app-sider">
+      <Sider theme="dark" width={240} className="app-sider">
         <div className="app-logo">
-          <h2>HR Agent</h2>
+          <div className="logo-icon">
+            <RobotOutlined />
+          </div>
+          <div className="logo-text">
+            <h2>HR Agent</h2>
+            <span className="logo-badge">AI Powered</span>
+          </div>
         </div>
+
         <Menu
           mode="inline"
           selectedKeys={[location.pathname]}
           items={menuItems}
           onClick={handleMenuClick}
+          className="app-menu"
         />
+
+        <div className="sider-footer">
+          <div className="system-status">
+            <span className="status-dot online"></span>
+            <span>系统在线</span>
+          </div>
+        </div>
       </Sider>
 
       <Layout>
         <Header className="app-header">
           <div className="app-header-left">
-            <h1>任务管理系统</h1>
+            <h1 className="header-title">任务编排工作台</h1>
           </div>
           <div className="app-header-right">
-            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-              <Button type="text" icon={<Avatar icon={<UserOutlined />} />}>
-                Admin
+            <Space size={16}>
+              <ThemeSwitcher />
+              <Button
+                type="text"
+                icon={<BellOutlined />}
+                className="header-icon-btn"
+              >
+                <Badge count={3} size="small" />
               </Button>
-            </Dropdown>
+              <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+                <Button type="text" className="user-btn">
+                  <Avatar icon={<UserOutlined />} className="user-avatar" />
+                  <span className="user-name">Admin</span>
+                </Button>
+              </Dropdown>
+            </Space>
           </div>
         </Header>
 
-        <Content className="app-content">{children}</Content>
+        <Content className="app-content">
+          <div className="content-background">
+            <div className="grid-pattern"></div>
+          </div>
+          {children}
+        </Content>
       </Layout>
     </Layout>
   );

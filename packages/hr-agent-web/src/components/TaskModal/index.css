@@ -1,0 +1,182 @@
+.ant-modal {
+  background: var(--bg-glass-light) !important;
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+}
+
+.ant-modal-content {
+  background: transparent !important;
+  border-radius: 16px !important;
+}
+
+.ant-modal-header {
+  background: transparent !important;
+  border-bottom: 1px solid var(--border-glass) !important;
+  padding: 20px 24px !important;
+  border-radius: 16px 16px 0 0;
+}
+
+.ant-modal-title {
+  color: var(--text-primary) !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+}
+
+.ant-modal-body {
+  background: transparent !important;
+  padding: 24px !important;
+}
+
+.ant-modal-footer {
+  background: transparent !important;
+  border-top: 1px solid var(--border-glass) !important;
+  padding: 16px 24px !important;
+  border-radius: 0 0 16px 16px;
+}
+
+.ant-modal-close-x {
+  color: var(--text-secondary) !important;
+  transition: all 0.3s ease;
+}
+
+.ant-modal-close-x:hover {
+  color: var(--text-primary) !important;
+}
+
+.ant-descriptions {
+  background: var(--bg-glass-light);
+  border-radius: 12px;
+}
+
+.ant-descriptions-item-label {
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+  font-size: 13px;
+}
+
+.ant-descriptions-item-content {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  font-size: 14px;
+}
+
+.ant-descriptions-bordered .ant-descriptions-item-label {
+  background: var(--bg-glass) !important;
+}
+
+.ant-tabs {
+  color: var(--text-primary);
+}
+
+.ant-tabs-tab {
+  color: var(--text-secondary) !important;
+  transition: all 0.3s ease;
+}
+
+.ant-tabs-tab:hover {
+  color: var(--text-primary) !important;
+}
+
+.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--purple-main) !important;
+  font-weight: 600 !important;
+}
+
+.ant-tabs-ink-bar {
+  background: var(--purple-main) !important;
+}
+
+.ant-btn-primary {
+  background: var(--purple-main) !important;
+  border-color: var(--purple-main) !important;
+}
+
+.ant-btn-primary:hover {
+  background: var(--purple-light) !important;
+  border-color: var(--purple-light) !important;
+}
+
+.ant-input {
+  background: var(--bg-glass-light) !important;
+  border: 1px solid var(--border-glass) !important;
+  color: var(--text-primary) !important;
+}
+
+.ant-input:hover {
+  border-color: var(--purple-main) !important;
+}
+
+.ant-input:focus {
+  border-color: var(--purple-main) !important;
+  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.1) !important;
+}
+
+.ant-select {
+  color: var(--text-primary) !important;
+}
+
+.ant-select-selector {
+  background: var(--bg-glass-light) !important;
+  border: 1px solid var(--border-glass) !important;
+}
+
+.ant-select-selector:hover {
+  border-color: var(--purple-main) !important;
+}
+
+.ant-select-focused .ant-select-selector {
+  border-color: var(--purple-main) !important;
+  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.1) !important;
+}
+
+.ant-input-number {
+  background: var(--bg-glass-light) !important;
+}
+
+.ant-input-number-input {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+}
+
+.ant-input-number:hover {
+  border-color: var(--purple-main) !important;
+}
+
+.ant-input-number-focused {
+  border-color: var(--purple-main) !important;
+  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.1) !important;
+}
+
+.ant-modal-wrap {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.ant-empty-description {
+  color: var(--text-secondary) !important;
+}
+
+.ant-empty-image {
+  filter: opacity(0.5);
+}
+
+.ant-form-item-label > label {
+  color: var(--text-secondary) !important;
+}
+
+.ant-typography {
+  color: var(--text-primary) !important;
+}
+
+.ant-typography-secondary {
+  color: var(--text-secondary) !important;
+}
+
+pre {
+  background: var(--bg-glass) !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+  padding: 12px;
+  overflow-x: auto;
+}
