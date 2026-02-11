@@ -19,3 +19,11 @@ export const createPR = (data: {
 }) => {
   return apiClient.post<ApiResponse<PullRequest>>('/v1/prs', data);
 };
+
+export const updatePR = (id: number, data: Partial<PullRequest>) => {
+  return apiClient.put<ApiResponse<PullRequest>>(`/v1/prs/${id}`, data);
+};
+
+export const deletePR = (id: number) => {
+  return apiClient.delete<ApiResponse<void>>(`/v1/prs/${id}`);
+};

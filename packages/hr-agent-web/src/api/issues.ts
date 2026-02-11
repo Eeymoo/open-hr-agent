@@ -18,3 +18,11 @@ export const createIssue = (data: {
 }) => {
   return apiClient.post<ApiResponse<Issue>>('/v1/issues', data);
 };
+
+export const updateIssue = (id: number, data: Partial<Issue>) => {
+  return apiClient.put<ApiResponse<Issue>>(`/v1/issues/${id}`, data);
+};
+
+export const deleteIssue = (id: number) => {
+  return apiClient.delete<ApiResponse<void>>(`/v1/issues/${id}`);
+};

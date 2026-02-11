@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getPRs, getPR, createPR } from '../api/prs';
+import { getPRs, getPR, createPR, updatePR, deletePR } from '../api/prs';
+import type { PullRequest } from '../types/pr';
 import type { PaginationParams } from '../types/issue';
 
 export function usePRs(params?: PaginationParams) {
@@ -33,6 +34,28 @@ export function useCreatePR() {
       prContent?: string;
       issueId?: number;
     }) => createPR(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['prs'] });
+    }
+  });
+}
+
+export function useUpdatePR() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<PullRequest> }) => updatePR(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['prs'] });
+    }
+  });
+}
+
+export function useDeletePR() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => deletePR(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prs'] });
     }

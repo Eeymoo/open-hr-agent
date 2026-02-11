@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Button, Table, Tag, Space, Empty, Spin, Input, Modal, Form } from 'antd';
+import { Card, Button, Table, Tag, Space, Empty, Spin, Input, Modal, Form, message } from 'antd';
 import { PlusOutlined, LinkOutlined, EditOutlined } from '@ant-design/icons';
 import { useIssues, useCreateIssue } from '../../hooks/useIssues';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -148,8 +148,10 @@ function IssuesListContent({
       await createIssue.mutateAsync(values);
       setModalOpen(false);
       form.resetFields();
+      message.success('创建成功');
     } catch (error) {
       console.error('Failed to create issue:', error);
+      message.error('创建失败，请重试');
     }
   };
 
