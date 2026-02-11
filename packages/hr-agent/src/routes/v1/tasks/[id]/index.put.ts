@@ -30,8 +30,14 @@ export default async function updateTaskRoute(req: Request, res: Response): Prom
   const { id } = req.params;
   const body = req.body as UpdateTaskBody;
 
+  const idValue = parseInt(Array.isArray(id) ? id[0] : id, 10);
+
+  if (isNaN(idValue)) {
+    res.json(new Result().error(HTTP.BAD_REQUEST, 'Invalid task ID'));
+    return;
+  }
+
   try {
-    const idValue = parseInt(Array.isArray(id) ? id[0] : id, 10);
     const existingTask = await prisma.task.findFirst({
       where: {
         id: idValue,

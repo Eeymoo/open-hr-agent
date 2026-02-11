@@ -427,21 +427,39 @@ export class TaskScheduler {
     const task = this.taskQueue.dequeue();
     if (!task) {
       await this.garbageCollector.collect();
+      await this.logger.info(0, 'Scheduler', '任务队列为空，等待新任务');
       return;
     }
+
+    await this.logger.info(task.taskId, 'Scheduler', '开始调度任务', {
+      taskName: task.taskName,
+      priority: task.priority,
+      issueId: task.issueId,
+      prId: task.prId
+    });
 
     const taskInstance = this.taskRegistry.get(task.taskName);
     const needsCA = taskInstance?.needsCA ?? false;
 
     if (needsCA) {
+      await this.logger.info(task.taskId, 'Scheduler', '任务需要 CA，开始分配', {
+        taskName: task.taskName
+      });
       const ca = await this.allocateCAForTask(task);
 
       if (!ca) {
+        await this.logger.warn(task.taskId, 'Scheduler', 'CA 分配失败，任务重新入队', {
+          taskName: task.taskName
+        });
         this.taskQueue.enqueue(task);
         return;
       }
 
       task.caId = ca.id;
+      await this.logger.info(task.taskId, 'Scheduler', 'CA 分配成功', {
+        caId: ca.id,
+        taskName: task.taskName
+      });
     }
 
     await this.executeTask(task);
@@ -451,39 +469,64 @@ export class TaskScheduler {
     const ca = await this.caManager.getIdleCA();
 
     if (ca) {
+      await this.logger.info(task.taskId, task.taskName, '使用现有空闲 CA', {
+        caId: ca.id,
+        caName: ca.name
+      });
       await this.caManager.allocateCA(task.taskId);
       return { id: ca.id };
     }
 
+    await this.logger.info(task.taskId, task.taskName, '无空闲 CA，检查是否可以创建新 CA');
+
+    const caStatus = await this.caManager.getCAStatus();
+    await this.logger.info(task.taskId, task.taskName, '当前 CA 状态', caStatus);
+
     const canCreate = await this.caManager.canCreateCA();
 
     if (!canCreate) {
+      await this.logger.warn(task.taskId, task.taskName, '无法创建新 CA，达到最大容量或资源限制');
       return null;
     }
 
     if (!task.issueId) {
+      await this.logger.warn(task.taskId, task.taskName, '任务没有关联的 issue，无法创建 CA');
       return null;
     }
 
     const issueNumber = await this.getIssueNumber(task.issueId);
     if (!issueNumber) {
+      await this.logger.warn(task.taskId, task.taskName, '无法获取 issue 编号');
       return null;
     }
 
     try {
+      await this.logger.info(task.taskId, task.taskName, '开始创建新 CA', {
+        issueNumber,
+        caName: `${await import('../config/taskConfig.js').then((m) => m.TASK_CONFIG).then((c) => c.CA_NAME_PREFIX)}${issueNumber}`
+      });
       const caResource = await this.caManager.createCA(issueNumber, task.taskId);
       await this.waitForCAReady(caResource.id);
+      await this.logger.info(task.taskId, task.taskName, '新 CA 创建成功', {
+        caId: caResource.id,
+        caName: caResource.name
+      });
       return { id: caResource.id };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      await this.logger.warn(task.taskId, task.taskName, `CA 分配失败: ${errorMessage}`);
+      await this.logger.warn(task.taskId, task.taskName, `CA 创建失败: ${errorMessage}`);
 
       const idleCA = await this.caManager.getIdleCA();
       if (idleCA) {
+        await this.logger.info(task.taskId, task.taskName, '使用空闲 CA 作为备选方案', {
+          caId: idleCA.id,
+          caName: idleCA.name
+        });
         await this.caManager.allocateCA(task.taskId);
         return { id: idleCA.id };
       }
 
+      await this.logger.error(task.taskId, task.taskName, '无法分配 CA，任务将重试');
       return null;
     }
   }
@@ -672,6 +715,8 @@ export class TaskScheduler {
   private async monitor(): Promise<void> {
     const prisma = getPrismaClient();
     const now = getCurrentTimestamp();
+
+    await this.caManager.getAllCA();
 
     const runningTasks = await prisma.task.findMany({
       where: {

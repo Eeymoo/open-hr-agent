@@ -413,7 +413,16 @@ export class CAResourceManager {
 
       let status: CAResourceStatus = caRecord.status as CAResourceStatus;
 
-      if ((status === 'idle' || status === 'creating') && !dockerContainer?.state) {
+      if (!dockerContainer) {
+        if (status === 'idle' || status === 'creating' || status === 'busy') {
+          await this.logger.warn(0, 'CAResourceManager', `CA ${caRecord.caName} 容器不存在，标记为 error`);
+          await prisma.codingAgent.update({
+            where: { id: caRecord.id },
+            data: { status: 'error' }
+          });
+          status = 'error';
+        }
+      } else if ((status === 'idle' || status === 'creating') && !dockerContainer.state) {
         status = 'error';
       }
 
@@ -428,5 +437,7 @@ export class CAResourceManager {
         issueNumber: parseInt(caRecord.caName.replace(TASK_CONFIG.CA_NAME_PREFIX, ''), 10)
       });
     }
+
+    await this.cleanupOldErrorCA();
   }
 }
