@@ -21,6 +21,12 @@ export function Login() {
     if (isAuthenticated) {
       navigate('/orchestration', { replace: true });
     }
+
+    const lastError = sessionStorage.getItem('hra_last_error');
+    if (lastError) {
+      message.error(lastError);
+      sessionStorage.removeItem('hra_last_error');
+    }
   }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (values: LoginForm) => {

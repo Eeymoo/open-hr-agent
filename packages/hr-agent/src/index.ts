@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import toonMiddleware from './middleware/responseFormat/toonMiddleware.js';
 import autoLoadRoutes from './middleware/autoLoadRoutes.js';
 import caProxyMiddleware from './middleware/caProxy.js';
+import validateSecretMiddleware from './middleware/validateSecret.js';
 import { EventBus } from './services/eventBus.js';
 import { TaskLogger } from './utils/taskLogger.js';
 import { TaskRegistry } from './tasks/taskRegistry.js';
@@ -26,7 +27,17 @@ const ROUTES_DIR = join(__dirname, 'routes');
 app.use(express.json());
 app.use(toonMiddleware);
 
-await autoLoadRoutes(app, ROUTES_DIR);
+const v1Router = express.Router();
+v1Router.use(validateSecretMiddleware);
+
+await autoLoadRoutes(v1Router, join(ROUTES_DIR, 'v1'));
+
+app.use('/v1', v1Router);
+
+const nonV1Router = express.Router();
+await autoLoadRoutes(nonV1Router, ROUTES_DIR);
+
+app.use('/', nonV1Router);
 
 app.use(caProxyMiddleware);
 
