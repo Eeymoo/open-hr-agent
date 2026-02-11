@@ -470,30 +470,47 @@ export class TaskScheduler {
       return null;
     }
 
-    const caResource = await this.caManager.createCA(issueNumber, task.taskId);
+    try {
+      const caResource = await this.caManager.createCA(issueNumber, task.taskId);
+      await this.waitForCAReady(caResource.id);
+      return { id: caResource.id };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      await this.logger.warn(task.taskId, task.taskName, `CA 分配失败: ${errorMessage}`);
 
-    await this.waitForCAReady(caResource.id);
+      const idleCA = await this.caManager.getIdleCA();
+      if (idleCA) {
+        await this.caManager.allocateCA(task.taskId);
+        return { id: idleCA.id };
+      }
 
-    return { id: caResource.id };
+      return null;
+    }
   }
 
   private async waitForCAReady(caId: number): Promise<void> {
     const maxWait = 60000;
     const startTime = Date.now();
+    const checkInterval = 1000;
 
     while (Date.now() - startTime < maxWait) {
-      const ca = Array.from(await this.caManager.getAllCA()).find((c) => c.id === caId);
+      const allCA = await this.caManager.getAllCA();
+      const ca = allCA.find((c) => c.id === caId);
 
-      if (ca?.status === 'idle') {
+      if (!ca) {
+        throw new Error(`CA ${caId} not found`);
+      }
+
+      if (ca.status === 'idle') {
+        await this.logger.info(0, 'Scheduler', `CA ${caId} 已就绪`, { caName: ca.name });
         return;
       }
 
-      if (ca?.status === 'error') {
+      if (ca.status === 'error') {
         throw new Error(`CA ${caId} 创建失败`);
       }
 
-      // eslint-disable-next-line no-magic-numbers
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, checkInterval));
     }
 
     throw new Error(`CA ${caId} 创建超时`);

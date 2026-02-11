@@ -267,42 +267,7 @@ async function handleIssuesOpened(data: IssueWebhookPayload): Promise<void> {
   const priority = getPriorityFromLabelsConfig(issueInfo.labels);
   console.log(`Task priority: ${priority}`);
 
-  const issueResult = await createIssueFromWebhook(
-    issueInfo.issueNumber,
-    issueInfo.issueUrl,
-    issueInfo.issueTitle,
-    issueInfo.issueContent
-  );
-
-  if (!issueResult.success) {
-    const errorMessage = String(issueResult.error ?? '');
-    if (!errorMessage.includes('Issue with this issueId already exists')) {
-      console.error('Failed to create issue:', issueResult.error);
-      return;
-    }
-    console.log('Issue already exists, continuing to create task');
-  }
-
-  console.log('Issue created successfully:', issueResult.data);
-
-  const prisma = getPrismaClient();
-  const issue = await prisma.issue.findUnique({
-    where: { issueId: issueInfo.issueNumber }
-  });
-
-  if (!issue) {
-    console.error('Issue not found in database');
-    return;
-  }
-
-  const { taskManager } = global;
-
-  if (taskManager) {
-    await taskManager.run('create_ca', { issueNumber: issueInfo.issueNumber }, priority, issue.id);
-    console.log(`Task chain started for issue #${issueInfo.issueNumber} with priority ${priority}`);
-  } else {
-    console.error('TaskManager not initialized');
-  }
+  await createIssueForTask(issueInfo);
 }
 
 webhooks.on('issues.opened', async ({ payload }) => {
