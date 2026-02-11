@@ -33,11 +33,11 @@
 
 .pr-id {
   font-weight: 600;
-  color: #9333EA;
+  color: #9333ea;
 }
 
 .issue-id {
-  color: #9333EA;
+  color: #9333ea;
   font-weight: 600;
 }
 
@@ -52,7 +52,7 @@
 }
 
 .pr-title-link:hover {
-  color: #9333EA;
+  color: #9333ea;
 }
 
 .prs-loading {

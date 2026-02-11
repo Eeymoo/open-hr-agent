@@ -52,9 +52,7 @@ describe('Issue PR Relation API', () => {
         findFirst: vi.fn()
       }
     };
-    (getPrismaClient as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockPrismaClient
-    );
+    (getPrismaClient as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockPrismaClient);
   });
 
   describe('GET /api/v1/issues/:issueId/prs', () => {

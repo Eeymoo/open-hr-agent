@@ -27,7 +27,7 @@ export default async function getCARoute(req: Request, res: Response): Promise<v
     return;
   }
 
-  const containerName = `ca-${name}`;
+  const containerName = name;
 
   try {
     const container = docker.getContainer(containerName);

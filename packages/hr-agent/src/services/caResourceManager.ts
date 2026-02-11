@@ -222,6 +222,7 @@ export class CAResourceManager {
     }
 
     if (caRecord.status === 'creating') {
+      await this.logger.info(0, 'CAResourceManager', `CA ${containerName} 正在创建中，等待完成`);
       return {
         id: caRecord.id,
         name: containerName,
@@ -232,6 +233,25 @@ export class CAResourceManager {
         currentTaskId: taskId,
         issueNumber
       };
+    }
+
+    if (caRecord.status === 'idle') {
+      await this.logger.info(0, 'CAResourceManager', `CA ${containerName} 已存在且空闲，直接使用`);
+      return {
+        id: caRecord.id,
+        name: containerName,
+        containerId: caRecord.containerId ?? '',
+        status: 'idle' as CAResourceStatus,
+        createdAt: caRecord.createdAt,
+        updatedAt: caRecord.updatedAt,
+        currentTaskId: taskId,
+        issueNumber
+      };
+    }
+
+    if (caRecord.status === 'busy') {
+      await this.logger.warn(0, 'CAResourceManager', `CA ${containerName} 正在使用中，不能重复创建`);
+      throw new Error(`CA ${containerName} is currently busy`);
     }
 
     await this.destroyCA(caRecord.id);

@@ -18,10 +18,7 @@ interface CreatePRFormData {
 interface PRsListProps {
   navigate: (path: string) => void;
   searchParams: URLSearchParams;
-  setSearchParams: (params: {
-    page: string;
-    pageSize: string;
-  }) => void;
+  setSearchParams: (params: { page: string; pageSize: string }) => void;
   prs: PullRequest[];
   pagination?: { total: number };
   isLoading: boolean;

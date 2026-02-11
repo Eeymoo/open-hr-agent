@@ -28,12 +28,8 @@ export function useCreatePR() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: {
-      prId: number;
-      prTitle: string;
-      prContent?: string;
-      issueId?: number;
-    }) => createPR(data),
+    mutationFn: (data: { prId: number; prTitle: string; prContent?: string; issueId?: number }) =>
+      createPR(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prs'] });
     }

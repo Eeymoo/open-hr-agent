@@ -21,9 +21,9 @@ export default async function listCARoute(req: Request, res: Response): Promise<
     const containers = await docker.listContainers({ all: true });
 
     const caContainers = containers
-      .filter((container) => container.Names.some((name) => name.startsWith('/ca-')))
+      .filter((container) => container.Names.some((name) => name.startsWith('/hra_')))
       .map((container) => ({
-        name: container.Names[0]?.replace('/ca-', '') || '',
+        name: container.Names[0]?.replace('/', '') || '',
         containerId: container.Id,
         containerName: container.Names[0]?.replace('/', '') || '',
         image: container.Image,

@@ -20,12 +20,12 @@ export interface ContainerInfo {
 
 /**
  * 根据名称获取容器信息
- * @param name - 容器名称（不含 'ca-' 前缀）
+ * @param name - 容器名称
  * @returns 容器信息，不存在则返回 null
  */
 export async function getContainerByName(name: string): Promise<ContainerInfo | null> {
   try {
-    const container = docker.getContainer(`ca-${name}`);
+    const container = docker.getContainer(name);
     const info = await container.inspect();
     return {
       id: info.Id,

@@ -3,6 +3,7 @@ import http from 'node:http';
 import { Buffer } from 'node:buffer';
 import { DOCKER_CONFIG } from '../config/docker.js';
 import { getOptionalEnvValue } from '../utils/envSecrets.js';
+import { getPrismaClient } from '../utils/database.js';
 
 const CA_PROXY_PATH = '/ca';
 const HTTP_OK = 200;
@@ -33,7 +34,31 @@ function modifySetCookie(cookies: string | string[], caName: string): string[] {
   });
 }
 
-function caProxyMiddleware(req: Request, res: Response, next: NextFunction): void {
+async function getContainerNameByCAName(caName: string): Promise<string | null> {
+  try {
+    const prisma = getPrismaClient();
+    const ca = await prisma.codingAgent.findFirst({
+      where: {
+        caName,
+        deletedAt: -2
+      },
+      select: {
+        caName: true
+      }
+    });
+
+    if (!ca) {
+      return null;
+    }
+
+    const containerName = `${DOCKER_CONFIG.NAME_PREFIX}${ca.caName}`;
+    return containerName;
+  } catch {
+    return null;
+  }
+}
+
+async function caProxyMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
   const originalUrl = req.originalUrl ?? req.url;
   const match = originalUrl.match(new RegExp(`^${CA_PROXY_PATH}/([^/]+)(.*)$`));
 
@@ -43,7 +68,18 @@ function caProxyMiddleware(req: Request, res: Response, next: NextFunction): voi
   }
 
   const [caName, subPath = '/'] = [match[1], match[2]];
-  const targetUrl = `http://ca-${caName}:${DOCKER_CONFIG.PORT}`;
+
+  const containerName = await getContainerNameByCAName(caName);
+
+  if (!containerName) {
+    res.status(HTTP_BAD_GATEWAY).json({
+      code: HTTP_BAD_GATEWAY,
+      message: `CA container for "${caName}" not found`
+    });
+    return;
+  }
+
+  const targetUrl = `http://${containerName}:${DOCKER_CONFIG.PORT}`;
 
   const proxyReq = http.request(
     targetUrl + subPath,
@@ -51,7 +87,7 @@ function caProxyMiddleware(req: Request, res: Response, next: NextFunction): voi
       method: req.method,
       headers: {
         ...req.headers,
-        host: `ca-${caName}:${DOCKER_CONFIG.PORT}`,
+        host: `${containerName}:${DOCKER_CONFIG.PORT}`,
         'x-forwarded-host': req.get('host'),
         'x-forwarded-proto': req.protocol
       }
