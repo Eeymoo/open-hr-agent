@@ -1,38 +1,26 @@
 import type { Request, Response } from 'express';
-import type { Prisma } from '@prisma/client';
 import Result from '../../../utils/Result.js';
-import { getPrismaClient, getCurrentTimestamp } from '../../../utils/database.js';
+import { getPrismaClient } from '../../../utils/database.js';
+
+declare global {
+  var taskManager: import('../../../services/taskManager.js').TaskManager;
+}
 
 const HTTP = {
   BAD_REQUEST: 400,
   INTERNAL_SERVER_ERROR: 500
 };
 
-/**
- * 创建任务请求体接口
- */
 interface CreateTaskBody {
-  /** 任务类型 */
   type: string;
-  /** 任务状态 */
   status?: string;
-  /** 任务优先级 */
   priority?: number;
-  /** 关联的 Issue ID */
   issueId?: number;
-  /** 关联的 PR ID */
   prId?: number;
-  /** 关联的 CA ID */
   caId?: number;
-  /** 元数据 */
   metadata?: Record<string, unknown>;
 }
 
-/**
- * POST /v1/tasks - 创建任务路由
- * @param req - Express 请求对象
- * @param res - Express 响应对象
- */
 export default async function createTaskRoute(req: Request, res: Response): Promise<void> {
   const prisma = getPrismaClient();
   const body = req.body as CreateTaskBody;
@@ -43,24 +31,25 @@ export default async function createTaskRoute(req: Request, res: Response): Prom
   }
 
   try {
-    const now = getCurrentTimestamp();
-    const taskData: Prisma.TaskCreateInput = {
-      type: body.type,
-      status: body.status ?? 'planned',
-      priority: body.priority ?? 0,
-      issue: body.issueId ? { connect: { id: body.issueId } } : undefined,
-      pullRequest: body.prId ? { connect: { id: body.prId } } : undefined,
-      codingAgent: body.caId ? { connect: { id: body.caId } } : undefined,
-      completedAt: -2,
-      deletedAt: -2,
-      createdAt: now,
-      updatedAt: now
-    };
-    if (body.metadata !== undefined) {
-      taskData.metadata = body.metadata as Prisma.InputJsonValue;
+    const manager = global.taskManager;
+
+    if (!manager) {
+      res.json(new Result().error(HTTP.INTERNAL_SERVER_ERROR, 'TaskManager 未初始化'));
+      return;
     }
 
-    const task = await prisma.task.create({ data: taskData });
+    const params = body.metadata ?? {};
+    const taskId = await manager.run(
+      body.type,
+      params,
+      body.priority ?? 0,
+      body.issueId,
+      body.prId
+    );
+
+    const task = await prisma.task.findUnique({
+      where: { id: taskId }
+    });
 
     res.json(new Result(task));
   } catch (error) {
