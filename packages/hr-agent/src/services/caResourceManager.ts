@@ -299,9 +299,7 @@ export class CAResourceManager {
   private async cleanupFailedContainer(containerName: string): Promise<void> {
     try {
       const dockerContainers = await listContainers();
-      const failedContainer = dockerContainers.find(
-        (dc) => dc.names.includes(`/${containerName}`)
-      );
+      const failedContainer = dockerContainers.find((dc) => dc.names.includes(`/${containerName}`));
 
       if (failedContainer) {
         console.log(`Cleaning up failed container: ${containerName}`);
