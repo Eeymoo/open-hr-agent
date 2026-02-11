@@ -28,6 +28,8 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       sessionStorage.removeItem('hra_secret');
+      const errorMessage = error.response?.data?.message || '登录失败，请检查 SECRET 是否正确';
+      sessionStorage.setItem('hra_last_error', errorMessage);
       window.location.href = '/login';
     }
     return Promise.reject(error);
