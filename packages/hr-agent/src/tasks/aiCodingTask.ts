@@ -1,6 +1,7 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
-import { getPrismaClient } from '../utils/database.js';
+import { TASK_CONFIG } from '../config/taskConfig.js';
+import { getPrismaClient, getCurrentTimestamp } from '../utils/database.js';
 import { createOpencodeClient } from '@opencode-ai/sdk';
 import { DOCKER_CONFIG } from '../config/docker.js';
 
@@ -28,14 +29,32 @@ export class AiCodingTask extends BaseTask {
         context.taskId,
         issueNumber
       );
+
+      const now = getCurrentTimestamp();
+      const timeoutMs = TASK_CONFIG.AI_CODING_TIMEOUT;
+      const timeoutAt = now + Math.floor(timeoutMs / 1000);
+
       await this.updateTaskMetadata(context.taskId, {
         caName,
         issueNumber,
         sessionId,
-        triggeredAt: Date.now()
+        triggeredAt: Date.now(),
+        timeoutAt,
+        timeoutMs
+      });
+
+      await this.logger.info(context.taskId, this.name, '设置 AI 编码超时', {
+        sessionId,
+        timeoutMs,
+        timeoutAt
       });
 
       const messageId = await this.sendPromptToAI(client, sessionId, issue, context.taskId);
+
+      await this.updateTaskMetadata(context.taskId, {
+        messageId,
+        promptSentAt: Date.now()
+      });
 
       return {
         success: true,
@@ -43,7 +62,8 @@ export class AiCodingTask extends BaseTask {
           caName,
           issueNumber,
           sessionId,
-          messageId
+          messageId,
+          timeoutAt
         },
         nextEvent: TASK_EVENTS.AI_CODING_COMPLETE,
         nextTask: 'create_pr',
