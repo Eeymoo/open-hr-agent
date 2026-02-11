@@ -1,5 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getCodingAgents, getCodingAgent, createCodingAgent, updateCodingAgent, deleteCodingAgent, getCAs, getCAStatus } from '../api/ca';
+import {
+  getCodingAgents,
+  getCodingAgent,
+  createCodingAgent,
+  updateCodingAgent,
+  deleteCodingAgent,
+  getCAs,
+  getCAStatus
+} from '../api/ca';
 import { POLLING_INTERVAL } from '../utils/constants';
 import type { PaginationParams } from '../types/ca';
 
@@ -55,7 +63,13 @@ export function useUpdateCodingAgent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: { containerId?: string; status?: string; dockerConfig?: Record<string, unknown> } }) => updateCodingAgent(id, data),
+    mutationFn: ({
+      id,
+      data
+    }: {
+      id: number;
+      data: { containerId?: string; status?: string; dockerConfig?: Record<string, unknown> };
+    }) => updateCodingAgent(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cas'] });
       queryClient.invalidateQueries({ queryKey: ['coding-agents'] });

@@ -22,6 +22,7 @@ export interface CAResource {
 export class CAResourceManager {
   private eventBus: EventBus;
   private caCache: Map<number, CAResource> = new Map();
+  private logger = console;
 
   constructor(eventBus: EventBus) {
     this.eventBus = eventBus;
@@ -250,7 +251,11 @@ export class CAResourceManager {
     }
 
     if (caRecord.status === 'busy') {
-      await this.logger.warn(0, 'CAResourceManager', `CA ${containerName} 正在使用中，不能重复创建`);
+      await this.logger.warn(
+        0,
+        'CAResourceManager',
+        `CA ${containerName} 正在使用中，不能重复创建`
+      );
       throw new Error(`CA ${containerName} is currently busy`);
     }
 

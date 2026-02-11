@@ -89,9 +89,7 @@ function TaskStatsCards({ stats, duration }: { stats: Record<string, number>; du
       {cards.map((card) => (
         <Col key={card.key} xs={24} sm={12} lg={6}>
           <Card className={`stat-card ${card.className}`}>
-            <div className={`stat-icon ${card.className}`}>
-              {card.icon}
-            </div>
+            <div className={`stat-icon ${card.className}`}>{card.icon}</div>
             <div className="stat-content">
               <div className="stat-label">{card.label}</div>
               <div className="stat-value">
@@ -106,7 +104,13 @@ function TaskStatsCards({ stats, duration }: { stats: Record<string, number>; du
   );
 }
 
-function CompletionRateCard({ completionRate, strokeWidth }: { completionRate: number; strokeWidth: number }) {
+function CompletionRateCard({
+  completionRate,
+  strokeWidth
+}: {
+  completionRate: number;
+  strokeWidth: number;
+}) {
   return (
     <Col xs={24} lg={8}>
       <Card className="progress-card">
@@ -125,7 +129,13 @@ function CompletionRateCard({ completionRate, strokeWidth }: { completionRate: n
   );
 }
 
-function AISystemCard({ caStatus, queuedCount }: { caStatus?: { total?: number; busy?: number; idle?: number }; queuedCount: number }) {
+function AISystemCard({
+  caStatus,
+  queuedCount
+}: {
+  caStatus?: { total?: number; busy?: number; idle?: number };
+  queuedCount: number;
+}) {
   return (
     <Col xs={24} lg={8}>
       <Card className="ai-status-card">
@@ -154,7 +164,15 @@ function AISystemCard({ caStatus, queuedCount }: { caStatus?: { total?: number; 
   );
 }
 
-function CAResourcePoolCard({ caStatus, caList, maxDisplay }: { caStatus?: { idle?: number; busy?: number; creating?: number; error?: number }; caList: CADetail[]; maxDisplay: number }) {
+function CAResourcePoolCard({
+  caStatus,
+  caList,
+  maxDisplay
+}: {
+  caStatus?: { idle?: number; busy?: number; creating?: number; error?: number };
+  caList: CADetail[];
+  maxDisplay: number;
+}) {
   const statusSummary = [
     { label: '空闲', count: caStatus?.idle ?? 0, color: '#52c41a' },
     { label: '忙碌', count: caStatus?.busy ?? 0, color: '#faad14' },

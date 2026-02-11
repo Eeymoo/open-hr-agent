@@ -1,10 +1,39 @@
 import { useState } from 'react';
-import { Card, Button, Table, Space, Empty, Spin, Input, Modal, Form, message, Tag, Drawer } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, CodeOutlined, HistoryOutlined } from '@ant-design/icons';
-import { useCodingAgents, useCreateCodingAgent, useUpdateCodingAgent, useDeleteCodingAgent } from '../../hooks/useCAs';
+import {
+  Card,
+  Button,
+  Table,
+  Space,
+  Empty,
+  Spin,
+  Input,
+  Modal,
+  Form,
+  message,
+  Tag,
+  Drawer
+} from 'antd';
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  CodeOutlined,
+  HistoryOutlined
+} from '@ant-design/icons';
+import {
+  useCodingAgents,
+  useCreateCodingAgent,
+  useUpdateCodingAgent,
+  useDeleteCodingAgent
+} from '../../hooks/useCAs';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { formatDate } from '../../utils/formatters';
-import type { CodingAgent, CodingAgentLog, CA_STATUS_LABELS, CA_STATUS_COLORS } from '../../types/ca';
+import type {
+  CodingAgent,
+  CodingAgentLog,
+  CA_STATUS_LABELS,
+  CA_STATUS_COLORS
+} from '../../types/ca';
 
 import './index.css';
 
@@ -17,10 +46,7 @@ interface CreateCAFormData {
 interface CAsListProps {
   navigate: (path: string) => void;
   searchParams: URLSearchParams;
-  setSearchParams: (params: {
-    page: string;
-    pageSize: string;
-  }) => void;
+  setSearchParams: (params: { page: string; pageSize: string }) => void;
   cas: CodingAgent[];
   pagination?: { total: number };
   isLoading: boolean;
@@ -29,7 +55,13 @@ interface CAsListProps {
   deleteCA: ReturnType<typeof useDeleteCodingAgent>;
 }
 
-const getCAColumns = (navigate: (path: string) => void, onOpenProxy: (ca: CodingAgent) => void, onEdit: (ca: CodingAgent) => void, onDelete: (ca: CodingAgent) => void, onViewLogs: (ca: CodingAgent) => void) => [
+const getCAColumns = (
+  navigate: (path: string) => void,
+  onOpenProxy: (ca: CodingAgent) => void,
+  onEdit: (ca: CodingAgent) => void,
+  onDelete: (ca: CodingAgent) => void,
+  onViewLogs: (ca: CodingAgent) => void
+) => [
   {
     title: 'ID',
     dataIndex: 'id',
@@ -98,12 +130,7 @@ const getCAColumns = (navigate: (path: string) => void, onOpenProxy: (ca: Coding
         >
           日志
         </Button>
-        <Button
-          type="text"
-          size="small"
-          icon={<EditOutlined />}
-          onClick={() => onEdit(record)}
-        >
+        <Button type="text" size="small" icon={<EditOutlined />} onClick={() => onEdit(record)}>
           编辑
         </Button>
         <Button
@@ -283,18 +310,10 @@ function CAsListContent({
         width={600}
       >
         <Form form={form} layout="vertical" onFinish={handleCreate}>
-          <Form.Item
-            name="caName"
-            label="名称"
-            rules={[{ required: true, message: '请输入名称' }]}
-          >
+          <Form.Item name="caName" label="名称" rules={[{ required: true, message: '请输入名称' }]}>
             <Input placeholder="请输入 CA 名称" />
           </Form.Item>
-          <Form.Item
-            name="status"
-            label="状态"
-            initialValue="pending"
-          >
+          <Form.Item name="status" label="状态" initialValue="pending">
             <Input placeholder="pending, running, idle, error, etc." />
           </Form.Item>
           <Form.Item>
@@ -320,17 +339,10 @@ function CAsListContent({
         width={600}
       >
         <Form form={editForm} layout="vertical" onFinish={handleUpdate}>
-          <Form.Item
-            name="status"
-            label="状态"
-            rules={[{ required: true, message: '请输入状态' }]}
-          >
+          <Form.Item name="status" label="状态" rules={[{ required: true, message: '请输入状态' }]}>
             <Input placeholder="pending, running, idle, error, etc." />
           </Form.Item>
-          <Form.Item
-            name="containerId"
-            label="容器 ID"
-          >
+          <Form.Item name="containerId" label="容器 ID">
             <Input placeholder="请输入容器 ID" />
           </Form.Item>
           <Form.Item>
