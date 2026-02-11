@@ -2,6 +2,8 @@ import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { createOpencodeClient } from '@opencode-ai/sdk';
 import { DOCKER_CONFIG } from '../config/docker.js';
 import { readPrompt } from '../utils/promptReader.js';
+import { TASK_CONFIG } from '../config/taskConfig.js';
+import { getPrismaClient, getCurrentTimestamp } from '../utils/database.js';
 
 interface MessagePart {
   type: string;
@@ -47,6 +49,8 @@ export class CaStatusCheckTask extends BaseTask {
         caName,
         sessionId: session.id
       });
+
+      await this.checkAICodingTimeout(context.taskId, session.id);
 
       const messages = await this.fetchMessages(client, session.id);
 
@@ -131,6 +135,72 @@ export class CaStatusCheckTask extends BaseTask {
         success: false,
         error: errorMessage
       };
+    }
+  }
+
+  private async checkAICodingTimeout(taskId: number, sessionId: string): Promise<void> {
+    const prisma = getPrismaClient();
+
+    try {
+      const task = await prisma.task.findFirst({
+        where: {
+          type: 'ai_coding',
+          status: 'running',
+          deletedAt: -2
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+
+      if (!task || !task.metadata) {
+        return;
+      }
+
+      const metadata = task.metadata as Record<string, unknown>;
+      const timeoutAt = metadata.timeoutAt as number | undefined;
+      const issueNumber = metadata.issueNumber as number | undefined;
+
+      if (timeoutAt && issueNumber) {
+        const now = getCurrentTimestamp();
+        const elapsedSeconds = now - timeoutAt;
+        const elapsedMs = elapsedSeconds * 1000;
+
+        if (elapsedMs > TASK_CONFIG.AI_CODING_TIMEOUT) {
+          await this.logger.warn(taskId, this.name, 'AI 编码任务超时', {
+            taskId: task.id,
+            issueNumber,
+            sessionId,
+            elapsedMs,
+            timeoutMs: TASK_CONFIG.AI_CODING_TIMEOUT
+          });
+
+          await prisma.task.update({
+            where: { id: task.id },
+            data: {
+              status: 'timeout',
+              completedAt: now,
+              updatedAt: now,
+              metadata: {
+                ...metadata,
+                timeoutError: `AI coding task exceeded timeout of ${TASK_CONFIG.AI_CODING_TIMEOUT}ms`,
+                timedOutAt: now
+              }
+            }
+          });
+        } else {
+          const remainingMs = TASK_CONFIG.AI_CODING_TIMEOUT - elapsedMs;
+          await this.logger.info(taskId, this.name, 'AI 编码进度检查', {
+            taskId: task.id,
+            issueNumber,
+            sessionId,
+            elapsedMs,
+            remainingMs
+          });
+        }
+      }
+    } catch (error) {
+      await this.logger.error(taskId, this.name, `检查 AI 编码超时失败: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
