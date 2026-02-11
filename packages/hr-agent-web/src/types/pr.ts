@@ -9,3 +9,13 @@ export interface PullRequest {
   completedAt: number;
   deletedAt: number;
 }
+
+export interface PRListResponse {
+  prs: PullRequest[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+}

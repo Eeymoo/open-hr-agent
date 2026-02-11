@@ -4,7 +4,9 @@ import {
   AppstoreOutlined,
   LogoutOutlined,
   UserOutlined,
-  RobotOutlined
+  RobotOutlined,
+  IssuesCloseOutlined,
+  PullRequestOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -40,6 +42,16 @@ export function AppLayout({ children }: LayoutProps) {
       key: '/orchestration',
       icon: <AppstoreOutlined />,
       label: '任务编排'
+    },
+    {
+      key: '/issues',
+      icon: <IssuesCloseOutlined />,
+      label: 'Issues'
+    },
+    {
+      key: '/prs',
+      icon: <PullRequestOutlined />,
+      label: 'Pull Requests'
     }
   ];
 
@@ -59,6 +71,19 @@ export function AppLayout({ children }: LayoutProps) {
       onClick: handleLogout
     }
   ];
+
+  const getPageTitle = () => {
+    if (location.pathname.startsWith('/issues')) {
+      return 'Issues 管理';
+    }
+    if (location.pathname.startsWith('/prs')) {
+      return 'Pull Requests 管理';
+    }
+    if (location.pathname === '/orchestration') {
+      return '任务编排工作台';
+    }
+    return 'HR Agent';
+  };
 
   return (
     <Layout className="app-layout">
@@ -92,7 +117,7 @@ export function AppLayout({ children }: LayoutProps) {
       <Layout>
         <Header className="app-header">
           <div className="app-header-left">
-            <h1 className="header-title">任务编排工作台</h1>
+            <h1 className="header-title">{getPageTitle()}</h1>
           </div>
           <div className="app-header-right">
             <Space size={16}>
