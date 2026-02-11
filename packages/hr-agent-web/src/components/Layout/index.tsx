@@ -1,13 +1,10 @@
 import React from 'react';
-import { Layout, Menu, Button, Avatar, Dropdown, Badge, Spin, Space } from 'antd';
+import { Layout, Menu, Button, Avatar, Dropdown, Spin, Space } from 'antd';
 import {
   AppstoreOutlined,
-  FileTextOutlined,
   LogoutOutlined,
   UserOutlined,
-  RobotOutlined,
-  BellOutlined,
-  SettingOutlined
+  RobotOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -43,11 +40,6 @@ export function AppLayout({ children }: LayoutProps) {
       key: '/orchestration',
       icon: <AppstoreOutlined />,
       label: '任务编排'
-    },
-    {
-      key: '/tasks',
-      icon: <FileTextOutlined />,
-      label: '任务查看'
     }
   ];
 
@@ -60,14 +52,6 @@ export function AppLayout({ children }: LayoutProps) {
   };
 
   const userMenuItems = [
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: '设置'
-    },
-    {
-      type: 'divider' as const
-    },
     {
       key: 'logout',
       icon: <LogoutOutlined />,
@@ -113,9 +97,6 @@ export function AppLayout({ children }: LayoutProps) {
           <div className="app-header-right">
             <Space size={16}>
               <ThemeSwitcher />
-              <Button type="text" icon={<BellOutlined />} className="header-icon-btn">
-                <Badge count={3} size="small" />
-              </Button>
               <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                 <Button type="text" className="user-btn">
                   <Avatar icon={<UserOutlined />} className="user-avatar" />
