@@ -68,12 +68,8 @@ export class CAStatusSyncService {
     try {
       const results = await this.syncAllCA();
 
-      const {
-        syncedCount,
-        inconsistenciesFound,
-        errorCount,
-        notFoundCount
-      } = this.summarizeResults(results);
+      const { syncedCount, inconsistenciesFound, errorCount, notFoundCount } =
+        this.summarizeResults(results);
 
       console.log('[CAStatusSync] Sync completed:');
       console.log(`  - Total checked: ${results.length}`);
@@ -146,7 +142,11 @@ export class CAStatusSyncService {
       }
 
       if (!dockerContainer && !caRecord.containerId) {
-        if (caRecord.status === 'error' || caRecord.status === 'destroying' || caRecord.status === 'not_found') {
+        if (
+          caRecord.status === 'error' ||
+          caRecord.status === 'destroying' ||
+          caRecord.status === 'not_found'
+        ) {
           return result;
         }
 

@@ -47,9 +47,7 @@ export default async function deleteCARoute(req: Request, res: Response): Promis
     }
 
     if (caRecord.status === 'pending_delete' || caRecord.status === 'destroying') {
-      res.json(
-        new Result().error(HTTP.BAD_REQUEST, 'Coding agent is already pending deletion')
-      );
+      res.json(new Result().error(HTTP.BAD_REQUEST, 'Coding agent is already pending deletion'));
       return;
     }
 

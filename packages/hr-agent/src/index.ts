@@ -76,11 +76,7 @@ function scheduleContainerSync(): void {
 
   syncTimeout = setTimeout(async () => {
     try {
-      const result = await taskManager.run(
-        'container_sync',
-        {},
-        CONTAINER_TASK_PRIORITIES.SYNC
-      );
+      const result = await taskManager.run('container_sync', {}, CONTAINER_TASK_PRIORITIES.SYNC);
 
       lastSyncHadInconsistency = result !== null;
     } catch (error) {

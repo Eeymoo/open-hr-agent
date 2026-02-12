@@ -83,12 +83,7 @@ export default async function newCARoute(req: Request, res: Response): Promise<v
     });
 
     if (existingCA) {
-      res.json(
-        new Result().error(
-          HTTP.BAD_REQUEST,
-          'Coding agent with this name already exists'
-        )
-      );
+      res.json(new Result().error(HTTP.BAD_REQUEST, 'Coding agent with this name already exists'));
       return;
     }
 

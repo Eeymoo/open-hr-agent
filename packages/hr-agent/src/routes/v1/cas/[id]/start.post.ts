@@ -77,10 +77,7 @@ export default async function startCARoute(req: Request, res: Response): Promise
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     res.json(
-      new Result().error(
-        HTTP.INTERNAL_SERVER_ERROR,
-        `Failed to start container: ${errorMessage}`
-      )
+      new Result().error(HTTP.INTERNAL_SERVER_ERROR, `Failed to start container: ${errorMessage}`)
     );
   }
 }
