@@ -1,6 +1,11 @@
 import type { Request, Response } from 'express';
 import Result from '../../../utils/Result.js';
 import { getPrismaClient, setTimestamps } from '../../../utils/database.js';
+import { CONTAINER_TASK_PRIORITIES } from '../../../config/taskPriorities.js';
+
+declare global {
+  var taskManager: import('../../../services/taskManager.js').TaskManager;
+}
 
 const HTTP = {
   BAD_REQUEST: 400,
@@ -10,7 +15,6 @@ const HTTP = {
 
 interface CreateCABody {
   caName: string;
-  status?: string;
   dockerConfig?: unknown;
 }
 
@@ -28,7 +32,7 @@ export default async function createCodingAgentRoute(req: Request, res: Response
       where: { caName: body.caName }
     });
 
-    if (existingCA) {
+    if (existingCA?.deletedAt === -2) {
       res.json(new Result().error(HTTP.CONFLICT, 'Coding agent with this caName already exists'));
       return;
     }
@@ -36,7 +40,7 @@ export default async function createCodingAgentRoute(req: Request, res: Response
     const caData = setTimestamps({
       caName: body.caName,
       containerId: null,
-      status: body.status ?? 'pending',
+      status: 'pending_create',
       dockerConfig: body.dockerConfig ?? undefined,
       completedAt: -2,
       deletedAt: -2,
@@ -46,7 +50,28 @@ export default async function createCodingAgentRoute(req: Request, res: Response
 
     const ca = await prisma.codingAgent.create({ data: caData });
 
-    res.json(new Result(ca));
+    const manager = global.taskManager;
+    if (!manager) {
+      res.json(new Result().error(HTTP.INTERNAL_SERVER_ERROR, 'TaskManager 未初始化'));
+      return;
+    }
+
+    const taskId = await manager.run(
+      'container_create',
+      {
+        caId: ca.id,
+        caName: ca.caName
+      },
+      CONTAINER_TASK_PRIORITIES.CREATE
+    );
+
+    res.json(
+      new Result({
+        ...ca,
+        taskId,
+        message: 'Coding agent creation task queued'
+      })
+    );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     res.json(

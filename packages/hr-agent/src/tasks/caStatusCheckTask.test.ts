@@ -8,6 +8,16 @@ vi.mock('../utils/promptReader.js', () => ({
   readPrompt: vi.fn()
 }));
 
+vi.mock('../utils/database.js', () => ({
+  getPrismaClient: vi.fn(() => ({
+    task: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      update: vi.fn().mockResolvedValue({})
+    }
+  })),
+  getCurrentTimestamp: vi.fn(() => Date.now())
+}));
+
 type TaskPrivateMethods = {
   checkForXML: (message: { parts?: { type: string; text?: string }[] } | undefined) => boolean;
   getMessageContent: (

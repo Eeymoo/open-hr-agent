@@ -1,7 +1,12 @@
 import type { Request, Response } from 'express';
 import Result from '../../../utils/Result.js';
-import { getPrismaClient, setTimestamps } from '../../../utils/database.js';
+import { getPrismaClient, setTimestamps, getCurrentTimestamp } from '../../../utils/database.js';
 import { createCALog } from '../../../services/caLogger.js';
+import { CONTAINER_TASK_PRIORITIES } from '../../../config/taskPriorities.js';
+
+declare global {
+  var taskManager: import('../../../services/taskManager.js').TaskManager;
+}
 
 const HTTP = {
   BAD_REQUEST: 400,
@@ -22,6 +27,12 @@ export default async function updateCodingAgentRoute(req: Request, res: Response
 
   try {
     const idValue = parseInt(Array.isArray(id) ? id[0] : id, 10);
+
+    if (isNaN(idValue)) {
+      res.json(new Result().error(HTTP.BAD_REQUEST, 'Invalid ID'));
+      return;
+    }
+
     const existingCA = await prisma.codingAgent.findFirst({
       where: {
         id: idValue,
@@ -36,6 +47,8 @@ export default async function updateCodingAgentRoute(req: Request, res: Response
 
     const updateData: Record<string, unknown> = {};
     const logEntries: Array<{ action: string; oldValue?: string; newValue?: string }> = [];
+    let needsContainerUpdate = false;
+    const dockerConfig = body.dockerConfig as Record<string, unknown> | undefined;
 
     if (body.containerId !== undefined) {
       if (existingCA.containerId !== body.containerId) {
@@ -47,6 +60,7 @@ export default async function updateCodingAgentRoute(req: Request, res: Response
       }
       updateData.containerId = body.containerId;
     }
+
     if (body.status !== undefined) {
       if (existingCA.status !== body.status) {
         logEntries.push({
@@ -57,13 +71,19 @@ export default async function updateCodingAgentRoute(req: Request, res: Response
       }
       updateData.status = body.status;
     }
-    if (body.dockerConfig !== undefined) {
-      logEntries.push({
-        action: 'UPDATE_DOCKER_CONFIG',
-        oldValue: JSON.stringify(existingCA.dockerConfig),
-        newValue: JSON.stringify(body.dockerConfig)
-      });
-      updateData.dockerConfig = body.dockerConfig;
+
+    if (dockerConfig !== undefined) {
+      const configChanged =
+        JSON.stringify(existingCA.dockerConfig) !== JSON.stringify(dockerConfig);
+      if (configChanged && existingCA.containerId) {
+        needsContainerUpdate = true;
+        logEntries.push({
+          action: 'UPDATE_DOCKER_CONFIG',
+          oldValue: JSON.stringify(existingCA.dockerConfig),
+          newValue: JSON.stringify(dockerConfig)
+        });
+      }
+      updateData.dockerConfig = dockerConfig;
     }
 
     if (Object.keys(updateData).length === 0) {
@@ -71,13 +91,48 @@ export default async function updateCodingAgentRoute(req: Request, res: Response
       return;
     }
 
+    if (needsContainerUpdate) {
+      const now = getCurrentTimestamp();
+      updateData.status = 'pending_update';
+      updateData.updatedAt = now;
+    } else {
+      setTimestamps(updateData as { updatedAt: number }, true);
+    }
+
     const ca = await prisma.codingAgent.update({
       where: { id: idValue },
-      data: setTimestamps(updateData as { updatedAt: number }, true)
+      data: updateData
     });
 
     for (const logEntry of logEntries) {
       await createCALog(ca.id, logEntry.action, logEntry.oldValue, logEntry.newValue);
+    }
+
+    if (needsContainerUpdate) {
+      const manager = global.taskManager;
+      if (!manager) {
+        res.json(new Result().error(HTTP.INTERNAL_SERVER_ERROR, 'TaskManager 未初始化'));
+        return;
+      }
+
+      const taskId = await manager.run(
+        'container_update',
+        {
+          caId: ca.id,
+          caName: ca.caName,
+          dockerConfig
+        },
+        CONTAINER_TASK_PRIORITIES.UPDATE
+      );
+
+      res.json(
+        new Result({
+          ...ca,
+          taskId,
+          message: 'Container update task queued'
+        })
+      );
+      return;
     }
 
     res.json(new Result(ca));

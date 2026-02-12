@@ -9,6 +9,13 @@ import { DestroyCaTask } from './destroyCaTask.js';
 import { CheckCaTask } from './checkCaTask.js';
 import { CaStatusCheckTask } from './caStatusCheckTask.js';
 import { ErrorHandlerTask } from './errorHandlerTask.js';
+import { ContainerCreateTask } from './containerCreateTask.js';
+import { ContainerDeleteTask } from './containerDeleteTask.js';
+import { ContainerStartTask } from './containerStartTask.js';
+import { ContainerStopTask } from './containerStopTask.js';
+import { ContainerRestartTask } from './containerRestartTask.js';
+import { ContainerUpdateTask } from './containerUpdateTask.js';
+import { ContainerSyncTask } from './containerSyncTask.js';
 
 export class TaskRegistry {
   private registry: Map<string, BaseTask> = new Map();
@@ -22,6 +29,13 @@ export class TaskRegistry {
     this.register(new CheckCaTask(eventBus, logger));
     this.register(new CaStatusCheckTask(eventBus, logger));
     this.register(new ErrorHandlerTask(eventBus, logger));
+    this.register(new ContainerCreateTask(eventBus, logger));
+    this.register(new ContainerDeleteTask(eventBus, logger));
+    this.register(new ContainerStartTask(eventBus, logger));
+    this.register(new ContainerStopTask(eventBus, logger));
+    this.register(new ContainerRestartTask(eventBus, logger));
+    this.register(new ContainerUpdateTask(eventBus, logger));
+    this.register(new ContainerSyncTask(eventBus, logger));
   }
 
   register(task: BaseTask): void {

@@ -10,6 +10,17 @@ export const PRIORITY_LEVELS = {
   NONE: 0
 } as const;
 
+export const CONTAINER_TASK_PRIORITIES = {
+  DELETE: 40,
+  UPDATE: 35,
+  START: 35,
+  STOP: 35,
+  RESTART: 35,
+  CREATE: 30,
+  SYNC: 25,
+  INSPECT: 20
+} as const;
+
 export const LABEL_TO_PRIORITY: Record<string, number> = {
   critical: PRIORITY_LEVELS.CRITICAL,
   high: PRIORITY_LEVELS.HIGH,
