@@ -7,7 +7,6 @@ import { getGitHubOwner, getGitHubRepo } from '../utils/secretManager.js';
 export class CreatePrTask extends BaseTask {
   readonly name = 'create_pr';
   readonly dependencies: string[] = ['ai_coding'];
-  readonly needsCA = false;
 
   async execute(params: Record<string, unknown>, context: TaskContext): Promise<TaskResult> {
     await this.validateParams(params, ['caName', 'issueNumber', 'taskId']);

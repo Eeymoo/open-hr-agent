@@ -18,7 +18,6 @@ interface ErrorEventData {
 export class ErrorHandlerTask extends BaseTask {
   readonly name = 'error_handler';
   readonly dependencies: string[] = [];
-  readonly needsCA = false;
 
   constructor(eventBus: EventBus, logger: TaskLogger) {
     super(eventBus, logger);

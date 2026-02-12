@@ -1,5 +1,6 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
+import { TASK_TAGS } from '../config/taskTags.js';
 import { getPrismaClient, getCurrentTimestamp } from '../utils/database.js';
 import { listContainers, type ContainerInfo } from '../utils/docker/listContainers.js';
 
@@ -12,7 +13,7 @@ interface SyncResult {
 export class ContainerSyncTask extends BaseTask {
   readonly name = 'container_sync';
   readonly dependencies: string[] = [];
-  readonly needsCA = false;
+  readonly tags = [TASK_TAGS.MANAGES_CA];
 
   async execute(params: Record<string, unknown>, context: TaskContext): Promise<TaskResult> {
     const { caId, caName } = (params as { caId?: number; caName?: string }) ?? {};

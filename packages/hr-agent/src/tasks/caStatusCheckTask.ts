@@ -2,6 +2,7 @@ import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { createOpencodeClient } from '@opencode-ai/sdk';
 import { DOCKER_CONFIG } from '../config/docker.js';
 import { readPrompt } from '../utils/promptReader.js';
+import { TASK_TAGS } from '../config/taskTags.js';
 import { TASK_CONFIG } from '../config/taskConfig.js';
 import { getPrismaClient, getCurrentTimestamp } from '../utils/database.js';
 
@@ -21,7 +22,7 @@ interface Session {
 export class CaStatusCheckTask extends BaseTask {
   readonly name = 'ca_status_check';
   readonly dependencies: string[] = [];
-  readonly needsCA = false;
+  readonly tags = [TASK_TAGS.MANAGES_CA];
   private readonly MAX_CONTINUE_COUNT = 5;
 
   async execute(params: Record<string, unknown>, context: TaskContext): Promise<TaskResult> {

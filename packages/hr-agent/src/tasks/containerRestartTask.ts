@@ -1,5 +1,6 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
+import { TASK_TAGS } from '../config/taskTags.js';
 import { getPrismaClient, getCurrentTimestamp } from '../utils/database.js';
 import { getContainerByName } from '../utils/docker/getContainer.js';
 import { restartContainer } from '../utils/docker/updateContainer.js';
@@ -7,7 +8,7 @@ import { restartContainer } from '../utils/docker/updateContainer.js';
 export class ContainerRestartTask extends BaseTask {
   readonly name = 'container_restart';
   readonly dependencies: string[] = [];
-  readonly needsCA = false;
+  readonly tags = [TASK_TAGS.MANAGES_CA];
 
   async execute(params: Record<string, unknown>, context: TaskContext): Promise<TaskResult> {
     await this.validateParams(params, ['caId', 'caName']);

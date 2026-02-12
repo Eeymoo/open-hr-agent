@@ -1,5 +1,6 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
+import { TASK_TAGS } from '../config/taskTags.js';
 import { TASK_CONFIG } from '../config/taskConfig.js';
 import { getPrismaClient, getCurrentTimestamp } from '../utils/database.js';
 import { createOpencodeClient } from '@opencode-ai/sdk';
@@ -8,7 +9,7 @@ import { DOCKER_CONFIG } from '../config/docker.js';
 export class AiCodingTask extends BaseTask {
   readonly name = 'ai_coding';
   readonly dependencies: string[] = ['connect_ca'];
-  readonly needsCA = true;
+  readonly tags = [TASK_TAGS.REQUIRES_CA, TASK_TAGS.AGENT_CODING];
 
   async execute(params: Record<string, unknown>, context: TaskContext): Promise<TaskResult> {
     await this.validateParams(params, ['caName', 'issueNumber', 'taskId']);
