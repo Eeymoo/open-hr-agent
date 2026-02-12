@@ -378,7 +378,7 @@ async function startTaskChain(
 
   if (taskManager) {
     const priority = getPriorityFromLabelsConfig(labels);
-    await taskManager.run('create_ca', { issueNumber }, priority, issue.id);
+    await taskManager.run('create_ca', { issueNumber }, priority, issue.id, undefined);
     console.log(`Task chain started for issue #${issueNumber} with priority ${priority}`);
   } else {
     console.error('TaskManager not initialized');

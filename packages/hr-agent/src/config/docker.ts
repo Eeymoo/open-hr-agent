@@ -1,8 +1,8 @@
 import { getDockerCASecret } from '../utils/secretManager.js';
+import { TASK_CONFIG } from './taskConfig.js';
 
 const MAX_PORT_NUMBER = 65536;
 const DEFAULT_DOCKER_BASE_PORT = 5000;
-const DEFAULT_NAME_PREFIX = 'hra_';
 
 const basePortInput = parseInt(
   process.env.DOCKER_BASE_PORT ?? String(DEFAULT_DOCKER_BASE_PORT),
@@ -13,8 +13,6 @@ const BASE_PORT =
     ? basePortInput
     : DEFAULT_DOCKER_BASE_PORT;
 
-const namePrefix = process.env.HRA_CA_NAME_PREFIX ?? DEFAULT_NAME_PREFIX;
-
 export const DOCKER_CONFIG = {
   IMAGE: process.env.DOCKER_CA_IMAGE ?? 'ghcr.io/eeymoo/open-hr-agent-ca:main',
   PORT: process.env.DOCKER_CA_PORT ?? '4096',
@@ -22,5 +20,5 @@ export const DOCKER_CONFIG = {
   NETWORK: process.env.DOCKER_NETWORK ?? 'hr-network',
   SECRET: getDockerCASecret(),
   HR_NETWORK: process.env.HR_NETWORK ?? 'hr-network',
-  NAME_PREFIX: namePrefix
+  NAME_PREFIX: TASK_CONFIG.CA_NAME_PREFIX
 } as const;

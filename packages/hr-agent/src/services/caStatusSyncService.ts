@@ -68,15 +68,19 @@ export class CAStatusSyncService {
     try {
       const results = await this.syncAllCA();
 
-      const { syncedCount, inconsistenciesFound, errorCount, deletedCount } =
-        this.summarizeResults(results);
+      const {
+        syncedCount,
+        inconsistenciesFound,
+        errorCount,
+        notFoundCount
+      } = this.summarizeResults(results);
 
       console.log('[CAStatusSync] Sync completed:');
       console.log(`  - Total checked: ${results.length}`);
       console.log(`  - Synced: ${syncedCount}`);
       console.log(`  - Inconsistencies found: ${inconsistenciesFound}`);
       console.log(`  - Errors: ${errorCount}`);
-      console.log(`  - Deleted orphaned: ${deletedCount}`);
+      console.log(`  - Not found: ${notFoundCount}`);
 
       if (inconsistenciesFound > 0 || errorCount > 0) {
         this.resetCheckIndex();
@@ -132,24 +136,25 @@ export class CAStatusSyncService {
       const now = getCurrentTimestamp();
 
       if (!dockerContainer && caRecord.containerId) {
-        result.action = 'delete';
+        result.action = 'update';
+        result.newStatus = 'not_found';
         result.error = 'Container not found in Docker';
 
-        await this.deleteOrphanedCA(caRecord.id);
+        await this.updateCAStatus(caRecord.id, 'not_found', now);
 
         return result;
       }
 
       if (!dockerContainer && !caRecord.containerId) {
-        if (caRecord.status === 'error' || caRecord.status === 'destroying') {
+        if (caRecord.status === 'error' || caRecord.status === 'destroying' || caRecord.status === 'not_found') {
           return result;
         }
 
         result.action = 'update';
-        result.newStatus = 'error';
+        result.newStatus = 'not_found';
         result.error = 'No container ever created';
 
-        await this.updateCAStatus(caRecord.id, 'error', now);
+        await this.updateCAStatus(caRecord.id, 'not_found', now);
 
         return result;
       }
@@ -224,37 +229,17 @@ export class CAStatusSyncService {
     });
   }
 
-  private async deleteOrphanedCA(caId: number): Promise<void> {
-    const prisma = getPrismaClient();
-    const now = getCurrentTimestamp();
-
-    try {
-      await prisma.codingAgent.update({
-        where: { id: caId },
-        data: {
-          status: 'destroyed',
-          containerId: null,
-          deletedAt: now,
-          updatedAt: now
-        }
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error(`[CAStatusSync] Failed to delete orphaned CA ${caId}: ${errorMessage}`);
-    }
-  }
-
   private summarizeResults(results: SyncResult[]): {
     syncedCount: number;
     inconsistenciesFound: number;
     errorCount: number;
-    deletedCount: number;
+    notFoundCount: number;
   } {
     return {
       syncedCount: results.filter((r) => r.action === 'update').length,
       inconsistenciesFound: results.filter((r) => r.action !== 'none').length,
       errorCount: results.filter((r) => r.action === 'error').length,
-      deletedCount: results.filter((r) => r.action === 'delete').length
+      notFoundCount: results.filter((r) => r.newStatus === 'not_found').length
     };
   }
 
@@ -276,6 +261,6 @@ interface SyncResult {
   caName: string;
   previousStatus: string;
   newStatus: string;
-  action: 'none' | 'update' | 'delete' | 'error';
+  action: 'none' | 'update' | 'error';
   error: string | null;
 }

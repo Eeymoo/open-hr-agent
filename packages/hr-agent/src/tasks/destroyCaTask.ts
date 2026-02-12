@@ -1,11 +1,12 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
+import { TASK_TAGS } from '../config/taskTags.js';
 import { getContainerByName } from '../utils/docker/getContainer.js';
 import { deleteContainer } from '../utils/docker/deleteContainer.js';
 
 export class DestroyCaTask extends BaseTask {
   readonly name = 'destroy_ca';
   readonly dependencies: string[] = ['create_pr'];
-  readonly needsCA = false;
+  readonly tags = [TASK_TAGS.MANAGES_CA];
 
   async execute(params: Record<string, unknown>, context: TaskContext): Promise<TaskResult> {
     await this.validateParams(params, ['caName']);

@@ -1,9 +1,12 @@
 import type { Request, Response } from 'express';
-import Docker from 'dockerode';
 import Result from '../../../utils/Result.js';
 import { getPrismaClient, setTimestamps, INACTIVE_TIMESTAMP } from '../../../utils/database.js';
 import { DOCKER_CONFIG } from '../../../config/docker.js';
-import { createOpencodeClient } from '@opencode-ai/sdk';
+import { CONTAINER_TASK_PRIORITIES } from '../../../config/taskPriorities.js';
+
+declare global {
+  var taskManager: import('../../../services/taskManager.js').TaskManager;
+}
 
 const HTTP = {
   BAD_REQUEST: 400,
@@ -12,7 +15,6 @@ const HTTP = {
 };
 
 const MAX_CONTAINER_NAME_LENGTH = 128;
-const docker = new Docker();
 
 function isValidContainerName(name: string): boolean {
   const validPattern = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;
@@ -64,67 +66,6 @@ function validateRequest(req: Request, res: Response): ValidationResult {
   return { valid: true, name: prefixedName, repoUrl };
 }
 
-async function ensureNetworkExists(networkName: string): Promise<void> {
-  try {
-    await docker.getNetwork(networkName).inspect();
-  } catch {
-    await docker.createNetwork({ Name: networkName });
-  }
-}
-
-async function createDockerContainer(
-  name: string,
-  repoUrl?: string
-): Promise<{
-  containerId: string;
-  containerName: string;
-}> {
-  const containerName = name;
-  await ensureNetworkExists(DOCKER_CONFIG.NETWORK);
-
-  const envVars = [`PORT=${DOCKER_CONFIG.PORT}`, 'NODE_ENV=production'];
-  if (repoUrl) {
-    envVars.push(`REPO_URL=${repoUrl}`);
-  }
-
-  const container = await docker.createContainer({
-    name: containerName,
-    Image: DOCKER_CONFIG.IMAGE,
-    Env: envVars,
-    HostConfig: {
-      Binds: ['/var/run/docker.sock:/var/run/docker.sock:rw'],
-      NetworkMode: DOCKER_CONFIG.NETWORK
-    }
-  });
-
-  await container.start();
-
-  if (DOCKER_CONFIG.HR_NETWORK !== DOCKER_CONFIG.NETWORK) {
-    await docker.getNetwork(DOCKER_CONFIG.HR_NETWORK).connect({ Container: containerName });
-  }
-
-  const containerInfo = await container.inspect();
-
-  return {
-    containerId: containerInfo.Id,
-    containerName
-  };
-}
-
-async function connectToCAAndSendIdentityMessage(containerName: string): Promise<void> {
-  try {
-    createOpencodeClient({
-      baseUrl: `http://${containerName}:${DOCKER_CONFIG.PORT}`
-    });
-
-    console.log(`Connecting to CA at http://${containerName}:${DOCKER_CONFIG.PORT}`);
-    console.log('Client created successfully');
-    console.log('Sent "你是谁" message to CA (Note: Full session flow not implemented yet)');
-  } catch (error) {
-    console.error('Failed to connect to CA or send message:', error);
-  }
-}
-
 export default async function newCARoute(req: Request, res: Response): Promise<void> {
   const { valid, name, repoUrl } = validateRequest(req, res);
   if (!valid || !name) {
@@ -134,12 +75,27 @@ export default async function newCARoute(req: Request, res: Response): Promise<v
   const prisma = getPrismaClient();
 
   try {
-    const { containerId, containerName } = await createDockerContainer(name, repoUrl);
+    const existingCA = await prisma.codingAgent.findFirst({
+      where: {
+        caName: name,
+        deletedAt: -2
+      }
+    });
+
+    if (existingCA) {
+      res.json(
+        new Result().error(
+          HTTP.BAD_REQUEST,
+          'Coding agent with this name already exists'
+        )
+      );
+      return;
+    }
 
     const caData = setTimestamps({
       caName: name,
-      containerId,
-      status: 'running',
+      containerId: null,
+      status: 'pending_create',
       dockerConfig: {
         image: DOCKER_CONFIG.IMAGE,
         network: DOCKER_CONFIG.NETWORK
@@ -153,20 +109,30 @@ export default async function newCARoute(req: Request, res: Response): Promise<v
 
     const caRecord = await prisma.codingAgent.create({ data: caData });
 
-    await connectToCAAndSendIdentityMessage(containerName);
+    const manager = global.taskManager;
+    if (!manager) {
+      res.json(new Result().error(HTTP.INTERNAL_SERVER_ERROR, 'TaskManager 未初始化'));
+      return;
+    }
+
+    const taskId = await manager.run(
+      'container_create',
+      {
+        caId: caRecord.id,
+        caName: name
+      },
+      CONTAINER_TASK_PRIORITIES.CREATE
+    );
 
     res.json(
       new Result({
         name,
-        containerId,
-        containerName,
-        image: DOCKER_CONFIG.IMAGE,
-        network: DOCKER_CONFIG.NETWORK,
-        hrNetwork: DOCKER_CONFIG.HR_NETWORK,
-        internalUrl: `${containerName}:${DOCKER_CONFIG.PORT}`,
+        containerName: name,
+        taskId,
         databaseId: caRecord.id,
+        status: 'pending_create',
         repoUrl,
-        message: 'Docker container created successfully'
+        message: 'Container creation task queued'
       })
     );
   } catch (error) {

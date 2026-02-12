@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import Result from '../../../utils/Result.js';
+import { TASK_CONFIG } from '../../../config/taskConfig.js';
 
 const HTTP = {
   INTERNAL_SERVER_ERROR: 500
@@ -42,8 +43,8 @@ export default async function caStatusRoute(_req: Request, res: Response): Promi
       updatedAt: ca.updatedAt,
       currentTaskId: ca.tasks[0]?.id,
       currentTaskType: ca.tasks[0]?.type,
-      issueNumber: ca.caName.replace('hra_', '')
-        ? parseInt(ca.caName.replace('hra_', ''), 10)
+      issueNumber: ca.caName.replace(TASK_CONFIG.CA_NAME_PREFIX, '')
+        ? parseInt(ca.caName.replace(TASK_CONFIG.CA_NAME_PREFIX, ''), 10)
         : undefined
     }));
 

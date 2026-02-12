@@ -2,6 +2,7 @@ import { EventBus } from '../services/eventBus.js';
 import { TaskLogger } from '../utils/taskLogger.js';
 import type { TaskEventType } from '../config/taskEvents.js';
 import { getPrismaClient, getCurrentTimestamp } from '../utils/database.js';
+import { TASK_TAGS, type TaskTag } from '../config/taskTags.js';
 import type { Prisma } from '@prisma/client';
 
 export interface TaskResult {
@@ -25,7 +26,7 @@ export interface TaskContext {
 export abstract class BaseTask {
   abstract readonly name: string;
   abstract readonly dependencies: string[];
-  readonly needsCA: boolean = false;
+  readonly tags: TaskTag[] = [];
 
   protected eventBus: EventBus;
   protected logger: TaskLogger;
@@ -33,6 +34,10 @@ export abstract class BaseTask {
   constructor(eventBus: EventBus, logger: TaskLogger) {
     this.eventBus = eventBus;
     this.logger = logger;
+  }
+
+  get needsCA(): boolean {
+    return this.tags.includes(TASK_TAGS.REQUIRES_CA);
   }
 
   abstract execute(_params: Record<string, unknown>, _context: TaskContext): Promise<TaskResult>;

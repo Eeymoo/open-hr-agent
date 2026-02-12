@@ -10,6 +10,8 @@ export interface QueuedTask {
   params: Record<string, unknown>;
   /** 优先级 */
   priority: number;
+  /** 任务标签 */
+  tags: string[];
   /** 关联的 Issue ID */
   issueId?: number;
   /** 关联的 PR ID */

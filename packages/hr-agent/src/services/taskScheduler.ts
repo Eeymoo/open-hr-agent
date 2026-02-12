@@ -8,6 +8,7 @@ import { getPrismaClient, getCurrentTimestamp } from '../utils/database.js';
 import { TASK_CONFIG } from '../config/taskConfig.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
 import { TASK_STATUS } from '../config/taskStatus.js';
+import { hasRequiresCATag } from '../config/taskTags.js';
 import type { BaseTask } from '../tasks/baseTask.js';
 import type { Prisma } from '@prisma/client';
 
@@ -153,12 +154,14 @@ export class TaskScheduler {
 
     for (const taskRecord of queuedTasks) {
       const task = this.taskRegistry.get(taskRecord.type);
+      const tags = task?.tags ?? (taskRecord.tags as string[]);
 
       this.taskQueue.enqueue({
         taskId: taskRecord.id,
         taskName: taskRecord.type,
         params: (taskRecord.metadata as Record<string, unknown>) ?? {},
         priority: taskRecord.priority,
+        tags,
         issueId: taskRecord.issueId ?? undefined,
         prId: taskRecord.prId ?? undefined,
         retryCount: 0,
@@ -167,7 +170,8 @@ export class TaskScheduler {
       });
 
       await this.logger.info(taskRecord.id, taskRecord.type, '已从数据库加载到队列', {
-        priority: taskRecord.priority
+        priority: taskRecord.priority,
+        tags
       });
     }
 
@@ -374,11 +378,16 @@ export class TaskScheduler {
     const prisma = getPrismaClient();
     const now = getCurrentTimestamp();
 
+    const task = this.taskRegistry.get(taskName);
+    const dependencies = task?.dependencies ?? [];
+    const tags = task?.tags ?? [];
+
     const taskRecord = await prisma.task.create({
       data: {
         type: taskName,
         status: TASK_STATUS.QUEUED,
         priority,
+        tags,
         issue: issueId ? { connect: { id: issueId } } : undefined,
         pullRequest: prId ? { connect: { id: prId } } : undefined,
         metadata: params as Prisma.InputJsonValue,
@@ -391,14 +400,12 @@ export class TaskScheduler {
 
     const taskId = taskRecord.id;
 
-    const task = this.taskRegistry.get(taskName);
-    const dependencies = task?.dependencies ?? [];
-
     this.taskQueue.enqueue({
       taskId,
       taskName,
       params,
       priority,
+      tags,
       issueId,
       prId,
       retryCount: 0,
@@ -409,10 +416,11 @@ export class TaskScheduler {
     await this.eventBus.emit(TASK_EVENTS.TASK_QUEUED, {
       taskId,
       taskName,
-      priority
+      priority,
+      tags
     });
 
-    await this.logger.info(taskId, taskName, '任务已加入队列', { priority });
+    await this.logger.info(taskId, taskName, '任务已加入队列', { priority, tags });
 
     await this.scheduleNext();
 
@@ -444,12 +452,14 @@ export class TaskScheduler {
 
     const task = this.taskRegistry.get(taskRecord.type);
     const now = getCurrentTimestamp();
+    const tags = task?.tags ?? (taskRecord.tags as string[]);
 
     this.taskQueue.enqueue({
       taskId: taskRecord.id,
       taskName: taskRecord.type,
       params: (taskRecord.metadata as Record<string, unknown>) ?? {},
       priority: taskRecord.priority,
+      tags,
       issueId: taskRecord.issueId ?? undefined,
       prId: taskRecord.prId ?? undefined,
       retryCount: 0,
@@ -460,11 +470,13 @@ export class TaskScheduler {
     await this.eventBus.emit(TASK_EVENTS.TASK_QUEUED, {
       taskId: taskRecord.id,
       taskName: taskRecord.type,
-      priority: taskRecord.priority
+      priority: taskRecord.priority,
+      tags
     });
 
     await this.logger.info(taskRecord.id, taskRecord.type, '任务已加入队列', {
-      priority: taskRecord.priority
+      priority: taskRecord.priority,
+      tags
     });
 
     await this.scheduleNext();
@@ -487,24 +499,26 @@ export class TaskScheduler {
     await this.logger.info(task.taskId, 'Scheduler', '开始调度任务', {
       taskName: task.taskName,
       priority: task.priority,
+      tags: task.tags,
       issueId: task.issueId,
       prId: task.prId
     });
 
-    const taskInstance = this.taskRegistry.get(task.taskName);
-    const needsCA = taskInstance?.needsCA ?? false;
+    const taskNeedsCA = hasRequiresCATag(task.tags);
 
-    if (needsCA) {
+    if (taskNeedsCA) {
       await this.logger.info(task.taskId, 'Scheduler', '任务需要 CA，开始分配', {
-        taskName: task.taskName
+        taskName: task.taskName,
+        tags: task.tags
       });
       const ca = await this.allocateCAForTask(task);
 
       if (!ca) {
-        await this.logger.warn(task.taskId, 'Scheduler', 'CA 分配失败，任务重新入队', {
+        await this.logger.warn(task.taskId, 'Scheduler', 'CA 分配失败，任务重新入队，继续调度下一个任务', {
           taskName: task.taskName
         });
         this.taskQueue.enqueue(task);
+        await this.scheduleNext();
         return;
       }
 
@@ -512,6 +526,11 @@ export class TaskScheduler {
       await this.logger.info(task.taskId, 'Scheduler', 'CA 分配成功', {
         caId: ca.id,
         taskName: task.taskName
+      });
+    } else {
+      await this.logger.info(task.taskId, 'Scheduler', '任务不需要 CA，直接执行', {
+        taskName: task.taskName,
+        tags: task.tags
       });
     }
 

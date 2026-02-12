@@ -6,7 +6,19 @@ import { TASK_CONFIG } from '../config/taskConfig.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
 import type { EventBus } from './eventBus.js';
 
-export type CAResourceStatus = 'idle' | 'busy' | 'creating' | 'error' | 'destroying';
+export type CAResourceStatus =
+  | 'idle'
+  | 'busy'
+  | 'creating'
+  | 'error'
+  | 'destroying'
+  | 'not_found'
+  | 'pending_create'
+  | 'pending_delete'
+  | 'pending_start'
+  | 'pending_stop'
+  | 'pending_restart'
+  | 'pending_update';
 
 export interface CAResource {
   id: number;
@@ -55,6 +67,13 @@ export class CAResourceManager {
     busy: number;
     creating: number;
     error: number;
+    not_found: number;
+    pending_create: number;
+    pending_delete: number;
+    pending_start: number;
+    pending_stop: number;
+    pending_restart: number;
+    pending_update: number;
   }> {
     const allCA = await this.getAllCA();
     return {
@@ -62,7 +81,14 @@ export class CAResourceManager {
       idle: allCA.filter((ca) => ca.status === 'idle').length,
       busy: allCA.filter((ca) => ca.status === 'busy').length,
       creating: allCA.filter((ca) => ca.status === 'creating').length,
-      error: allCA.filter((ca) => ca.status === 'error').length
+      error: allCA.filter((ca) => ca.status === 'error').length,
+      not_found: allCA.filter((ca) => ca.status === 'not_found').length,
+      pending_create: allCA.filter((ca) => ca.status === 'pending_create').length,
+      pending_delete: allCA.filter((ca) => ca.status === 'pending_delete').length,
+      pending_start: allCA.filter((ca) => ca.status === 'pending_start').length,
+      pending_stop: allCA.filter((ca) => ca.status === 'pending_stop').length,
+      pending_restart: allCA.filter((ca) => ca.status === 'pending_restart').length,
+      pending_update: allCA.filter((ca) => ca.status === 'pending_update').length
     };
   }
 
@@ -415,19 +441,15 @@ export class CAResourceManager {
 
       if (!dockerContainer) {
         if (status === 'idle' || status === 'creating' || status === 'busy') {
-          await this.logger.warn(
-            0,
-            'CAResourceManager',
-            `CA ${caRecord.caName} 容器不存在，标记为 error`
-          );
+          await this.logger.warn(0, 'CAResourceManager', `CA ${caRecord.caName} 容器不存在，标记为 not_found`);
           await prisma.codingAgent.update({
             where: { id: caRecord.id },
-            data: { status: 'error' }
+            data: { status: 'not_found' }
           });
-          status = 'error';
+          status = 'not_found';
         }
       } else if ((status === 'idle' || status === 'creating') && !dockerContainer.state) {
-        status = 'error';
+        status = 'not_found';
       }
 
       this.caCache.set(caRecord.id, {

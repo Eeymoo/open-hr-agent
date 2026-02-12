@@ -1,20 +1,19 @@
 import type { Request, Response } from 'express';
-import Result from '../../../utils/Result.js';
-import { getPrismaClient, getCurrentTimestamp } from '../../../utils/database.js';
-import { createCALog } from '../../../services/caLogger.js';
-import { CONTAINER_TASK_PRIORITIES } from '../../../config/taskPriorities.js';
+import Result from '../../../../utils/Result.js';
+import { getPrismaClient, getCurrentTimestamp } from '../../../../utils/database.js';
+import { CONTAINER_TASK_PRIORITIES } from '../../../../config/taskPriorities.js';
 
 declare global {
-  var taskManager: import('../../../services/taskManager.js').TaskManager;
+  var taskManager: import('../../../../services/taskManager.js').TaskManager;
 }
 
 const HTTP = {
-  INTERNAL_SERVER_ERROR: 500,
+  BAD_REQUEST: 400,
   NOT_FOUND: 404,
-  BAD_REQUEST: 400
+  INTERNAL_SERVER_ERROR: 500
 };
 
-export default async function deleteCodingAgentRoute(req: Request, res: Response): Promise<void> {
+export default async function stopCARoute(req: Request, res: Response): Promise<void> {
   const prisma = getPrismaClient();
   const { id } = req.params;
 
@@ -38,32 +37,19 @@ export default async function deleteCodingAgentRoute(req: Request, res: Response
       return;
     }
 
-    if (existingCA.status === 'pending_delete' || existingCA.status === 'destroying') {
-      res.json(
-        new Result().error(HTTP.BAD_REQUEST, 'Coding agent is already pending deletion')
-      );
+    if (!existingCA.containerId) {
+      res.json(new Result().error(HTTP.BAD_REQUEST, 'No container associated with this CA'));
       return;
     }
 
     const now = getCurrentTimestamp();
-    const ca = await prisma.codingAgent.update({
+    await prisma.codingAgent.update({
       where: { id: idValue },
       data: {
-        status: 'pending_delete',
+        status: 'pending_stop',
         updatedAt: now
       }
     });
-
-    await createCALog(
-      ca.id,
-      'DELETE_REQUEST',
-      JSON.stringify({
-        caName: ca.caName,
-        previousStatus: existingCA.status,
-        newStatus: 'pending_delete'
-      }),
-      null
-    );
 
     const manager = global.taskManager;
     if (!manager) {
@@ -72,20 +58,20 @@ export default async function deleteCodingAgentRoute(req: Request, res: Response
     }
 
     const taskId = await manager.run(
-      'container_delete',
+      'container_stop',
       {
-        caId: ca.id,
-        caName: ca.caName,
-        containerId: ca.containerId
+        caId: existingCA.id,
+        caName: existingCA.caName
       },
-      CONTAINER_TASK_PRIORITIES.DELETE
+      CONTAINER_TASK_PRIORITIES.STOP
     );
 
     res.json(
       new Result({
-        ...ca,
+        ...existingCA,
+        status: 'pending_stop',
         taskId,
-        message: 'Coding agent deletion task queued'
+        message: 'Container stop task queued'
       })
     );
   } catch (error) {
@@ -93,7 +79,7 @@ export default async function deleteCodingAgentRoute(req: Request, res: Response
     res.json(
       new Result().error(
         HTTP.INTERNAL_SERVER_ERROR,
-        `Failed to delete coding agent: ${errorMessage}`
+        `Failed to stop container: ${errorMessage}`
       )
     );
   }
