@@ -9,16 +9,19 @@ Coding Agent (ca) - Docker container wrapper for opencode-ai CLI. Provides isola
 - Container Runtime: Docker
 - Base Image: node:22 (LTS)
 - CLI Tool: opencode-ai (global)
-- Additional Tools: Git, GitHub CLI (gh), Python 3, build tools
+- Additional Tools: Git, GitHub CLI (gh), Python 3
 - SSH Support: Ed25519 keys for GitHub auth
 - Port: 4096 (web server)
 
 ## Primary Commands
 
 ### Docker Operations
-- Build image: `docker build -t coding-agent .` (from project root)
-- Run container: `docker run -p 4096:4096 coding-agent`
-- Interactive shell: `docker run -it coding-agent /bin/sh`
+```bash
+docker build -t coding-agent .              # Build image
+docker run -p 4096:4096 coding-agent        # Run container
+docker run -it coding-agent /bin/sh         # Interactive shell
+docker logs <container>                     # View logs
+```
 
 ### With Environment Variables
 ```bash
@@ -31,108 +34,97 @@ docker run -d \
   coding-agent
 ```
 
-### Development Workflow
-1. Modify Dockerfile or entrypoint.sh
-2. Rebuild: `docker build -t coding-agent .`
-3. Test container locally
-4. Push to registry
-5. Update orchestrator (hr-agent) to use new image
-
 ## Container Architecture
 
 ### Entrypoint Script
-- Location: scripts/entrypoint.sh
+- Location: `scripts/entrypoint.sh`
 - Configures git: user.name "HR-Agent", user.email "hra@xmail.fun"
-- Sets up SSH keys if provided (SSH_PRIVATE_KEY, SSH_PUBLIC_KEY)
+- Sets up SSH keys if provided
 - Authenticates GitHub CLI with SSH key
-- Falls back gracefully if auth fails
 
-### Startup Behavior
-Priority order for repository mounting:
-1. Mounted volume at `/home/workspace/repo` (highest priority)
+### Startup Priority
+1. Mounted volume at `/home/workspace/repo`
 2. Clone from `GITHUB_REPO_URL` if set
 3. Empty workspace (runs opencode web without repo)
 
 ### Environment Variables
-- `GITHUB_REPO_URL` - Git repository to clone
-- `SSH_PRIVATE_KEY` - Ed25519 private key for SSH auth
-- `SSH_PUBLIC_KEY` - Ed25519 public key for SSH auth
-- `OPENCODE_SERVER_PASSWORD` - Password for web UI
-- `PORT` - Server port (default: 4096)
-- `NODE_ENV` - Environment (default: production)
-- `HOSTNAME` - Binding address (default: 0.0.0.0)
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `GITHUB_REPO_URL` | Git repository to clone | - |
+| `SSH_PRIVATE_KEY` | Ed25519 private key | - |
+| `SSH_PUBLIC_KEY` | Ed25519 public key | - |
+| `OPENCODE_SERVER_PASSWORD` | Web UI password | - |
+| `PORT` | Server port | 4096 |
+| `NODE_ENV` | Environment | production |
+| `HOSTNAME` | Binding address | 0.0.0.0 |
 
 ## File Structure
 
 ```
 packages/coding-agent/
-├── Dockerfile           # Container image definition
-├── package.json         # Minimal package metadata
-├── .dockerignore        # Files to exclude from build
-├── scripts/
-│   ├── entrypoint.sh    # Container startup script
-│   └── README.md        # Script documentation
-└── AGENTS.md           # This file
+├── Dockerfile           # Container image
+├── package.json         # Package metadata
+├── .dockerignore        # Build exclusions
+└── scripts/
+    └── entrypoint.sh    # Startup script
 ```
 
-## Configuration Guidelines
+## Git Configuration
 
-### Git Configuration
-- Git is pre-configured as "HR-Agent <hra@xmail.fun>"
-- SSH keys should be Ed25519 format (recommended)
-- Git protocol: SSH preferred for private repos
+- Pre-configured as "HR-Agent <hra@xmail.fun>"
+- SSH keys should be Ed25519 format
+- SSH protocol preferred for private repos
 
-### OpenCode Server
-- Runs with `--hostname 0.0.0.0` for external access
+## OpenCode Server
+
+- Runs with `--hostname 0.0.0.0`
 - Password-protected via `OPENCODE_SERVER_PASSWORD`
-- Exposes opencode web interface on port 4096
+- Web interface on port 4096
 
-### SSH Key Management
+## SSH Key Management
+
 - Private key: `~/.ssh/id_ed25519` (mode 600)
 - Public key: `~/.ssh/id_ed25519.pub` (mode 644)
-- Used for both git operations and gh auth
-
-## Best Practices
-
-- Always inject secrets via environment variables
-- Use SSH protocol for GitHub operations (more secure)
-- Mount repo volume for persistent development
-- Set appropriate resource limits in orchestrator
-- Log container output for debugging
-- Rotate SSH keys regularly
-- Use unique passwords for each deployment
-
-## Security Considerations
-
-- Never commit SSH keys to repository
-- Pass credentials via environment variables only
-- Use read-only mounts when possible
-- Limit container capabilities in production
-- Rotate passwords periodically
-- Use HTTPS/TLS for web interface in production
+- Used for git operations and gh auth
 
 ## Integration with HR Agent
 
-The HR Agent (hra) orchestrates coding-agent containers:
-- Spawns containers dynamically for coding tasks
-- Provides repository URL and SSH credentials
+HR Agent (hra) orchestrates coding-agent containers:
+- Spawns containers dynamically for tasks
+- Provides repo URL and SSH credentials
 - Mounts task-specific volumes
 - Monitors container lifecycle
-- Terminates containers after task completion
+- Terminates containers after completion
+
+## Best Practices
+
+- Inject secrets via environment variables only
+- Use SSH protocol for GitHub operations
+- Mount repo volume for persistent development
+- Set appropriate resource limits
+- Log container output for debugging
+- Rotate SSH keys and passwords regularly
+
+## Security
+
+- Never commit SSH keys to repository
+- Pass credentials via environment only
+- Use read-only mounts when possible
+- Limit container capabilities in production
+- Use HTTPS/TLS for web interface in production
 
 ## Troubleshooting
 
 ### Container won't start
 - Check Docker daemon is running
 - Verify port 4096 is not in use
-- Review container logs: `docker logs <container>`
+- Review logs: `docker logs <container>`
 
 ### GitHub auth fails
 - Verify SSH keys are valid Ed25519 format
-- Check SSH_PRIVATE_KEY includes newline at end
+- Check SSH_PRIVATE_KEY includes trailing newline
 - Ensure SSH key has repo permissions on GitHub
 
 ### Cannot clone repository
-- Verify GITHUB_REPO_URL format: `git@github.com:owner/repo.git`
+- Verify `GITHUB_REPO_URL` format: `git@github.com:owner/repo.git`
 - Check SSH key has access to repository
-- Test SSH connection manually inside container
