@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Card, Col, Row, Button, Empty, Spin } from 'antd';
-import { PlusOutlined, DownOutlined } from '@ant-design/icons';
+import { useEffect, useState, useCallback } from 'react';
+import { Card, Col, Row, Button, Empty, Spin, message } from 'antd';
+import { PlusOutlined, DownOutlined, LoadingOutlined } from '@ant-design/icons';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { TaskCard } from '../TaskCard';
-import type { Task } from '../../types/task';
+import { useReorderTasks } from '../../hooks/useTasks';
+import { PRIORITY_LOW, PRIORITY_MEDIUM, PRIORITY_HIGH, type Task } from '../../types/task';
 import './index.css';
 
 interface TaskKanbanProps {
@@ -25,126 +26,231 @@ const COLUMN_TITLES: Record<string, string> = {
 
 const MAIN_COLUMNS = ['queued', 'running', 'pr_merged'];
 const OTHER_COLUMNS = ['error', 'cancelled', 'timeout'];
+const PRIORITY_DIVISOR = 3;
+const PRIORITY_TIER_MULTIPLIER = 2;
+const PRIORITY_OFFSET_MAX = 10;
+
+const calculateNewPriorities = (
+  tasks: Task[],
+  startIndex: number,
+  endIndex: number
+): Array<{ taskId: number; priority: number }> => {
+  const result: Array<{ taskId: number; priority: number }> = [];
+  const reorderedTasks = Array.from(tasks);
+  const [movedTask] = reorderedTasks.splice(startIndex, 1);
+  reorderedTasks.splice(endIndex, 0, movedTask);
+
+  reorderedTasks.forEach((task, index) => {
+    let basePriority: number;
+    if (index < reorderedTasks.length / PRIORITY_DIVISOR) {
+      basePriority = PRIORITY_HIGH;
+    } else if (index < (reorderedTasks.length * PRIORITY_TIER_MULTIPLIER) / PRIORITY_DIVISOR) {
+      basePriority = PRIORITY_MEDIUM;
+    } else {
+      basePriority = PRIORITY_LOW;
+    }
+    const priority = basePriority + (index % PRIORITY_OFFSET_MAX);
+    result.push({ taskId: task.id, priority });
+  });
+
+  return result;
+};
+
+const groupTasksByStatus = (tasks: Task[]): Record<string, Task[]> => {
+  const grouped = tasks.reduce(
+    (acc, _task) => {
+      const { status } = _task;
+      if (!acc[status]) {
+        acc[status] = [];
+      }
+      acc[status].push(_task);
+      return acc;
+    },
+    {} as Record<string, Task[]>
+  );
+
+  if (grouped.queued) {
+    grouped.queued.sort((a, b) => a.priority - b.priority);
+  }
+
+  return grouped;
+};
+
+interface KanbanColumnProps {
+  status: string;
+  title: string;
+  tasks: Task[];
+  loading?: boolean;
+  isReordering: boolean;
+  isMain: boolean;
+  onTaskClick?: (task: Task) => void;
+  onEdit?: (task: Task) => void;
+  onDelete?: (task: Task) => void;
+}
+
+function KanbanColumn({
+  status,
+  title,
+  tasks: columnTasksList,
+  loading,
+  isReordering,
+  isMain,
+  onTaskClick,
+  onEdit,
+  onDelete
+}: KanbanColumnProps) {
+  const isDraggable = status === 'queued';
+
+  return (
+    <Col xs={24} sm={12} md={8} lg={6} key={status}>
+      <Card
+        title={
+          <div className="kanban-column-header">
+            <span>{title}</span>
+            <span className="task-count">
+              ({columnTasksList.length})
+              {isReordering && isDraggable && <LoadingOutlined spin style={{ marginLeft: 8 }} />}
+            </span>
+          </div>
+        }
+        className={`kanban-column ${isReordering && isDraggable ? 'kanban-reordering' : ''}`}
+      >
+        {loading ? (
+          <div className="kanban-loading">
+            <Spin />
+          </div>
+        ) : columnTasksList.length === 0 ? (
+          <Empty description="暂无任务" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        ) : (
+          <Droppable droppableId={status} isDropDisabled={!isDraggable}>
+            {(provided) => (
+              <div {...provided.droppableProps} ref={provided.innerRef} className="task-list">
+                {columnTasksList.map((task, index) => (
+                  <Draggable
+                    key={task.id}
+                    draggableId={task.id.toString()}
+                    index={index}
+                    isDragDisabled={!isDraggable}
+                  >
+                    {(draggableProvided, snapshot) => (
+                      <div
+                        ref={draggableProvided.innerRef}
+                        {...draggableProvided.draggableProps}
+                        {...draggableProvided.dragHandleProps}
+                        className={`task-item ${snapshot.isDragging ? 'dragging' : ''}`}
+                      >
+                        <TaskCard
+                          task={task}
+                          onClick={() => onTaskClick?.(task)}
+                          onEdit={() => onEdit?.(task)}
+                          onDelete={() => onDelete?.(task)}
+                          showActions={isMain}
+                        />
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        )}
+      </Card>
+    </Col>
+  );
+}
 
 export function TaskKanban({ tasks, loading, onTaskClick, onEdit, onDelete }: TaskKanbanProps) {
   const [showOtherColumns, setShowOtherColumns] = useState(false);
   const [columnTasks, setColumnTasks] = useState<Record<string, Task[]>>({});
+  const [isReordering, setIsReordering] = useState(false);
+  const reorderTasks = useReorderTasks();
 
   useEffect(() => {
-    const grouped = tasks.reduce(
-      (acc, _task) => {
-        const { status } = _task;
-        if (!acc[status]) {
-          acc[status] = [];
-        }
-        acc[status].push(_task);
-        return acc;
-      },
-      {} as Record<string, Task[]>
-    );
-
-    setColumnTasks(grouped);
+    setColumnTasks(groupTasksByStatus(tasks));
   }, [tasks]);
 
-  const handleDragEnd = (result: DropResult) => {
-    if (!result.destination) {
-      return;
-    }
+  const handleDragEnd = useCallback(
+    (result: DropResult) => {
+      if (!result.destination) {
+        return;
+      }
 
-    const sourceColumn = result.source.droppableId;
-    const destinationColumn = result.destination.droppableId;
+      const sourceColumn = result.source.droppableId;
+      const destinationColumn = result.destination.droppableId;
 
-    if (sourceColumn === destinationColumn) {
-      const items = [...columnTasks[sourceColumn]];
-      const [removed] = items.splice(result.source.index, 1);
-      items.splice(result.destination.index, 0, removed);
-      setColumnTasks({ ...columnTasks, [sourceColumn]: items });
-    } else {
       if (sourceColumn !== 'queued' || destinationColumn !== 'queued') {
         return;
       }
 
-      const sourceItems = [...columnTasks[sourceColumn]];
-      const destItems = [...columnTasks[destinationColumn]];
-      const [removed] = sourceItems.splice(result.source.index, 1);
-      destItems.splice(result.destination.index, 0, removed);
-      const newColumnTasks = { ...columnTasks };
-      newColumnTasks[sourceColumn] = sourceItems;
-      newColumnTasks[destinationColumn] = destItems;
-      setColumnTasks(newColumnTasks);
-    }
-  };
+      const items = [...columnTasks[sourceColumn]];
+      const [removed] = items.splice(result.source.index, 1);
+      items.splice(result.destination.index, 0, removed);
 
-  const renderColumn = (status: string, title: string, isMain: boolean = true) => {
-    const columnTasksList = columnTasks[status] || [];
-    const isDraggable = status === 'queued';
+      setColumnTasks({ ...columnTasks, [sourceColumn]: items });
 
-    return (
-      <Col xs={24} sm={12} md={8} lg={6} key={status}>
-        <Card
-          title={
-            <div className="kanban-column-header">
-              <span>{title}</span>
-              <span className="task-count">({columnTasksList.length})</span>
-            </div>
+      const taskOrders = calculateNewPriorities(
+        columnTasks[sourceColumn],
+        result.source.index,
+        result.destination.index
+      );
+
+      setIsReordering(true);
+      reorderTasks.mutate(
+        { taskOrders },
+        {
+          onSuccess: () => {
+            message.success('排序已保存');
+          },
+          onError: () => {
+            message.error('排序保存失败');
+            setColumnTasks(groupTasksByStatus(tasks));
+          },
+          onSettled: () => {
+            setIsReordering(false);
           }
-          className="kanban-column"
-        >
-          {loading ? (
-            <div className="kanban-loading">
-              <Spin />
-            </div>
-          ) : columnTasksList.length === 0 ? (
-            <Empty description="暂无任务" image={Empty.PRESENTED_IMAGE_SIMPLE} />
-          ) : (
-            <Droppable droppableId={status} isDropDisabled={!isDraggable}>
-              {(provided) => (
-                <div {...provided.droppableProps} ref={provided.innerRef} className="task-list">
-                  {columnTasksList.map((task, index) => (
-                    <Draggable
-                      key={task.id}
-                      draggableId={task.id.toString()}
-                      index={index}
-                      isDragDisabled={!isDraggable}
-                    >
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className={`task-item ${snapshot.isDragging ? 'dragging' : ''}`}
-                        >
-                          <TaskCard
-                            task={task}
-                            onClick={() => onTaskClick?.(task)}
-                            onEdit={() => onEdit?.(task)}
-                            onDelete={() => onDelete?.(task)}
-                            showActions={isMain}
-                          />
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          )}
-        </Card>
-      </Col>
-    );
-  };
+        }
+      );
+    },
+    [columnTasks, reorderTasks, tasks]
+  );
 
   return (
     <div className="task-kanban">
       <DragDropContext onDragEnd={handleDragEnd}>
         <Row gutter={[16, 16]}>
-          {MAIN_COLUMNS.map((status) => renderColumn(status, COLUMN_TITLES[status], true))}
+          {MAIN_COLUMNS.map((status) => (
+            <KanbanColumn
+              key={status}
+              status={status}
+              title={COLUMN_TITLES[status]}
+              tasks={columnTasks[status] || []}
+              loading={loading}
+              isReordering={isReordering}
+              isMain={true}
+              onTaskClick={onTaskClick}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ))}
         </Row>
 
         {showOtherColumns && (
           <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-            {OTHER_COLUMNS.map((status) => renderColumn(status, COLUMN_TITLES[status], false))}
+            {OTHER_COLUMNS.map((status) => (
+              <KanbanColumn
+                key={status}
+                status={status}
+                title={COLUMN_TITLES[status]}
+                tasks={columnTasks[status] || []}
+                loading={loading}
+                isReordering={isReordering}
+                isMain={false}
+                onTaskClick={onTaskClick}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            ))}
           </Row>
         )}
       </DragDropContext>

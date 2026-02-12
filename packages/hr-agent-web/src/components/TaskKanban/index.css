@@ -65,6 +65,31 @@
   padding: 3px 10px;
   border-radius: 8px;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.kanban-column.kanban-reordering {
+  border-color: var(--purple-main) !important;
+  box-shadow:
+    0 0 20px rgba(139, 92, 246, 0.2),
+    var(--shadow-card);
+}
+
+.kanban-column.kanban-reordering::before {
+  background: linear-gradient(90deg, var(--purple-main), var(--purple-light), var(--purple-main));
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .task-list {

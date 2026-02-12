@@ -7,7 +7,8 @@ import {
   RobotOutlined,
   IssuesCloseOutlined,
   PullRequestOutlined,
-  CodeOutlined
+  CodeOutlined,
+  UnorderedListOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -40,9 +41,14 @@ export function AppLayout({ children }: LayoutProps) {
 
   const menuItems = [
     {
-      key: '/orchestration',
+      key: '/tasks',
       icon: <AppstoreOutlined />,
       label: '任务编排'
+    },
+    {
+      key: '/tasks/list',
+      icon: <UnorderedListOutlined />,
+      label: '任务列表'
     },
     {
       key: '/issues',
@@ -79,6 +85,12 @@ export function AppLayout({ children }: LayoutProps) {
   ];
 
   const getPageTitle = () => {
+    if (location.pathname === '/tasks/list') {
+      return '任务列表';
+    }
+    if (location.pathname === '/tasks') {
+      return '任务编排工作台';
+    }
     if (location.pathname.startsWith('/issues')) {
       return 'Issues 管理';
     }
@@ -87,9 +99,6 @@ export function AppLayout({ children }: LayoutProps) {
     }
     if (location.pathname.startsWith('/cas')) {
       return 'Coding Agents 管理';
-    }
-    if (location.pathname === '/orchestration') {
-      return '任务编排工作台';
     }
     return 'HR Agent';
   };
@@ -109,7 +118,11 @@ export function AppLayout({ children }: LayoutProps) {
 
         <Menu
           mode="inline"
-          selectedKeys={[location.pathname]}
+          selectedKeys={[
+            location.pathname.startsWith('/tasks') && location.pathname !== '/tasks/list'
+              ? '/tasks'
+              : location.pathname
+          ]}
           items={menuItems}
           onClick={handleMenuClick}
           className="app-menu"

@@ -1,7 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getTasks, getTask, createTask, updateTask, deleteTask, executeTask } from '../api/tasks';
+import {
+  getTasks,
+  getTask,
+  createTask,
+  updateTask,
+  deleteTask,
+  executeTask,
+  reorderTasks
+} from '../api/tasks';
 import { POLLING_INTERVAL } from '../utils/constants';
-import type { CreateTaskDto, UpdateTaskDto, TaskQueryParams } from '../types/task';
+import type { CreateTaskDto, UpdateTaskDto, TaskQueryParams, ReorderTasksDto } from '../types/task';
 
 export function useTasks(params?: TaskQueryParams) {
   return useQuery({
@@ -64,6 +72,17 @@ export function useExecuteTask() {
 
   return useMutation({
     mutationFn: (id: number) => executeTask(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    }
+  });
+}
+
+export function useReorderTasks() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: ReorderTasksDto) => reorderTasks(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     }

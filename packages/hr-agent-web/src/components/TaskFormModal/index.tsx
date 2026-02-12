@@ -1,6 +1,9 @@
 import { Modal, Form, Input, Select, InputNumber, Button } from 'antd';
 import {
   TASK_STATUS_LABELS,
+  PRIORITY_LOW,
+  PRIORITY_MEDIUM,
+  PRIORITY_HIGH,
   type Task,
   type CreateTaskDto,
   type UpdateTaskDto
@@ -54,7 +57,7 @@ export function TaskFormModal({
         initialValues={{
           type: task?.type || '',
           status: task?.status || 'queued',
-          priority: task?.priority ?? 50
+          priority: task?.priority ?? PRIORITY_MEDIUM
         }}
       >
         <Form.Item
@@ -87,9 +90,9 @@ export function TaskFormModal({
           rules={[{ required: true, message: '请选择优先级' }]}
         >
           <Select placeholder="选择优先级">
-            <Select.Option value={0}>低</Select.Option>
-            <Select.Option value={50}>中</Select.Option>
-            <Select.Option value={100}>高</Select.Option>
+            <Select.Option value={PRIORITY_LOW}>低</Select.Option>
+            <Select.Option value={PRIORITY_MEDIUM}>中</Select.Option>
+            <Select.Option value={PRIORITY_HIGH}>高</Select.Option>
           </Select>
         </Form.Item>
 
