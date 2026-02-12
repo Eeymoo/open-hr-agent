@@ -34,11 +34,15 @@ COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=builder /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma ./node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma
 COPY --from=builder /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma ./node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma
 COPY --from=builder /app/node_modules/.pnpm/@prisma+engines@5.22.0/node_modules/@prisma ./node_modules/.pnpm/@prisma+engines@5.22.0/node_modules/@prisma
+COPY --from=builder /app/node_modules/.pnpm/prisma@5.22.0/node_modules/prisma ./node_modules/.pnpm/prisma@5.22.0/node_modules/prisma
 COPY --from=builder /app/packages/hr-agent/dist ./dist
 COPY packages/hr-agent/package.json ./package.json
+COPY packages/hr-agent/prisma ./prisma
 COPY packages/hr-agent/scripts/docker-entrypoint.sh ./docker-entrypoint.sh
 
-RUN chown -R nodeuser:nodejs /app && chmod +x docker-entrypoint.sh
+RUN mkdir -p node_modules/.bin && \
+    ln -s ../.pnpm/prisma@5.22.0/node_modules/prisma/build/index.js node_modules/.bin/prisma && \
+    chown -R nodeuser:nodejs /app && chmod +x docker-entrypoint.sh
 
 USER nodeuser
 
