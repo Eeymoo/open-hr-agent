@@ -96,16 +96,20 @@ export const TASK_STATUS_COLORS: Record<TaskStatus, string> = {
   timeout: 'error'
 };
 
+export const PRIORITY_LOW = 10;
+export const PRIORITY_MEDIUM = 20;
+export const PRIORITY_HIGH = 30;
+
 export const PRIORITY_LABELS: Record<number, string> = {
-  0: '低',
-  50: '中',
-  100: '高'
+  [PRIORITY_LOW]: '低',
+  [PRIORITY_MEDIUM]: '中',
+  [PRIORITY_HIGH]: '高'
 };
 
 export const PRIORITY_COLORS: Record<number, string> = {
-  0: 'default',
-  50: 'processing',
-  100: 'error'
+  [PRIORITY_LOW]: 'default',
+  [PRIORITY_MEDIUM]: 'processing',
+  [PRIORITY_HIGH]: 'error'
 };
 
 export const TASK_TAG_LABELS: Record<string, string> = {
@@ -125,3 +129,7 @@ export const TASK_TAG_COLORS: Record<string, string> = {
   'agent:test': 'cyan',
   'runtime:long': 'red'
 };
+
+export interface ReorderTasksDto {
+  taskOrders: Array<{ taskId: number; priority: number }>;
+}

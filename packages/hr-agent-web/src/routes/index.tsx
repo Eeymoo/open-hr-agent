@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { Login } from '../pages/Login';
 import { TaskOrchestration } from '../pages/TaskOrchestration';
+import { TaskList } from '../pages/TaskList';
 import { IssuesList } from '../pages/Issues';
 import { IssueDetail } from '../pages/IssueDetail';
 import { PRsList } from '../pages/PRs';
@@ -30,11 +31,15 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/orchestration" replace />
+        element: <Navigate to="/tasks" replace />
       },
       {
-        path: 'orchestration',
+        path: 'tasks',
         element: <TaskOrchestration />
+      },
+      {
+        path: 'tasks/list',
+        element: <TaskList />
       },
       {
         path: 'issues',
