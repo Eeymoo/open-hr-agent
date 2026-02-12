@@ -125,6 +125,13 @@ describe('CA Routes Tests', () => {
 
   beforeEach(async () => {
     process.env.DOCKER_CA_SECRET = TEST_SECRET;
+
+    global.taskManager = {
+      run: vi.fn().mockResolvedValue(1),
+      start: vi.fn(),
+      stop: vi.fn()
+    } as never;
+
     app = express();
     app.use(express.json());
     const { default: autoLoadRoutes } = await import('./middleware/autoLoadRoutes.js');
@@ -135,6 +142,7 @@ describe('CA Routes Tests', () => {
   afterEach(() => {
     vi.clearAllMocks();
     delete process.env.DOCKER_CA_SECRET;
+    global.taskManager = undefined as never;
   });
 
   it('应该响应 /v1/ca/add POST 路由', async () => {
@@ -147,8 +155,9 @@ describe('CA Routes Tests', () => {
     expect(response.body).toHaveProperty('code', HTTP_STATUS.OK);
     expect(response.body.data).toHaveProperty('name', 'hra_test-container');
     expect(response.body.data).toHaveProperty('containerName', 'hra_test-container');
-    expect(response.body.data).toHaveProperty('internalUrl');
-    expect(response.body.data).toHaveProperty('message', 'Docker container created successfully');
+    expect(response.body.data).toHaveProperty('status', 'pending_create');
+    expect(response.body.data).toHaveProperty('taskId');
+    expect(response.body.data).toHaveProperty('message', 'Container creation task queued');
   });
 
   it('应该使用 issueId 创建容器', async () => {
@@ -161,8 +170,9 @@ describe('CA Routes Tests', () => {
     expect(response.body).toHaveProperty('code', HTTP_STATUS.OK);
     expect(response.body.data).toHaveProperty('name', 'hra_123');
     expect(response.body.data).toHaveProperty('containerName', 'hra_123');
-    expect(response.body.data).toHaveProperty('internalUrl');
-    expect(response.body.data).toHaveProperty('message', 'Docker container created successfully');
+    expect(response.body.data).toHaveProperty('status', 'pending_create');
+    expect(response.body.data).toHaveProperty('taskId');
+    expect(response.body.data).toHaveProperty('message', 'Container creation task queued');
   });
 
   it('应该在 name 和 issueId 都缺失时返回 400 错误', async () => {

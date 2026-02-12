@@ -1,8 +1,12 @@
 import type { Request, Response } from 'express';
-import Docker from 'dockerode';
 import Result from '../../../utils/Result.js';
 import { getDockerCASecret } from '../../../utils/secretManager.js';
-import { DOCKER_CONFIG } from '../../../config/docker.js';
+import { getPrismaClient, getCurrentTimestamp } from '../../../utils/database.js';
+import { CONTAINER_TASK_PRIORITIES } from '../../../config/taskPriorities.js';
+
+declare global {
+  var taskManager: import('../../../services/taskManager.js').TaskManager;
+}
 
 const HTTP = {
   BAD_REQUEST: 400,
@@ -10,8 +14,6 @@ const HTTP = {
   INTERNAL_SERVER_ERROR: 500,
   UNAUTHORIZED: 401
 };
-
-const docker = new Docker();
 
 export default async function deleteCARoute(req: Request, res: Response): Promise<void> {
   const { name } = req.params;
@@ -28,25 +30,60 @@ export default async function deleteCARoute(req: Request, res: Response): Promis
   }
 
   const containerName = name;
+  const prisma = getPrismaClient();
+  const now = getCurrentTimestamp();
 
   try {
-    const container = docker.getContainer(containerName);
+    const caRecord = await prisma.codingAgent.findFirst({
+      where: {
+        caName: containerName,
+        deletedAt: -2
+      }
+    });
 
-    try {
-      await container.inspect();
-    } catch {
-      res.json(new Result().error(HTTP.NOT_FOUND, `Container ${containerName} not found`));
+    if (!caRecord) {
+      res.json(new Result().error(HTTP.NOT_FOUND, `Coding agent ${containerName} not found`));
       return;
     }
 
-    await container.remove({ force: true });
+    if (caRecord.status === 'pending_delete' || caRecord.status === 'destroying') {
+      res.json(
+        new Result().error(HTTP.BAD_REQUEST, 'Coding agent is already pending deletion')
+      );
+      return;
+    }
+
+    await prisma.codingAgent.update({
+      where: { id: caRecord.id },
+      data: {
+        status: 'pending_delete',
+        updatedAt: now
+      }
+    });
+
+    const manager = global.taskManager;
+    if (!manager) {
+      res.json(new Result().error(HTTP.INTERNAL_SERVER_ERROR, 'TaskManager 未初始化'));
+      return;
+    }
+
+    const taskId = await manager.run(
+      'container_delete',
+      {
+        caId: caRecord.id,
+        caName: containerName,
+        containerId: caRecord.containerId
+      },
+      CONTAINER_TASK_PRIORITIES.DELETE
+    );
 
     res.json(
       new Result({
         name,
         containerName,
-        internalUrl: `${containerName}:${DOCKER_CONFIG.PORT}`,
-        message: 'Docker container deleted successfully'
+        taskId,
+        status: 'pending_delete',
+        message: 'Container deletion task queued'
       })
     );
   } catch (error) {

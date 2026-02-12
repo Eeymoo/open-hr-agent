@@ -12,7 +12,8 @@ import { TaskLogger } from './utils/taskLogger.js';
 import { TaskRegistry } from './tasks/taskRegistry.js';
 import { TaskScheduler } from './services/taskScheduler.js';
 import { TaskManager } from './services/taskManager.js';
-import { CAStatusSyncService } from './services/caStatusSyncService.js';
+import { TASK_CONFIG } from './config/taskConfig.js';
+import { CONTAINER_TASK_PRIORITIES } from './config/taskPriorities.js';
 import type { BaseTask } from './tasks/baseTask.js';
 
 dotenv.config();
@@ -55,25 +56,66 @@ global.taskRegistry = taskRegistry;
 
 taskManager.start();
 
-const caStatusSyncService = new CAStatusSyncService();
+let currentSyncIndex = 0;
+let syncTimeout: NodeJS.Timeout | null = null;
+let lastSyncHadInconsistency = false;
+
+function scheduleContainerSync(): void {
+  const intervals = TASK_CONFIG.CA_STATUS_CHECK_INTERVALS;
+  let interval: number;
+
+  if (lastSyncHadInconsistency) {
+    interval = intervals[0];
+    currentSyncIndex = 0;
+  } else {
+    interval = intervals[currentSyncIndex];
+    if (currentSyncIndex < intervals.length - 1) {
+      currentSyncIndex++;
+    }
+  }
+
+  syncTimeout = setTimeout(async () => {
+    try {
+      const result = await taskManager.run(
+        'container_sync',
+        {},
+        CONTAINER_TASK_PRIORITIES.SYNC
+      );
+
+      lastSyncHadInconsistency = result !== null;
+    } catch (error) {
+      console.error('Container sync error:', error);
+      lastSyncHadInconsistency = true;
+    }
+
+    scheduleContainerSync();
+  }, interval);
+}
+
+function stopContainerSync(): void {
+  if (syncTimeout) {
+    global.clearTimeout(syncTimeout);
+    syncTimeout = null;
+  }
+}
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log('Task Manager has been initialized');
-  caStatusSyncService.start();
-  console.log('CA Status Sync Service has been initialized');
+  scheduleContainerSync();
+  console.log('Container Sync Scheduler has been initialized');
 });
 
 process.on('SIGTERM', () => {
   console.log('Received SIGTERM, shutting down gracefully...');
   taskManager.stop();
-  caStatusSyncService.stop();
+  stopContainerSync();
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
   console.log('Received SIGINT, shutting down gracefully...');
   taskManager.stop();
-  caStatusSyncService.stop();
+  stopContainerSync();
   process.exit(0);
 });

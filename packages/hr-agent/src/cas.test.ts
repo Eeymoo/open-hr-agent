@@ -100,6 +100,13 @@ describe('Coding Agents CRUD Routes Tests', () => {
 
   beforeEach(async () => {
     process.env.DOCKER_CA_SECRET = TEST_SECRET;
+
+    global.taskManager = {
+      run: vi.fn().mockResolvedValue(1),
+      start: vi.fn(),
+      stop: vi.fn()
+    } as never;
+
     app = express();
     app.use(express.json());
     const { default: autoLoadRoutes } = await import('./middleware/autoLoadRoutes.js');
@@ -110,6 +117,7 @@ describe('Coding Agents CRUD Routes Tests', () => {
   afterEach(() => {
     vi.clearAllMocks();
     delete process.env.DOCKER_CA_SECRET;
+    global.taskManager = undefined as never;
   });
 
   describe('GET /v1/cas', () => {
@@ -141,13 +149,14 @@ describe('Coding Agents CRUD Routes Tests', () => {
   describe('POST /v1/cas', () => {
     it('应该成功创建 CA', async () => {
       const response = await request(app).post('/v1/cas').send({
-        caName: 'test-ca-new',
-        status: 'pending'
+        caName: 'test-ca-new'
       });
 
       expect(response.status).toBe(HTTP_STATUS.OK);
       expect(response.body).toHaveProperty('code', HTTP_STATUS.OK);
       expect(response.body.data).toHaveProperty('caName', 'test-ca-new');
+      expect(response.body.data).toHaveProperty('status', 'pending_create');
+      expect(response.body.data).toHaveProperty('taskId');
     });
 
     it('应该在缺少 caName 时返回错误', async () => {
@@ -165,7 +174,8 @@ describe('Coding Agents CRUD Routes Tests', () => {
       const prisma = new PrismaClient();
       vi.mocked(prisma.codingAgent.findUnique).mockResolvedValueOnce({
         id: 1,
-        caName: 'existing-ca'
+        caName: 'existing-ca',
+        deletedAt: -2
       } as never);
 
       const response = await request(app).post('/v1/cas').send({
