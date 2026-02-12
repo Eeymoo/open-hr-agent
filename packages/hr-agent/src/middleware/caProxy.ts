@@ -51,8 +51,7 @@ async function getContainerNameByCAName(caName: string): Promise<string | null> 
       return null;
     }
 
-    const containerName = `${DOCKER_CONFIG.NAME_PREFIX}${ca.caName}`;
-    return containerName;
+    return ca.caName;
   } catch {
     return null;
   }
