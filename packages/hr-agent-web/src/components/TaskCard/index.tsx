@@ -11,6 +11,8 @@ import {
   TASK_STATUS_LABELS,
   TASK_STATUS_COLORS,
   PRIORITY_COLORS,
+  TASK_TAG_LABELS,
+  TASK_TAG_COLORS,
   type Task
 } from '../../types/task';
 import { formatTimestamp, formatPriority } from '../../utils/formatters';
@@ -74,11 +76,21 @@ function TaskCardContent({
         <strong>{task.type}</strong>
       </div>
 
+      {task.tags && task.tags.length > 0 && (
+        <div className="task-tags">
+          {task.tags.map((tag) => (
+            <Tag key={tag} color={TASK_TAG_COLORS[tag] ?? 'default'}>
+              {TASK_TAG_LABELS[tag] ?? tag}
+            </Tag>
+          ))}
+        </div>
+      )}
+
       {isRunning && (
         <div className="task-progress">
           <div className="progress-header">
             <ClockCircleOutlined />
-            <span>AI 处理中...</span>
+            <span>处理中</span>
           </div>
           <Progress
             percent={progress}
