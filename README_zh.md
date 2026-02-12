@@ -135,118 +135,82 @@ pnpm run check
 
 ### Docker 部署（推荐）
 
-#### 使用 GitHub Container Registry
+项目使用 Docker Compose 和 Docker Secrets 进行安全的密钥管理。
+
+#### 1. 配置 Secrets
+
+创建 `secrets/` 目录和所需的密钥文件：
 
 ```bash
-# 拉取最新镜像
-docker pull ghcr.io/eeymoo/open-hr-agent:latest
+mkdir -p secrets
 
-# 运行容器
-docker run -d -p 3000:3000 \
-  --name open-hr-agent \
-  -e GITHUB_TOKEN=your_github_token \
-  -e MAX_CONCURRENT_AGENTS=3 \
-  ghcr.io/eeymoo/open-hr-agent:latest
+# 数据库连接 URL
+echo "postgresql://hr_user:your_password@postgres:5432/hr_agent_test" > secrets/database_url.txt
+
+# PostgreSQL 密码
+echo "your_secure_password" > secrets/postgres_password.txt
+
+# GitHub Webhook Secret（从你的 GitHub 仓库设置中获取）
+echo "your_webhook_secret" > secrets/github_webhook_secret.txt
+
+# Docker CA Secret（用于 coding agent 管理）
+echo "your_ca_secret" > secrets/docker_ca_secret.txt
+
+# CSP 域名（你的域名，用于安全策略）
+echo "https://your-domain.com" > secrets/csp_domain.txt
+
+# 设置正确的权限
+chmod 600 secrets/*.txt
 ```
 
-#### 使用 Docker Compose
-
-创建 `docker-compose.yml`:
-
-```yaml
-version: '3.8'
-
-services:
-  postgres:
-    image: postgres:18-alpine
-    container_name: hr-postgres
-    restart: always
-    environment:
-      POSTGRES_DB: hr_agent_test
-      POSTGRES_USER: hr_user
-      POSTGRES_PASSWORD: hr_password
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U hr_user -d hr_agent_test']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - hr-network
-
-  open-hr-agent:
-    image: ghcr.io/eeymoo/open-hr-agent:main
-    container_name: open-hr-agent
-    ports:
-      - "3000:3000"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:rw
-    user: root
-    environment:
-      - PUID=1000
-      - PGID=10
-      - PORT=3000
-      - DATABASE_URL=postgresql://hr_user:hr_password@postgres:5432/hr_agent_test
-      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
-      - DOCKER_CA_SECRET=${DOCKER_CA_SECRET}
-      - HR_NETWORK=${HR_NETWORK:-hr-network}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "100m"
-        max-file: "3"
-    tty: true
-    networks:
-      - hr-network
-
-volumes:
-  postgres_data:
-
-networks:
-  hr-network:
-    external: false
-```
-
-创建 `.env` 文件配置环境变量：
-
-```bash
-# GitHub Webhook Secret（用于 webhook 签名验证，必需）
-GITHUB_WEBHOOK_SECRET=your_webhook_secret_here
-
-# Docker CA Secret（用于 coding agent 管理，必需）
-DOCKER_CA_SECRET=your_docker_ca_secret_here
-
-# 可选：Docker 网络名称
-HR_NETWORK=hr-network
-```
-
-启动服务：
+#### 2. 启动服务
 
 ```bash
 docker-compose up -d
 ```
 
-**注意：**
-- PostgreSQL 数据库默认凭证：`hr_user` / `hr_password`，数据库名：`hr_agent_test`
-- 生产环境请修改默认密码，通过设置 `POSTGRES_PASSWORD` 并更新 `DATABASE_URL`
-- postgres 服务包含健康检查，确保 HRA 在数据库就绪后才启动
+这将启动三个服务：
+- **postgres** - PostgreSQL 数据库（带健康检查）
+- **open-hr-agent** - 后端 API 服务（端口 3000）
+- **hr-agent-web** - 前端 Web UI（端口 80）
 
-### 环境变量配置
+#### 3. 验证部署
+
+```bash
+# 查看服务状态
+docker-compose ps
+
+# 查看日志
+docker-compose logs -f open-hr-agent
+```
+
+### 环境变量
 
 | 变量名 | 说明 | 必需 | 默认值 |
 |--------|------|------|--------|
-| `DATABASE_URL` | PostgreSQL 数据库连接字符串 | 是 | - |
-| `GITHUB_WEBHOOK_SECRET` | GitHub webhook secret，用于签名验证 | 是 | - |
-| `DOCKER_CA_SECRET` | 用于 coding agent 管理的密钥 | 是 | - |
-| `HR_NETWORK` | Docker 网络名称，用于 agent 容器 | 否 | `hr-network` |
-| `PORT` | 服务端口 | 否 | 3000 |
+| `DATABASE_URL` | PostgreSQL 连接字符串（通过 secret） | 是 | - |
+| `GITHUB_WEBHOOK_SECRET` | GitHub webhook secret（通过 secret） | 是 | - |
+| `DOCKER_CA_SECRET` | Coding agent 管理密钥（通过 secret） | 是 | - |
+| `CSP_DOMAIN` | 内容安全策略域名（通过 secret） | 是 | - |
+| `HR_NETWORK` | Docker 网络名称 | 否 | `hr-network` |
+| `PORT` | 后端服务端口 | 否 | 3000 |
+| `HRA_URL` | 前端访问的后端 URL | 否 | `http://open-hr-agent:3000` |
+
+### 安全特性
+
+Docker Compose 配置包含：
+- **Docker Secrets** - 敏感数据存储在文件中，而非环境变量
+- **资源限制** - 每个服务的 CPU 和内存约束
+- **能力削减** - 最小化容器能力（`cap_drop: ALL`）
+- **禁止提权** - 防止权限提升
+- **健康检查** - 确保数据库就绪后再启动应用
+
+### 生产环境注意事项
+
+1. **修改默认密码** - 使用强密码更新所有 secrets
+2. **配置备份** - 设置 PostgreSQL 数据卷备份
+3. **配置 SSL/TLS** - 使用反向代理（nginx/traefik）实现 HTTPS
+4. **审查资源限制** - 根据工作负载调整 CPU/内存配置
 
 ### GitHub Webhook 配置
 

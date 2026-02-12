@@ -26,10 +26,12 @@ vi.mock('@prisma/client', () => {
       findMany: vi.fn().mockResolvedValue([]),
       findFirst: vi.fn().mockResolvedValue(null),
       findUnique: vi.fn().mockResolvedValue(null),
-      update: vi.fn().mockImplementation((data: { where: { id: number }; data: { caName?: string } }) => ({
-        id: data.where.id,
-        caName: data.data.caName ?? 'test-ca'
-      })),
+      update: vi
+        .fn()
+        .mockImplementation((data: { where: { id: number }; data: { caName?: string } }) => ({
+          id: data.where.id,
+          caName: data.data.caName ?? 'test-ca'
+        })),
       count: vi.fn().mockResolvedValue(0)
     },
     codingAgentLog: {

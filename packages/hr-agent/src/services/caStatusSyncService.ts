@@ -15,7 +15,9 @@ export class CAStatusSyncService {
 
     this.isRunning = true;
     this.scheduleNextSync();
-    console.log(`[CAStatusSync] Started with initial interval: ${TASK_CONFIG.CA_STATUS_CHECK_INTERVALS[0]}ms`);
+    console.log(
+      `[CAStatusSync] Started with initial interval: ${TASK_CONFIG.CA_STATUS_CHECK_INTERVALS[0]}ms`
+    );
   }
 
   stop(): void {
@@ -211,7 +213,11 @@ export class CAStatusSyncService {
     });
   }
 
-  private async updateCAContainerId(caId: number, containerId: string, timestamp: number): Promise<void> {
+  private async updateCAContainerId(
+    caId: number,
+    containerId: string,
+    timestamp: number
+  ): Promise<void> {
     const prisma = getPrismaClient();
     await prisma.codingAgent.update({
       where: { id: caId },
