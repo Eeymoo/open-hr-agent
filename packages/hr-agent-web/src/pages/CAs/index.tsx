@@ -26,6 +26,7 @@ import {
   useUpdateCodingAgent,
   useDeleteCodingAgent
 } from '../../hooks/useCAs';
+import { useConfig } from '../../hooks/useConfig';
 import { useSearchParams } from 'react-router-dom';
 import { formatDate } from '../../utils/formatters';
 import {
@@ -53,6 +54,7 @@ interface CAsListProps {
   createCA: ReturnType<typeof useCreateCodingAgent>;
   updateCA: ReturnType<typeof useUpdateCodingAgent>;
   deleteCA: ReturnType<typeof useDeleteCodingAgent>;
+  caNamePrefix: string;
 }
 
 const getCAColumns = (
@@ -155,7 +157,8 @@ function CAsListContent({
   isLoading,
   createCA,
   updateCA,
-  deleteCA
+  deleteCA,
+  caNamePrefix
 }: CAsListProps) {
   const [searchText, setSearchText] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -184,7 +187,8 @@ function CAsListContent({
 
   const handleCreate = async (values: CreateCAFormData) => {
     try {
-      await createCA.mutateAsync(values);
+      const prefixedName = `${caNamePrefix}${values.caName}`;
+      await createCA.mutateAsync({ ...values, caName: prefixedName });
       setModalOpen(false);
       form.resetFields();
       message.success('创建成功');
@@ -311,7 +315,7 @@ function CAsListContent({
       >
         <Form form={form} layout="vertical" onFinish={handleCreate}>
           <Form.Item name="caName" label="名称" rules={[{ required: true, message: '请输入名称' }]}>
-            <Input placeholder="请输入 CA 名称" />
+            <Input addonBefore={caNamePrefix} placeholder="请输入 CA 名称" />
           </Form.Item>
           <Form.Item name="status" label="状态" initialValue="pending">
             <Input placeholder="pending, running, idle, error, etc." />
@@ -404,12 +408,14 @@ export function CAsList() {
   const pageSize = parseInt(searchParams.get('pageSize') || '10', 10);
 
   const { data, isLoading } = useCodingAgents({ page, pageSize, orderBy: 'createdAt_desc' });
+  const { data: config } = useConfig();
   const createCA = useCreateCodingAgent();
   const updateCA = useUpdateCodingAgent();
   const deleteCA = useDeleteCodingAgent();
 
   const cas = data?.cas || [];
   const pagination = data?.pagination;
+  const caNamePrefix = config?.caNamePrefix ?? '';
 
   return (
     <CAsListContent
@@ -421,6 +427,7 @@ export function CAsList() {
       createCA={createCA}
       updateCA={updateCA}
       deleteCA={deleteCA}
+      caNamePrefix={caNamePrefix}
     />
   );
 }
