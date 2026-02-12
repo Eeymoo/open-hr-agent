@@ -62,7 +62,12 @@ function isValidRouteFile(item: string): boolean {
     return false;
   }
 
-  if (item.endsWith('.test.ts') || item.endsWith('.test.js') || item.endsWith('.spec.ts') || item.endsWith('.spec.js')) {
+  if (
+    item.endsWith('.test.ts') ||
+    item.endsWith('.test.js') ||
+    item.endsWith('.spec.ts') ||
+    item.endsWith('.spec.js')
+  ) {
     return false;
   }
 

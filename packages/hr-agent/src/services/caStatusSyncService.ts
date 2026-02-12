@@ -15,7 +15,9 @@ export class CAStatusSyncService {
 
     this.isRunning = true;
     this.scheduleNextSync();
-    console.log(`[CAStatusSync] Started with initial interval: ${TASK_CONFIG.CA_STATUS_CHECK_INTERVALS[0]}ms`);
+    console.log(
+      `[CAStatusSync] Started with initial interval: ${TASK_CONFIG.CA_STATUS_CHECK_INTERVALS[0]}ms`
+    );
   }
 
   stop(): void {
@@ -66,12 +68,8 @@ export class CAStatusSyncService {
     try {
       const results = await this.syncAllCA();
 
-      const {
-        syncedCount,
-        inconsistenciesFound,
-        errorCount,
-        notFoundCount
-      } = this.summarizeResults(results);
+      const { syncedCount, inconsistenciesFound, errorCount, notFoundCount } =
+        this.summarizeResults(results);
 
       console.log('[CAStatusSync] Sync completed:');
       console.log(`  - Total checked: ${results.length}`);
@@ -144,7 +142,11 @@ export class CAStatusSyncService {
       }
 
       if (!dockerContainer && !caRecord.containerId) {
-        if (caRecord.status === 'error' || caRecord.status === 'destroying' || caRecord.status === 'not_found') {
+        if (
+          caRecord.status === 'error' ||
+          caRecord.status === 'destroying' ||
+          caRecord.status === 'not_found'
+        ) {
           return result;
         }
 
@@ -211,7 +213,11 @@ export class CAStatusSyncService {
     });
   }
 
-  private async updateCAContainerId(caId: number, containerId: string, timestamp: number): Promise<void> {
+  private async updateCAContainerId(
+    caId: number,
+    containerId: string,
+    timestamp: number
+  ): Promise<void> {
     const prisma = getPrismaClient();
     await prisma.codingAgent.update({
       where: { id: caId },

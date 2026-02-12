@@ -77,10 +77,7 @@ export default async function restartCARoute(req: Request, res: Response): Promi
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     res.json(
-      new Result().error(
-        HTTP.INTERNAL_SERVER_ERROR,
-        `Failed to restart container: ${errorMessage}`
-      )
+      new Result().error(HTTP.INTERNAL_SERVER_ERROR, `Failed to restart container: ${errorMessage}`)
     );
   }
 }
