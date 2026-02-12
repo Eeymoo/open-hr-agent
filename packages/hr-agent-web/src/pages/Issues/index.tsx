@@ -5,6 +5,7 @@ import { useIssues, useCreateIssue } from '../../hooks/useIssues';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Issue } from '../../types/issue';
 import { formatDate, getIssueStatusTag } from '../../utils/formatters';
+import { ListHeader } from '../../components/ListHeader';
 
 import './index.css';
 
@@ -145,24 +146,20 @@ function IssuesListContent({
 
   return (
     <div className="issues-list">
-      <div className="issues-header">
-        <div className="header-left">
-          <h2>Issues 列表</h2>
-          <span className="issue-count">共 {pagination?.total || 0} 个 Issue</span>
-        </div>
-        <Space>
-          <Input.Search
-            placeholder="搜索 Issue ID 或标题"
-            allowClear
-            style={{ width: 300 }}
-            onSearch={handleSearch}
-            onChange={(e) => setSearchText(e.target.value)}
-          />
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
-            添加 Issue
-          </Button>
-        </Space>
-      </div>
+      <ListHeader
+        title="Issues 列表"
+        count={pagination?.total || 0}
+        countLabel="个 Issue"
+        searchPlaceholder="搜索 Issue ID 或标题"
+        searchValue={searchText}
+        onSearchChange={setSearchText}
+        onSearch={handleSearch}
+        actionButton={{
+          icon: <PlusOutlined />,
+          text: '添加 Issue',
+          onClick: () => setModalOpen(true)
+        }}
+      />
 
       <Card className="issues-card">
         {filteredIssues.length === 0 ? (
@@ -172,6 +169,7 @@ function IssuesListContent({
             dataSource={filteredIssues}
             columns={columns}
             rowKey="id"
+            scroll={{ x: 'max-content' }}
             pagination={{
               current: page,
               pageSize,
