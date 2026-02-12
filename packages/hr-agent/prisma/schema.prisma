@@ -73,6 +73,7 @@ model Task {
   type         String
   status       String      @default("planned")
   priority     Int         @default(0)
+  tags         String[]    @default([])
   issueId      Int?
   issue        Issue?      @relation(fields: [issueId], references: [id])
   prId         Int?

@@ -15,6 +15,7 @@ interface CreateTaskBody {
   type: string;
   status?: string;
   priority?: number;
+  tags?: string[];
   issueId?: number;
   prId?: number;
   caId?: number;

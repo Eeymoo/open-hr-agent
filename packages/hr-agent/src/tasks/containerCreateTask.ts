@@ -1,12 +1,13 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
+import { TASK_TAGS } from '../config/taskTags.js';
 import { getPrismaClient, getCurrentTimestamp } from '../utils/database.js';
 import { createContainer } from '../utils/docker/createContainer.js';
 
 export class ContainerCreateTask extends BaseTask {
   readonly name = 'container_create';
   readonly dependencies: string[] = [];
-  readonly needsCA = false;
+  readonly tags = [TASK_TAGS.MANAGES_CA];
 
   async execute(params: Record<string, unknown>, context: TaskContext): Promise<TaskResult> {
     await this.validateParams(params, ['caId', 'caName']);

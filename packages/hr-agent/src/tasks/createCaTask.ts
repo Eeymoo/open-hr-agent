@@ -1,11 +1,12 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
+import { TASK_TAGS } from '../config/taskTags.js';
 import { getContainerByName } from '../utils/docker/getContainer.js';
 
 export class CreateCaTask extends BaseTask {
   readonly name = 'create_ca';
   readonly dependencies: string[] = [];
-  readonly needsCA = true;
+  readonly tags = [TASK_TAGS.MANAGES_CA];
 
   async execute(params: Record<string, unknown>, context: TaskContext): Promise<TaskResult> {
     await this.validateParams(params, ['issueNumber', 'caName']);

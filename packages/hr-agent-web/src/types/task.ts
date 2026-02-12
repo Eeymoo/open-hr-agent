@@ -7,6 +7,7 @@ export interface Task {
   type: string;
   status: TaskStatus;
   priority: number;
+  tags: string[];
   issueId?: number;
   issue?: Issue;
   prId?: number;
@@ -38,6 +39,7 @@ export interface CreateTaskDto {
   type: string;
   status?: TaskStatus;
   priority?: number;
+  tags?: string[];
   issueId?: number;
   prId?: number;
   caId?: number;
@@ -47,6 +49,7 @@ export interface CreateTaskDto {
 export interface UpdateTaskDto {
   status?: TaskStatus;
   priority?: number;
+  tags?: string[];
   metadata?: Record<string, unknown>;
 }
 

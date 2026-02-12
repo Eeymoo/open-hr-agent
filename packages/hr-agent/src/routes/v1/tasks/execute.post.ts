@@ -15,6 +15,7 @@ interface ExecuteTaskBody {
   priority?: number;
   issueId?: number;
   prId?: number;
+  tags?: string[];
 }
 
 declare global {
