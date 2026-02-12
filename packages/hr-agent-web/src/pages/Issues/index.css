@@ -6,44 +6,73 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .header-left h2 {
   margin: 0;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--text-primary);
 }
 
 .issue-count {
   margin-left: 12px;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--text-secondary);
 }
 
 .issues-card {
-  background: rgba(30, 30, 30, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glass);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-glass);
 }
 
 .issues-card .ant-card-body {
-  padding: 20px;
+  padding: 0;
+}
+
+.issues-card .ant-table {
+  background: transparent !important;
+}
+
+.issues-card .ant-table-thead > tr > th {
+  background: var(--bg-glass-light) !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-glass) !important;
+}
+
+.issues-card .ant-table-tbody > tr > td {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--border-glass) !important;
+  transition: all 0.3s ease;
+}
+
+.issues-card .ant-table-tbody > tr:hover > td {
+  background: var(--bg-glass-hover) !important;
 }
 
 .issue-id {
   font-weight: 600;
-  color: #9333ea;
+  color: var(--purple-light);
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .issue-title-link {
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--text-primary);
   font-weight: 500;
-  transition: color 0.2s;
+  transition: all 0.3s ease;
 }
 
 .issue-title-link:hover {
-  color: #9333ea;
+  color: var(--purple-light);
+  text-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
 }
 
 .issues-loading {
@@ -51,4 +80,28 @@
   justify-content: center;
   align-items: center;
   min-height: 400px;
+}
+
+.issues-card .ant-empty-description {
+  color: var(--text-secondary) !important;
+}
+
+@media (max-width: 768px) {
+  .issues-list {
+    padding: 16px;
+  }
+
+  .header-left h2 {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 375px) {
+  .issues-list {
+    padding: 12px;
+  }
+
+  .header-left h2 {
+    font-size: 16px;
+  }
 }

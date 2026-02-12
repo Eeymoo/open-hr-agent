@@ -1,40 +1,79 @@
 .task-card {
   background: var(--bg-glass) !important;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-glass) !important;
   border-radius: 16px !important;
   transition: all 0.3s ease;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.task-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02), transparent);
+  pointer-events: none;
 }
 
 .task-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(147, 51, 234, 0.2);
-  border-color: rgba(147, 51, 234, 0.3) !important;
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-glow), var(--shadow-glass);
+  border-color: var(--border-glow) !important;
 }
 
 .task-card.task-running {
-  border-color: rgba(147, 51, 234, 0.4) !important;
-  box-shadow: 0 0 20px rgba(147, 51, 234, 0.15);
+  border-color: var(--border-glow-strong) !important;
+  box-shadow: var(--shadow-glow), var(--shadow-card);
+}
+
+.task-card.task-running::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--purple-main), var(--accent-cyan), var(--purple-main));
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .task-id {
   font-size: 13px;
   color: var(--text-secondary);
   font-weight: 500;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .status-tag {
   border-radius: 8px !important;
   font-size: 12px;
-  padding: 2px 10px !important;
+  padding: 3px 12px !important;
   font-weight: 500;
+  border: 1px solid transparent;
 }
 
 .priority-tag {
   border-radius: 8px !important;
   font-size: 12px;
-  padding: 2px 10px !important;
+  padding: 3px 12px !important;
+  border: 1px solid transparent;
 }
 
 .action-btn {
@@ -43,52 +82,53 @@
 }
 
 .action-btn:hover {
-  color: var(--text-primary);
-  background: rgba(147, 51, 234, 0.15);
+  color: var(--purple-light);
+  background: rgba(139, 92, 246, 0.15);
   border-radius: 8px;
 }
 
 .task-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .task-type {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 15px;
   color: var(--text-primary);
   font-weight: 600;
 }
 
 .type-icon {
-  color: var(--purple-main);
+  color: var(--purple-light);
   font-size: 18px;
+  filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.4));
 }
 
 .task-progress {
-  padding: 12px;
-  background: rgba(147, 51, 234, 0.08);
+  padding: 14px;
+  background: rgba(139, 92, 246, 0.06);
   border-radius: 12px;
-  border: 1px solid rgba(147, 51, 234, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.12);
 }
 
 .progress-header {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
+  gap: 8px;
+  margin-bottom: 10px;
   font-size: 12px;
-  color: var(--purple-main);
+  color: var(--purple-light);
   font-weight: 500;
 }
 
 .task-links {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .task-link {
@@ -102,17 +142,18 @@
   height: auto;
   color: var(--text-secondary);
   font-size: 13px;
+  transition: all 0.3s ease;
 }
 
 .link-btn:hover {
-  color: var(--purple-main);
+  color: var(--purple-light);
 }
 
 .task-meta {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding-top: 8px;
+  gap: 8px;
+  padding-top: 12px;
   border-top: 1px solid var(--border-glass);
   font-size: 12px;
   color: var(--text-muted);
@@ -124,11 +165,11 @@
 
 @media (max-width: 768px) {
   .task-card {
-    border-radius: 12px !important;
+    border-radius: 14px !important;
   }
 
   .task-content {
-    gap: 10px;
+    gap: 12px;
   }
 
   .task-type {
@@ -140,13 +181,13 @@
   }
 
   .task-progress {
-    padding: 10px;
-    border-radius: 8px;
+    padding: 12px;
+    border-radius: 10px;
   }
 
   .progress-header {
     font-size: 11px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
 
   .link-btn {
@@ -155,7 +196,7 @@
 
   .task-meta {
     font-size: 11px;
-    padding-top: 6px;
+    padding-top: 10px;
   }
 }
 
@@ -165,7 +206,7 @@
   }
 
   .task-content {
-    gap: 8px;
+    gap: 10px;
   }
 
   .task-type {
@@ -173,6 +214,6 @@
   }
 
   .type-icon {
-    font-size: 16px;
+    font-size: 15px;
   }
 }
