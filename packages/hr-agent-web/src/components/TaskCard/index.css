@@ -108,6 +108,20 @@
   filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.4));
 }
 
+.task-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.task-tags .ant-tag {
+  margin: 0;
+  border-radius: 6px;
+  font-size: 11px;
+  padding: 2px 10px;
+  border: 1px solid transparent;
+}
+
 .task-progress {
   padding: 14px;
   background: rgba(139, 92, 246, 0.06);

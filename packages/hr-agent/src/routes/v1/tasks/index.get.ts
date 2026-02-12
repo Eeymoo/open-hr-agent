@@ -25,6 +25,7 @@ function parseQueryParams(req: Request): {
   issueId?: number;
   prId?: number;
   caId?: number;
+  tags?: string[];
 } {
   const rawPage = Number(req.query.page);
   const page = Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1;
@@ -38,6 +39,15 @@ function parseQueryParams(req: Request): {
     ? rawOrderBy
     : 'createdAt';
 
+  let tags: string[] | undefined;
+  if (req.query.tags) {
+    if (Array.isArray(req.query.tags)) {
+      tags = req.query.tags as string[];
+    } else {
+      tags = (req.query.tags as string).split(',').filter(Boolean);
+    }
+  }
+
   return {
     page,
     pageSize,
@@ -47,7 +57,8 @@ function parseQueryParams(req: Request): {
     type: req.query.type as string,
     issueId: req.query.issueId ? parseInt(req.query.issueId as string, 10) : undefined,
     prId: req.query.prId ? parseInt(req.query.prId as string, 10) : undefined,
-    caId: req.query.caId ? parseInt(req.query.caId as string, 10) : undefined
+    caId: req.query.caId ? parseInt(req.query.caId as string, 10) : undefined,
+    tags
   };
 }
 
@@ -64,7 +75,8 @@ function buildWhereClause(params: ReturnType<typeof parseQueryParams>): Record<s
     ...(params.type && { type: params.type }),
     ...(params.issueId && { issueId: params.issueId }),
     ...(params.prId && { prId: params.prId }),
-    ...(params.caId && { caId: params.caId })
+    ...(params.caId && { caId: params.caId }),
+    ...(params.tags && params.tags.length > 0 && { tags: { hasSome: params.tags } })
   };
 }
 

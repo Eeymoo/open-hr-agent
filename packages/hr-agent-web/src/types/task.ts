@@ -63,6 +63,7 @@ export interface TaskQueryParams {
   issueId?: number;
   prId?: number;
   caId?: number;
+  tags?: string[];
 }
 
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
@@ -105,4 +106,22 @@ export const PRIORITY_COLORS: Record<number, string> = {
   0: 'default',
   50: 'processing',
   100: 'error'
+};
+
+export const TASK_TAG_LABELS: Record<string, string> = {
+  'requires:ca': '需要CA',
+  'manages:ca': '管理CA',
+  'agent:coding': 'AI编码',
+  'agent:review': 'AI审查',
+  'agent:test': 'AI测试',
+  'runtime:long': '长任务'
+};
+
+export const TASK_TAG_COLORS: Record<string, string> = {
+  'requires:ca': 'blue',
+  'manages:ca': 'green',
+  'agent:coding': 'purple',
+  'agent:review': 'orange',
+  'agent:test': 'cyan',
+  'runtime:long': 'red'
 };

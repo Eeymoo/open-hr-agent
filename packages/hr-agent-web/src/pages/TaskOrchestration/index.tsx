@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Button, Radio, Space, Empty, Spin } from 'antd';
+import { Button, Radio, Space, Empty, Spin, Select } from 'antd';
 import {
   PlusOutlined,
   TableOutlined,
   AppstoreOutlined,
-  DashboardOutlined
+  DashboardOutlined,
+  FilterOutlined
 } from '@ant-design/icons';
 import { TaskCard } from '../../components/TaskCard';
 import { TaskTable } from '../../components/TaskTable';
@@ -13,10 +14,60 @@ import { TaskModal } from '../../components/TaskModal';
 import { StatsDashboard } from '../../components/StatsDashboard';
 import { TaskKanban } from '../../components/TaskKanban';
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '../../hooks/useTasks';
-import type { Task, CreateTaskDto, UpdateTaskDto } from '../../types/task';
+import { TASK_TAG_LABELS, type Task, type CreateTaskDto, type UpdateTaskDto } from '../../types/task';
 import './index.css';
 
 type ViewMode = 'card' | 'table' | 'kanban';
+
+const DEFAULT_FILTER_TAGS = ['requires:ca', 'agent:coding', 'agent:review', 'agent:test'];
+
+const TAG_OPTIONS = Object.entries(TASK_TAG_LABELS).map(([value, label]) => ({
+  value,
+  label
+}));
+
+interface TaskListViewProps {
+  tasks: Task[];
+  viewMode: ViewMode;
+  onTaskClick: (task: Task) => void;
+  onEdit: (task: Task) => void;
+  onDelete: (task: Task) => void;
+}
+
+function TaskListView({ tasks, viewMode, onTaskClick, onEdit, onDelete }: TaskListViewProps) {
+  if (tasks.length === 0) {
+    return <Empty description="暂无任务" image={Empty.PRESENTED_IMAGE_SIMPLE} />;
+  }
+
+  if (viewMode === 'kanban') {
+    return (
+      <TaskKanban
+        tasks={tasks}
+        onTaskClick={onTaskClick}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+    );
+  }
+
+  if (viewMode === 'card') {
+    return (
+      <div className="task-cards">
+        {tasks.map((task) => (
+          <TaskCard
+            key={task.id}
+            task={task}
+            onClick={() => onTaskClick(task)}
+            onEdit={() => onEdit(task)}
+            onDelete={() => onDelete(task)}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return <TaskTable onTaskClick={onTaskClick} />;
+}
 
 export function TaskOrchestration() {
   const [viewMode, setViewMode] = useState<ViewMode>('kanban');
@@ -24,8 +75,9 @@ export function TaskOrchestration() {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [filterTags, setFilterTags] = useState<string[]>(DEFAULT_FILTER_TAGS);
 
-  const { data, isLoading } = useTasks();
+  const { data, isLoading } = useTasks({ tags: filterTags });
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
@@ -90,6 +142,19 @@ export function TaskOrchestration() {
             <span className="task-count">{tasks.length} 个任务</span>
           </div>
           <Space>
+            <div className="filter-container">
+              <FilterOutlined className="filter-icon" />
+              <Select
+                mode="multiple"
+                allowClear
+                placeholder="筛选标签"
+                value={filterTags}
+                onChange={setFilterTags}
+                options={TAG_OPTIONS}
+                className="tag-filter"
+                maxTagCount="responsive"
+              />
+            </div>
             <Radio.Group
               value={viewMode}
               onChange={(e) => setViewMode(e.target.value)}
@@ -117,30 +182,13 @@ export function TaskOrchestration() {
           </Space>
         </div>
 
-        {tasks.length === 0 ? (
-          <Empty description="暂无任务" image={Empty.PRESENTED_IMAGE_SIMPLE} />
-        ) : viewMode === 'kanban' ? (
-          <TaskKanban
-            tasks={tasks}
-            onTaskClick={handleTaskClick}
-            onEdit={handleEditTask}
-            onDelete={handleDeleteTask}
-          />
-        ) : viewMode === 'card' ? (
-          <div className="task-cards">
-            {tasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onClick={() => handleTaskClick(task)}
-                onEdit={() => handleEditTask(task)}
-                onDelete={() => handleDeleteTask(task)}
-              />
-            ))}
-          </div>
-        ) : (
-          <TaskTable onTaskClick={handleTaskClick} />
-        )}
+        <TaskListView
+          tasks={tasks}
+          viewMode={viewMode}
+          onTaskClick={handleTaskClick}
+          onEdit={handleEditTask}
+          onDelete={handleDeleteTask}
+        />
       </div>
 
       <TaskFormModal
