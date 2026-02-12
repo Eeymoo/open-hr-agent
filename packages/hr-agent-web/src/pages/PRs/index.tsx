@@ -5,6 +5,7 @@ import { usePRs, useCreatePR } from '../../hooks/usePRs';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { PullRequest } from '../../types/pr';
 import { formatDate, getPRStatusTag } from '../../utils/formatters';
+import { ListHeader } from '../../components/ListHeader';
 
 import './index.css';
 
@@ -145,24 +146,20 @@ function PRsListContent({
 
   return (
     <div className="prs-list">
-      <div className="prs-header">
-        <div className="header-left">
-          <h2>Pull Requests 列表</h2>
-          <span className="pr-count">共 {pagination?.total || 0} 个 PR</span>
-        </div>
-        <Space>
-          <Input.Search
-            placeholder="搜索 PR ID 或标题"
-            allowClear
-            style={{ width: 300 }}
-            onSearch={handleSearch}
-            onChange={(e) => setSearchText(e.target.value)}
-          />
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
-            添加 PR
-          </Button>
-        </Space>
-      </div>
+      <ListHeader
+        title="Pull Requests 列表"
+        count={pagination?.total || 0}
+        countLabel="个 PR"
+        searchPlaceholder="搜索 PR ID 或标题"
+        searchValue={searchText}
+        onSearchChange={setSearchText}
+        onSearch={handleSearch}
+        actionButton={{
+          icon: <PlusOutlined />,
+          text: '添加 PR',
+          onClick: () => setModalOpen(true)
+        }}
+      />
 
       <Card className="prs-card">
         {filteredPRs.length === 0 ? (
@@ -172,6 +169,7 @@ function PRsListContent({
             dataSource={filteredPRs}
             columns={columns}
             rowKey="id"
+            scroll={{ x: 'max-content' }}
             pagination={{
               current: page,
               pageSize,

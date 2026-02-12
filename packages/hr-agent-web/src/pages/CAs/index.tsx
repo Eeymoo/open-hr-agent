@@ -34,6 +34,7 @@ import {
   CA_STATUS_LABELS,
   CA_STATUS_COLORS
 } from '../../types/ca';
+import { ListHeader } from '../../components/ListHeader';
 
 import './index.css';
 
@@ -262,24 +263,20 @@ function CAsListContent({
 
   return (
     <div className="cas-list">
-      <div className="cas-header">
-        <div className="header-left">
-          <h2>Coding Agents 列表</h2>
-          <span className="ca-count">共 {pagination?.total || 0} 个 Coding Agent</span>
-        </div>
-        <Space>
-          <Input.Search
-            placeholder="搜索 ID 或名称"
-            allowClear
-            style={{ width: 300 }}
-            onSearch={handleSearch}
-            onChange={(e) => setSearchText(e.target.value)}
-          />
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
-            添加 CA
-          </Button>
-        </Space>
-      </div>
+      <ListHeader
+        title="Coding Agents 列表"
+        count={pagination?.total || 0}
+        countLabel="个 Coding Agent"
+        searchPlaceholder="搜索 ID 或名称"
+        searchValue={searchText}
+        onSearchChange={setSearchText}
+        onSearch={handleSearch}
+        actionButton={{
+          icon: <PlusOutlined />,
+          text: '添加 CA',
+          onClick: () => setModalOpen(true)
+        }}
+      />
 
       <Card className="cas-card">
         {filteredCAs.length === 0 ? (
@@ -289,6 +286,7 @@ function CAsListContent({
             dataSource={filteredCAs}
             columns={columns}
             rowKey="id"
+            scroll={{ x: 'max-content' }}
             pagination={{
               current: page,
               pageSize,
