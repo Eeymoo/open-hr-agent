@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import Result from '../../../utils/Result.js';
 import { getPrismaClient, setTimestamps } from '../../../utils/database.js';
 import { CONTAINER_TASK_PRIORITIES } from '../../../config/taskPriorities.js';
+import { TASK_CONFIG } from '../../../config/taskConfig.js';
 
 declare global {
   var taskManager: import('../../../services/taskManager.js').TaskManager;
@@ -18,6 +19,14 @@ interface CreateCABody {
   dockerConfig?: unknown;
 }
 
+function normalizeCAName(name: string): string {
+  const prefix = TASK_CONFIG.CA_NAME_PREFIX;
+  if (name.startsWith(prefix)) {
+    return name;
+  }
+  return `${prefix}${name}`;
+}
+
 export default async function createCodingAgentRoute(req: Request, res: Response): Promise<void> {
   const prisma = getPrismaClient();
   const body = req.body as CreateCABody;
@@ -27,9 +36,11 @@ export default async function createCodingAgentRoute(req: Request, res: Response
     return;
   }
 
+  const caName = normalizeCAName(body.caName);
+
   try {
     const existingCA = await prisma.codingAgent.findUnique({
-      where: { caName: body.caName }
+      where: { caName }
     });
 
     if (existingCA?.deletedAt === -2) {
@@ -38,7 +49,7 @@ export default async function createCodingAgentRoute(req: Request, res: Response
     }
 
     const caData = setTimestamps({
-      caName: body.caName,
+      caName,
       containerId: null,
       status: 'pending_create',
       dockerConfig: body.dockerConfig ?? undefined,
