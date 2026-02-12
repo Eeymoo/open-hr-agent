@@ -135,137 +135,82 @@ pnpm run check
 
 ### Docker Deployment (Recommended)
 
-#### Using GitHub Container Registry
+The project uses Docker Compose with Docker secrets for secure secret management.
+
+#### 1. Configure Secrets
+
+Create the `secrets/` directory and required secret files:
 
 ```bash
-# Pull latest image
-docker pull ghcr.io/eeymoo/open-hr-agent:latest
+mkdir -p secrets
 
-# Run container
-docker run -d -p 3000:3000 \
-  --name open-hr-agent \
-  -e GITHUB_TOKEN=your_github_token \
-  -e MAX_CONCURRENT_AGENTS=3 \
-  ghcr.io/eeymoo/open-hr-agent:latest
+# Database connection URL
+echo "postgresql://hr_user:your_password@postgres:5432/hr_agent_test" > secrets/database_url.txt
+
+# PostgreSQL password
+echo "your_secure_password" > secrets/postgres_password.txt
+
+# GitHub webhook secret (from your GitHub repo settings)
+echo "your_webhook_secret" > secrets/github_webhook_secret.txt
+
+# Docker CA secret (for coding agent management)
+echo "your_ca_secret" > secrets/docker_ca_secret.txt
+
+# CSP domain (your domain for security policy)
+echo "https://your-domain.com" > secrets/csp_domain.txt
+
+# Set proper permissions
+chmod 600 secrets/*.txt
 ```
 
-#### Using Docker Compose
-
-Create `docker-compose.yml`:
-
-```yaml
-version: '3.8'
-
-services:
-  postgres:
-    image: postgres:18-alpine
-    container_name: hr-postgres
-    restart: always
-    environment:
-      POSTGRES_DB: hr_agent_test
-      POSTGRES_USER: hr_user
-      POSTGRES_PASSWORD: hr_password
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U hr_user -d hr_agent_test']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - hr-network
-
-  open-hr-agent:
-    image: ghcr.io/eeymoo/open-hr-agent:main
-    container_name: open-hr-agent
-    ports:
-      - "3000:3000"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:rw
-    user: root
-    environment:
-      - PUID=1000
-      - PGID=10
-      - PORT=3000
-      - DATABASE_URL=postgresql://hr_user:hr_password@postgres:5432/hr_agent_test
-      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
-      - DOCKER_CA_SECRET=${DOCKER_CA_SECRET}
-      - HR_NETWORK=${HR_NETWORK:-hr-network}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "100m"
-        max-file: "3"
-    tty: true
-    networks:
-      - hr-network
-
-volumes:
-  postgres_data:
-
-networks:
-  hr-network:
-    external: false
-```
-
-Create `.env` file for environment variables:
-
-```bash
-# GitHub Webhook Secret (required for webhook signature verification)
-GITHUB_WEBHOOK_SECRET=your_webhook_secret_here
-
-# Docker CA Secret (for coding agent management)
-DOCKER_CA_SECRET=your_docker_ca_secret_here
-
-# Optional: Docker network name
-HR_NETWORK=hr-network
-```
-
-Start service:
+#### 2. Start Services
 
 ```bash
 docker-compose up -d
 ```
 
-**Note:** 
-- PostgreSQL database credentials (default): `hr_user` / `hr_password` on database `hr_agent_test`
-- For production, change the default password by setting `POSTGRES_PASSWORD` and updating `DATABASE_URL`
-- The postgres service includes health checks to ensure it's ready before HRA starts
+This starts three services:
+- **postgres** - PostgreSQL database with health checks
+- **open-hr-agent** - Backend API service (port 3000)
+- **hr-agent-web** - Frontend web UI (port 80)
 
-#### Coding Agent Deployment Methods
+#### 3. Verify Deployment
 
-The Coding Agent supports three deployment methods:
-
-**Method 1: Mount Local Code Directory**
 ```bash
-CODE_PATH=/path/to/your/repo docker-compose up -d coding-agent
-```
+# Check service status
+docker-compose ps
 
-**Method 2: Clone GitHub Repository at Runtime**
-```bash
-GITHUB_REPO_URL=https://github.com/username/repo.git docker-compose up -d coding-agent
-```
-
-**Method 3: Start Empty Workspace (No Parameters)**
-```bash
-docker-compose up -d coding-agent
+# View logs
+docker-compose logs -f open-hr-agent
 ```
 
 ### Environment Variables
 
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
-| `DATABASE_URL` | PostgreSQL database connection string | Yes | - |
-| `GITHUB_WEBHOOK_SECRET` | GitHub webhook secret for signature verification | Yes | - |
-| `DOCKER_CA_SECRET` | Secret for coding agent management | Yes | - |
-| `HR_NETWORK` | Docker network name for agent containers | No | `hr-network` |
-| `PORT` | Service port | No | 3000 |
+| `DATABASE_URL` | PostgreSQL connection string (via secret) | Yes | - |
+| `GITHUB_WEBHOOK_SECRET` | GitHub webhook secret (via secret) | Yes | - |
+| `DOCKER_CA_SECRET` | Secret for coding agent management (via secret) | Yes | - |
+| `CSP_DOMAIN` | Content Security Policy domain (via secret) | Yes | - |
+| `HR_NETWORK` | Docker network name | No | `hr-network` |
+| `PORT` | Backend service port | No | 3000 |
+| `HRA_URL` | Backend URL for frontend | No | `http://open-hr-agent:3000` |
+
+### Security Features
+
+The Docker Compose configuration includes:
+- **Docker Secrets** - Sensitive data stored in files, not environment variables
+- **Resource Limits** - CPU and memory constraints per service
+- **Capability Dropping** - Minimal container capabilities (`cap_drop: ALL`)
+- **No New Privileges** - Prevents privilege escalation
+- **Health Checks** - Ensures database readiness before app starts
+
+### Production Considerations
+
+1. **Change default passwords** - Update all secrets with strong values
+2. **Configure backups** - Set up PostgreSQL data volume backups
+3. **Set up SSL/TLS** - Use reverse proxy (nginx/traefik) for HTTPS
+4. **Review resource limits** - Adjust CPU/memory based on your workload
 
 ### GitHub Webhook Configuration
 

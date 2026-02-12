@@ -415,7 +415,11 @@ export class CAResourceManager {
 
       if (!dockerContainer) {
         if (status === 'idle' || status === 'creating' || status === 'busy') {
-          await this.logger.warn(0, 'CAResourceManager', `CA ${caRecord.caName} 容器不存在，标记为 error`);
+          await this.logger.warn(
+            0,
+            'CAResourceManager',
+            `CA ${caRecord.caName} 容器不存在，标记为 error`
+          );
           await prisma.codingAgent.update({
             where: { id: caRecord.id },
             data: { status: 'error' }
