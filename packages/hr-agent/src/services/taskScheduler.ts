@@ -419,6 +419,59 @@ export class TaskScheduler {
     return taskId;
   }
 
+  async enqueueExistingTask(taskId: number): Promise<number> {
+    const prisma = getPrismaClient();
+
+    const taskRecord = await prisma.task.findFirst({
+      where: {
+        id: taskId,
+        deletedAt: -2,
+        status: TASK_STATUS.PLANNED
+      }
+    });
+
+    if (!taskRecord) {
+      throw new Error(`Task ${taskId} not found or not in planned status`);
+    }
+
+    await prisma.task.update({
+      where: { id: taskId },
+      data: {
+        status: TASK_STATUS.QUEUED,
+        updatedAt: getCurrentTimestamp()
+      }
+    });
+
+    const task = this.taskRegistry.get(taskRecord.type);
+    const now = getCurrentTimestamp();
+
+    this.taskQueue.enqueue({
+      taskId: taskRecord.id,
+      taskName: taskRecord.type,
+      params: (taskRecord.metadata as Record<string, unknown>) ?? {},
+      priority: taskRecord.priority,
+      issueId: taskRecord.issueId ?? undefined,
+      prId: taskRecord.prId ?? undefined,
+      retryCount: 0,
+      createdAt: now,
+      dependencies: task?.dependencies ?? []
+    });
+
+    await this.eventBus.emit(TASK_EVENTS.TASK_QUEUED, {
+      taskId: taskRecord.id,
+      taskName: taskRecord.type,
+      priority: taskRecord.priority
+    });
+
+    await this.logger.info(taskRecord.id, taskRecord.type, '任务已加入队列', {
+      priority: taskRecord.priority
+    });
+
+    await this.scheduleNext();
+
+    return taskRecord.id;
+  }
+
   async scheduleNext(): Promise<void> {
     if (!this.isRunning) {
       return;

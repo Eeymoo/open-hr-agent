@@ -50,4 +50,8 @@ export class TaskManager {
   async getStatus(): Promise<SchedulerStatus> {
     return this.scheduler.getStatus();
   }
+
+  async runExisting(taskId: number): Promise<number> {
+    return this.scheduler.enqueueExistingTask(taskId);
+  }
 }

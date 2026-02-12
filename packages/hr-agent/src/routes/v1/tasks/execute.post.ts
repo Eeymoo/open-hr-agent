@@ -3,13 +3,15 @@ import Result from '../../../utils/Result.js';
 
 const HTTP = {
   BAD_REQUEST: 400,
-  INTERNAL_SERVER_ERROR: 500
+  INTERNAL_SERVER_ERROR: 500,
+  NOT_FOUND: 404
 };
 
 interface ExecuteTaskBody {
+  taskId?: number;
   taskName?: string;
   uri?: string;
-  params: Record<string, unknown>;
+  params?: Record<string, unknown>;
   priority?: number;
   issueId?: number;
   prId?: number;
@@ -22,8 +24,39 @@ declare global {
 export default async function executeTaskRoute(req: Request, res: Response): Promise<void> {
   const body = req.body as ExecuteTaskBody;
 
+  if (body.taskId) {
+    try {
+      const manager = global.taskManager;
+
+      if (!manager) {
+        res.json(new Result().error(HTTP.INTERNAL_SERVER_ERROR, 'TaskManager 未初始化'));
+        return;
+      }
+
+      const taskId = await manager.runExisting(body.taskId);
+
+      res.json(
+        new Result({
+          taskId,
+          message: '任务已加入队列'
+        })
+      );
+      return;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      if (errorMessage.includes('not found')) {
+        res.json(new Result().error(HTTP.NOT_FOUND, errorMessage));
+        return;
+      }
+      res.json(
+        new Result().error(HTTP.INTERNAL_SERVER_ERROR, `Failed to execute task: ${errorMessage}`)
+      );
+      return;
+    }
+  }
+
   if (!body.taskName && !body.uri) {
-    res.json(new Result().error(HTTP.BAD_REQUEST, 'taskName 或 uri 必须提供一个'));
+    res.json(new Result().error(HTTP.BAD_REQUEST, 'taskName、uri 或 taskId 必须提供一个'));
     return;
   }
 
@@ -53,7 +86,7 @@ export default async function executeTaskRoute(req: Request, res: Response): Pro
     } else if (body.uri) {
       taskId = await manager.apiRun(body.uri, body.params);
     } else {
-      res.json(new Result().error(HTTP.BAD_REQUEST, 'taskName 或 uri 必须提供一个'));
+      res.json(new Result().error(HTTP.BAD_REQUEST, 'taskName、uri 或 taskId 必须提供一个'));
       return;
     }
 
