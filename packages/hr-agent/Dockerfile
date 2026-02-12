@@ -13,15 +13,6 @@ COPY packages/hr-agent/prisma ./packages/hr-agent/prisma
 
 RUN cd packages/hr-agent && pnpm exec prisma generate && pnpm run build
 
-FROM node:22.21.1-alpine AS prod-deps
-
-WORKDIR /app
-
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/hr-agent/package.json ./packages/hr-agent/
-
-RUN corepack enable && pnpm install --prod --no-frozen-lockfile --ignore-scripts
-
 FROM node:22.21.1-alpine
 
 WORKDIR /app
@@ -30,12 +21,15 @@ RUN apk add --no-cache openssl
 
 RUN addgroup -S nodejs && adduser -S nodeuser -G nodejs
 
-COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=builder /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma ./node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma
-COPY --from=builder /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma ./node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma
-COPY --from=builder /app/node_modules/.pnpm/@prisma+engines@5.22.0/node_modules/@prisma ./node_modules/.pnpm/@prisma+engines@5.22.0/node_modules/@prisma
-COPY --from=builder /app/packages/hr-agent/dist ./dist
 COPY packages/hr-agent/package.json ./package.json
+COPY packages/hr-agent/prisma ./prisma
+COPY pnpm-lock.yaml ./
+
+RUN corepack enable && pnpm install --prod --no-frozen-lockfile --ignore-scripts
+
+RUN pnpm add -D prisma@5.22.0 --ignore-scripts && pnpm exec prisma generate
+
+COPY --from=builder /app/packages/hr-agent/dist ./dist
 COPY packages/hr-agent/scripts/docker-entrypoint.sh ./docker-entrypoint.sh
 
 RUN chown -R nodeuser:nodejs /app && chmod +x docker-entrypoint.sh
