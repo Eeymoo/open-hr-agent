@@ -514,9 +514,14 @@ export class TaskScheduler {
       const ca = await this.allocateCAForTask(task);
 
       if (!ca) {
-        await this.logger.warn(task.taskId, 'Scheduler', 'CA 分配失败，任务重新入队，继续调度下一个任务', {
-          taskName: task.taskName
-        });
+        await this.logger.warn(
+          task.taskId,
+          'Scheduler',
+          'CA 分配失败，任务重新入队，继续调度下一个任务',
+          {
+            taskName: task.taskName
+          }
+        );
         this.taskQueue.enqueue(task);
         await this.scheduleNext();
         return;

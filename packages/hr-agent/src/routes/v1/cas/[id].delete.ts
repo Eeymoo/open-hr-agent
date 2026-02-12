@@ -39,9 +39,7 @@ export default async function deleteCodingAgentRoute(req: Request, res: Response
     }
 
     if (existingCA.status === 'pending_delete' || existingCA.status === 'destroying') {
-      res.json(
-        new Result().error(HTTP.BAD_REQUEST, 'Coding agent is already pending deletion')
-      );
+      res.json(new Result().error(HTTP.BAD_REQUEST, 'Coding agent is already pending deletion'));
       return;
     }
 
