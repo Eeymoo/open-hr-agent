@@ -13,39 +13,56 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .issue-card {
-  background: rgba(30, 30, 30, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glass);
+  border-radius: 16px;
+  box-shadow: var(--shadow-glass);
+  overflow: hidden;
+  position: relative;
+}
+
+.issue-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--purple-main), var(--accent-cyan));
 }
 
 .issue-card .ant-card-body {
-  padding: 24px;
+  padding: 28px;
 }
 
 .issue-card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-glass);
 }
 
 .issue-title {
   margin: 0;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--text-primary);
   line-height: 1.4;
 }
 
 .issue-number {
-  color: #9333ea;
+  color: var(--purple-light);
   font-weight: 700;
   margin-right: 8px;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .issue-status {
@@ -53,43 +70,104 @@
 }
 
 .issue-descriptions {
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .issue-descriptions .ant-descriptions-item-label {
-  background: rgba(147, 51, 234, 0.1);
-  color: rgba(255, 255, 255, 0.85);
+  background: var(--bg-glass-light);
+  color: var(--text-secondary);
   font-weight: 500;
+  border: 1px solid var(--border-glass);
 }
 
 .issue-descriptions .ant-descriptions-item-content {
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--text-primary);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-left: none;
 }
 
 .issue-descriptions a {
-  color: #9333ea;
+  color: var(--purple-light);
   word-break: break-all;
+  transition: all 0.3s ease;
+}
+
+.issue-descriptions a:hover {
+  color: var(--accent-cyan);
+  text-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
 }
 
 .issue-content {
-  margin-top: 24px;
+  margin-top: 28px;
   padding-top: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--border-glass);
 }
 
 .issue-content h3 {
-  margin: 0 0 12px 0;
+  margin: 0 0 16px 0;
   font-size: 16px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.issue-content h3::before {
+  content: '';
+  width: 4px;
+  height: 16px;
+  background: linear-gradient(180deg, var(--purple-main), var(--accent-cyan));
+  border-radius: 2px;
 }
 
 .issue-content-body {
-  padding: 16px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.85);
-  line-height: 1.6;
+  padding: 20px;
+  background: var(--bg-glass-light);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: 12px;
+  color: var(--text-primary);
+  line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+@media (max-width: 768px) {
+  .issue-detail {
+    padding: 16px;
+  }
+
+  .issue-card .ant-card-body {
+    padding: 20px;
+  }
+
+  .issue-title {
+    font-size: 20px;
+  }
+
+  .issue-card-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 375px) {
+  .issue-detail {
+    padding: 12px;
+  }
+
+  .issue-card .ant-card-body {
+    padding: 16px;
+  }
+
+  .issue-title {
+    font-size: 18px;
+  }
+
+  .issue-content-body {
+    padding: 16px;
+  }
 }

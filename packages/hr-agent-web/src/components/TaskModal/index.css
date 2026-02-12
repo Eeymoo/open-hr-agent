@@ -1,37 +1,40 @@
 .ant-modal {
-  background: var(--bg-glass-light) !important;
-  backdrop-filter: blur(16px);
+  background: var(--bg-glass-solid) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border-glass);
+  box-shadow: var(--shadow-glow), var(--shadow-glass);
 }
 
 .ant-modal-content {
   background: transparent !important;
-  border-radius: 16px !important;
+  border-radius: 20px !important;
+  overflow: hidden;
 }
 
 .ant-modal-header {
   background: transparent !important;
   border-bottom: 1px solid var(--border-glass) !important;
-  padding: 20px 24px !important;
-  border-radius: 16px 16px 0 0;
+  padding: 20px 28px !important;
+  border-radius: 20px 20px 0 0;
 }
 
 .ant-modal-title {
   color: var(--text-primary) !important;
-  font-size: 18px !important;
+  font-size: 20px !important;
   font-weight: 600 !important;
 }
 
 .ant-modal-body {
   background: transparent !important;
-  padding: 24px !important;
+  padding: 28px !important;
 }
 
 .ant-modal-footer {
   background: transparent !important;
   border-top: 1px solid var(--border-glass) !important;
-  padding: 16px 24px !important;
-  border-radius: 0 0 16px 16px;
+  padding: 18px 28px !important;
+  border-radius: 0 0 20px 20px;
 }
 
 .ant-modal-close-x {
@@ -40,18 +43,21 @@
 }
 
 .ant-modal-close-x:hover {
-  color: var(--text-primary) !important;
+  color: var(--purple-light) !important;
 }
 
 .ant-descriptions {
-  background: var(--bg-glass-light);
-  border-radius: 12px;
+  background: var(--bg-glass);
+  border-radius: 14px;
+  border: 1px solid var(--border-glass);
+  overflow: hidden;
 }
 
 .ant-descriptions-item-label {
-  background: transparent !important;
+  background: var(--bg-glass-light) !important;
   color: var(--text-secondary) !important;
   font-size: 13px;
+  font-weight: 500;
 }
 
 .ant-descriptions-item-content {
@@ -61,7 +67,12 @@
 }
 
 .ant-descriptions-bordered .ant-descriptions-item-label {
-  background: var(--bg-glass) !important;
+  background: var(--bg-glass-light) !important;
+  border-right: 1px solid var(--border-glass) !important;
+}
+
+.ant-descriptions-bordered .ant-descriptions-item-content {
+  border-bottom: 1px solid var(--border-glass) !important;
 }
 
 .ant-tabs {
@@ -71,6 +82,7 @@
 .ant-tabs-tab {
   color: var(--text-secondary) !important;
   transition: all 0.3s ease;
+  padding: 8px 16px !important;
 }
 
 .ant-tabs-tab:hover {
@@ -78,37 +90,63 @@
 }
 
 .ant-tabs-tab-active .ant-tabs-tab-btn {
-  color: var(--purple-main) !important;
+  color: var(--purple-light) !important;
   font-weight: 600 !important;
 }
 
 .ant-tabs-ink-bar {
-  background: var(--purple-main) !important;
+  background: linear-gradient(90deg, var(--purple-main), var(--purple-light)) !important;
+  height: 3px !important;
+  border-radius: 2px;
 }
 
 .ant-btn-primary {
-  background: var(--purple-main) !important;
-  border-color: var(--purple-main) !important;
+  background: linear-gradient(135deg, var(--purple-main), var(--purple-dark)) !important;
+  border-color: transparent !important;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .ant-btn-primary:hover {
-  background: var(--purple-light) !important;
-  border-color: var(--purple-light) !important;
+  background: linear-gradient(135deg, var(--purple-light), var(--purple-main)) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
+}
+
+.ant-btn-default {
+  background: var(--bg-glass-light) !important;
+  border-color: var(--border-glass) !important;
+  color: var(--text-primary) !important;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.ant-btn-default:hover {
+  background: var(--bg-glass-hover) !important;
+  border-color: var(--border-glass-hover) !important;
+  color: var(--text-primary) !important;
 }
 
 .ant-input {
   background: var(--bg-glass-light) !important;
   border: 1px solid var(--border-glass) !important;
   color: var(--text-primary) !important;
+  border-radius: 10px;
+  transition: all 0.3s ease;
 }
 
 .ant-input:hover {
-  border-color: var(--purple-main) !important;
+  border-color: var(--border-glass-hover) !important;
 }
 
 .ant-input:focus {
   border-color: var(--purple-main) !important;
-  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.1) !important;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12) !important;
+}
+
+.ant-input::placeholder {
+  color: var(--text-muted);
 }
 
 .ant-select {
@@ -118,19 +156,45 @@
 .ant-select-selector {
   background: var(--bg-glass-light) !important;
   border: 1px solid var(--border-glass) !important;
+  border-radius: 10px !important;
+  transition: all 0.3s ease;
 }
 
 .ant-select-selector:hover {
-  border-color: var(--purple-main) !important;
+  border-color: var(--border-glass-hover) !important;
 }
 
 .ant-select-focused .ant-select-selector {
   border-color: var(--purple-main) !important;
-  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.1) !important;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12) !important;
+}
+
+.ant-select-dropdown {
+  background: var(--bg-glass-solid) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glass);
+  border-radius: 12px;
+  box-shadow: var(--shadow-glass);
+}
+
+.ant-select-item {
+  color: var(--text-primary);
+}
+
+.ant-select-item-option-active {
+  background: var(--bg-glass-hover) !important;
+}
+
+.ant-select-item-option-selected {
+  background: rgba(139, 92, 246, 0.15) !important;
+  color: var(--purple-light);
 }
 
 .ant-input-number {
   background: var(--bg-glass-light) !important;
+  border: 1px solid var(--border-glass) !important;
+  border-radius: 10px;
 }
 
 .ant-input-number-input {
@@ -139,17 +203,18 @@
 }
 
 .ant-input-number:hover {
-  border-color: var(--purple-main) !important;
+  border-color: var(--border-glass-hover) !important;
 }
 
 .ant-input-number-focused {
   border-color: var(--purple-main) !important;
-  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.1) !important;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12) !important;
 }
 
 .ant-modal-wrap {
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .ant-empty-description {
@@ -157,11 +222,12 @@
 }
 
 .ant-empty-image {
-  filter: opacity(0.5);
+  filter: opacity(0.4);
 }
 
 .ant-form-item-label > label {
   color: var(--text-secondary) !important;
+  font-weight: 500;
 }
 
 .ant-typography {
@@ -176,7 +242,35 @@ pre {
   background: var(--bg-glass) !important;
   color: var(--text-secondary) !important;
   border: 1px solid var(--border-glass);
-  border-radius: 8px;
-  padding: 12px;
+  border-radius: 10px;
+  padding: 16px;
   overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.ant-tag {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.ant-card {
+  background: var(--bg-glass) !important;
+  border: 1px solid var(--border-glass) !important;
+  border-radius: 16px;
+}
+
+.ant-tooltip-inner {
+  background: var(--bg-glass-solid) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: 10px;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-glass);
+}
+
+.ant-tooltip-arrow::before {
+  background: var(--bg-glass-solid) !important;
+  border: 1px solid var(--border-glass);
 }

@@ -23,15 +23,29 @@
   align-items: center;
   padding: 24px;
   background: var(--bg-glass);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-glass);
   border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+
+.task-orchestration-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--purple-main), var(--accent-cyan));
 }
 
 .header-left {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .header-left h2 {
@@ -60,37 +74,55 @@
   color: var(--text-secondary);
   border-radius: 8px;
   transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .view-toggle .ant-radio-button-wrapper:hover {
   color: var(--text-primary);
-  background: rgba(147, 51, 234, 0.1);
+  background: rgba(139, 92, 246, 0.1);
 }
 
 .view-toggle .ant-radio-button-wrapper-checked {
-  background: var(--purple-main);
-  color: var(--text-primary);
+  background: linear-gradient(135deg, var(--purple-main), var(--purple-dark));
+  color: white;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
 }
 
 .add-task-btn {
-  background: var(--purple-main) !important;
-  border-color: var(--purple-main) !important;
-  height: 40px;
+  background: linear-gradient(135deg, var(--purple-main), var(--purple-dark)) !important;
+  border-color: transparent !important;
+  height: 42px;
   border-radius: 10px;
   font-weight: 500;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.add-task-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transition: left 0.5s ease;
+}
+
+.add-task-btn:hover::before {
+  left: 100%;
 }
 
 .add-task-btn:hover {
-  background: var(--purple-light) !important;
-  border-color: var(--purple-light) !important;
+  background: linear-gradient(135deg, var(--purple-light), var(--purple-main)) !important;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(147, 51, 234, 0.3);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
 }
 
 .task-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
 }
 
@@ -120,7 +152,7 @@
 
   .task-orchestration-header {
     padding: 16px;
-    border-radius: 12px;
+    border-radius: 14px;
   }
 
   .header-left h2 {
@@ -136,17 +168,17 @@
   }
 
   .view-toggle .ant-radio-button-wrapper {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .add-task-btn {
-    height: 36px !important;
+    height: 38px !important;
     font-size: 14px !important;
   }
 
   .task-cards {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
   }
 }
 
@@ -163,19 +195,19 @@
     flex-direction: column;
     align-items: stretch;
     gap: 16px;
-    padding: 12px;
+    padding: 14px;
   }
 
   .header-left {
-    gap: 2px;
+    gap: 4px;
   }
 
   .header-left h2 {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .task-count {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .view-toggle {

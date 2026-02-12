@@ -28,7 +28,12 @@ import {
 } from '../../hooks/useCAs';
 import { useSearchParams } from 'react-router-dom';
 import { formatDate } from '../../utils/formatters';
-import { type CodingAgent, type CodingAgentLog, CA_STATUS_LABELS, CA_STATUS_COLORS } from '../../types/ca';
+import {
+  type CodingAgent,
+  type CodingAgentLog,
+  CA_STATUS_LABELS,
+  CA_STATUS_COLORS
+} from '../../types/ca';
 
 import './index.css';
 

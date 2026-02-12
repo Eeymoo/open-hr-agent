@@ -1,10 +1,12 @@
 .task-table-container {
-  padding: 16px;
+  padding: 0;
   background: var(--bg-glass);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-glass);
   border-radius: 16px;
   overflow: hidden;
+  box-shadow: var(--shadow-glass);
 }
 
 .task-table-loading {
@@ -27,18 +29,22 @@
 
 .task-table th {
   background: var(--bg-glass-light);
-  padding: 12px 16px;
+  padding: 14px 18px;
   text-align: left;
   font-weight: 600;
   border-bottom: 1px solid var(--border-glass);
   white-space: nowrap;
-  color: var(--text-primary);
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .task-table td {
-  padding: 12px 16px;
+  padding: 14px 18px;
   border-bottom: 1px solid var(--border-glass);
   color: var(--text-primary);
+  font-size: 14px;
 }
 
 .task-row {
@@ -48,6 +54,11 @@
 
 .task-row:hover {
   background: var(--bg-glass-hover);
+}
+
+.task-row:hover td:first-child {
+  border-left: 3px solid var(--purple-main);
+  padding-left: 15px;
 }
 
 .task-row td:first-child {
@@ -88,24 +99,65 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding: 16px;
+  padding: 16px 20px;
   color: var(--text-secondary);
   font-size: 14px;
+  border-top: 1px solid var(--border-glass);
+  background: var(--bg-glass-light);
+}
+
+.task-pagination .ant-pagination-item {
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+}
+
+.task-pagination .ant-pagination-item a {
+  color: var(--text-secondary);
+}
+
+.task-pagination .ant-pagination-item:hover {
+  border-color: var(--purple-main);
+}
+
+.task-pagination .ant-pagination-item:hover a {
+  color: var(--purple-light);
+}
+
+.task-pagination .ant-pagination-item-active {
+  background: var(--purple-main);
+  border-color: var(--purple-main);
+}
+
+.task-pagination .ant-pagination-item-active a {
+  color: white;
 }
 
 @media (max-width: 768px) {
   .task-table-container {
-    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .task-table th,
+  .task-table td {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .task-pagination {
+    padding: 12px 14px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 375px) {
+  .task-table-container {
     border-radius: 12px;
   }
 
   .task-table th,
   .task-table td {
     padding: 8px 12px;
-    font-size: 14px;
-  }
-
-  .task-pagination {
     font-size: 12px;
   }
 }
