@@ -70,6 +70,7 @@ function parseQueryParams(req: Request): {
 function buildWhereClause(params: ReturnType<typeof parseQueryParams>): Record<string, unknown> {
   return {
     deletedAt: SOFT_DELETE_FLAG,
+    parentTaskId: null,
     ...(params.status && { status: params.status }),
     ...(params.priority !== undefined && { priority: params.priority }),
     ...(params.type && { type: params.type }),
@@ -100,6 +101,9 @@ export default async function getTasksRoute(req: Request, res: Response): Promis
         take: params.pageSize,
         orderBy: { [params.orderBy]: 'desc' },
         include: {
+          subTasks: {
+            orderBy: { createdAt: 'asc' }
+          },
           issue: true,
           pullRequest: true,
           codingAgent: true

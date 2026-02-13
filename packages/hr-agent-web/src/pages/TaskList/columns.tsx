@@ -35,10 +35,13 @@ const getStatusIcon = (status: TaskStatus) => {
   switch (status) {
     case 'running':
     case 'retrying':
-    case 'in_development':
+    case 'creating_ca':
+    case 'connecting_ca':
+    case 'ai_coding':
+    case 'creating_pr':
       return <LoadingOutlined spin style={{ color: COLOR_BLUE }} />;
-    case 'pr_merged':
-    case 'development_complete':
+    case 'completed':
+    case 'pr_submitted':
       return <CheckCircleOutlined style={{ color: COLOR_GREEN }} />;
     case 'error':
     case 'timeout':
@@ -54,11 +57,12 @@ const getProgressByStatus = (status: TaskStatus): number => {
     queued: 0,
     running: 50,
     retrying: 50,
-    in_development: 70,
-    development_complete: 80,
+    completed: 100,
+    creating_ca: 20,
+    connecting_ca: 30,
+    ai_coding: 60,
+    creating_pr: 80,
     pr_submitted: 90,
-    pr_merged: 100,
-    pr_comments_resolved: 95,
     error: 0,
     cancelled: 0,
     timeout: 0
@@ -269,7 +273,7 @@ export const calculateStatusCounts = (tasks: Task[]) => {
       counts.queued++;
     } else if (RUNNING_STATUSES.includes(task.status)) {
       counts.running++;
-    } else if (task.status === 'pr_merged') {
+    } else if (task.status === 'completed') {
       counts.completed++;
     } else if (ERROR_STATUSES.includes(task.status)) {
       counts.error++;

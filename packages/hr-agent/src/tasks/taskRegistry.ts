@@ -1,6 +1,7 @@
 import { BaseTask } from './baseTask.js';
 import { EventBus } from '../services/eventBus.js';
 import { TaskLogger } from '../utils/taskLogger.js';
+import { IssueProcessingTask } from './issueProcessingTask.js';
 import { CreateCaTask } from './createCaTask.js';
 import { ConnectCaTask } from './connectCaTask.js';
 import { AiCodingTask } from './aiCodingTask.js';
@@ -21,6 +22,7 @@ export class TaskRegistry {
   private registry: Map<string, BaseTask> = new Map();
 
   constructor(eventBus: EventBus, logger: TaskLogger) {
+    this.register(new IssueProcessingTask(eventBus, logger));
     this.register(new CreateCaTask(eventBus, logger));
     this.register(new ConnectCaTask(eventBus, logger));
     this.register(new AiCodingTask(eventBus, logger));

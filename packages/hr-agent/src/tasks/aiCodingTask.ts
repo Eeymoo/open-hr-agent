@@ -1,6 +1,7 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
 import { TASK_TAGS } from '../config/taskTags.js';
+import { TASK_STATUS } from '../config/taskStatus.js';
 import { TASK_CONFIG } from '../config/taskConfig.js';
 import { getPrismaClient, getCurrentTimestamp } from '../utils/database.js';
 import { createOpencodeClient } from '@opencode-ai/sdk';
@@ -9,17 +10,22 @@ import { DOCKER_CONFIG } from '../config/docker.js';
 export class AiCodingTask extends BaseTask {
   readonly name = 'ai_coding';
   readonly dependencies: string[] = ['connect_ca'];
-  readonly tags = [TASK_TAGS.REQUIRES_CA, TASK_TAGS.AGENT_CODING];
+  readonly tags = [TASK_TAGS.REQUIRES_CA, TASK_TAGS.AGENT_CODING, TASK_TAGS.SUBTASK];
 
   async execute(params: Record<string, unknown>, context: TaskContext): Promise<TaskResult> {
     await this.validateParams(params, ['caName', 'issueNumber', 'taskId']);
 
-    const { caName, issueNumber } = params as {
+    const { parentTaskId, caName, issueNumber } = params as {
+      parentTaskId?: number;
       caName: string;
       issueNumber: number;
     };
 
     await this.logger.info(context.taskId, this.name, '开始 AI 编码任务', { caName, issueNumber });
+
+    if (parentTaskId) {
+      await this.updateParentTaskStatus(parentTaskId, TASK_STATUS.AI_CODING);
+    }
 
     try {
       const issue = await this.fetchIssue(issueNumber);
@@ -59,6 +65,7 @@ export class AiCodingTask extends BaseTask {
 
       return {
         success: true,
+        finalStatus: TASK_STATUS.COMPLETED,
         data: {
           caName,
           issueNumber,
@@ -69,6 +76,7 @@ export class AiCodingTask extends BaseTask {
         nextEvent: TASK_EVENTS.AI_CODING_COMPLETE,
         nextTask: 'create_pr',
         nextParams: {
+          parentTaskId,
           caName,
           issueNumber,
           sessionId,

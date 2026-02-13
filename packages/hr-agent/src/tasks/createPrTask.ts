@@ -1,5 +1,7 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
+import { TASK_TAGS } from '../config/taskTags.js';
+import { TASK_STATUS } from '../config/taskStatus.js';
 import { getPrismaClient, getCurrentTimestamp, INACTIVE_TIMESTAMP } from '../utils/database.js';
 import { createGitHubClient } from '../utils/github.js';
 import { getGitHubOwner, getGitHubRepo } from '../utils/secretManager.js';
@@ -7,16 +9,22 @@ import { getGitHubOwner, getGitHubRepo } from '../utils/secretManager.js';
 export class CreatePrTask extends BaseTask {
   readonly name = 'create_pr';
   readonly dependencies: string[] = ['ai_coding'];
+  readonly tags = [TASK_TAGS.SUBTASK];
 
   async execute(params: Record<string, unknown>, context: TaskContext): Promise<TaskResult> {
     await this.validateParams(params, ['caName', 'issueNumber', 'taskId']);
 
-    const { caName, issueNumber } = params as {
+    const { parentTaskId, caName, issueNumber } = params as {
+      parentTaskId?: number;
       caName: string;
       issueNumber: number;
     };
 
     await this.logger.info(context.taskId, this.name, '开始创建 PR', { caName, issueNumber });
+
+    if (parentTaskId) {
+      await this.updateParentTaskStatus(parentTaskId, TASK_STATUS.CREATING_PR);
+    }
 
     try {
       const prisma = getPrismaClient();
@@ -37,12 +45,18 @@ export class CreatePrTask extends BaseTask {
       if (existingPR) {
         await this.logger.info(context.taskId, this.name, 'PR 已存在', { prId: existingPR.id });
 
+        if (parentTaskId) {
+          await this.updateParentTaskStatus(parentTaskId, TASK_STATUS.PR_SUBMITTED);
+        }
+
         return {
           success: true,
+          finalStatus: TASK_STATUS.COMPLETED,
           data: { prId: existingPR.id, existing: true },
           nextEvent: TASK_EVENTS.PR_CREATED,
           nextTask: 'destroy_ca',
           nextParams: {
+            parentTaskId,
             caName,
             issueNumber,
             prId: existingPR.id
@@ -112,12 +126,18 @@ export class CreatePrTask extends BaseTask {
         }
       });
 
+      if (parentTaskId) {
+        await this.updateParentTaskStatus(parentTaskId, TASK_STATUS.PR_SUBMITTED);
+      }
+
       return {
         success: true,
+        finalStatus: TASK_STATUS.COMPLETED,
         data: { prId: prRecord.id, prNumber: pr.number, prUrl: pr.htmlUrl, existing: false },
         nextEvent: TASK_EVENTS.PR_CREATED,
         nextTask: 'destroy_ca',
         nextParams: {
+          parentTaskId,
           caName,
           issueNumber,
           prId: prRecord.id

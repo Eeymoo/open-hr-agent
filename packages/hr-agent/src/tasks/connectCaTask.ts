@@ -1,19 +1,28 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
 import { TASK_TAGS } from '../config/taskTags.js';
+import { TASK_STATUS } from '../config/taskStatus.js';
 import { getContainerByName } from '../utils/docker/getContainer.js';
 
 export class ConnectCaTask extends BaseTask {
   readonly name = 'connect_ca';
   readonly dependencies: string[] = ['create_ca'];
-  readonly tags = [TASK_TAGS.MANAGES_CA];
+  readonly tags = [TASK_TAGS.MANAGES_CA, TASK_TAGS.SUBTASK];
 
   async execute(params: Record<string, unknown>, context: TaskContext): Promise<TaskResult> {
     await this.validateParams(params, ['caName', 'issueNumber']);
 
-    const { caName, issueNumber } = params as { caName: string; issueNumber: number };
+    const { parentTaskId, caName, issueNumber } = params as {
+      parentTaskId?: number;
+      caName: string;
+      issueNumber: number;
+    };
 
     await this.logger.info(context.taskId, this.name, '连接到 CA', { caName });
+
+    if (parentTaskId) {
+      await this.updateParentTaskStatus(parentTaskId, TASK_STATUS.CONNECTING_CA);
+    }
 
     try {
       await this.waitForContainerReady(caName);
@@ -28,10 +37,12 @@ export class ConnectCaTask extends BaseTask {
 
       return {
         success: true,
+        finalStatus: TASK_STATUS.COMPLETED,
         data: { caName, issueNumber },
         nextEvent: TASK_EVENTS.CA_CONNECTED,
         nextTask: 'ai_coding',
         nextParams: {
+          parentTaskId,
           caName,
           issueNumber,
           taskId: context.taskId

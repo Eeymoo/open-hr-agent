@@ -8,6 +8,9 @@ export interface Task {
   status: TaskStatus;
   priority: number;
   tags: string[];
+  parentTaskId?: number;
+  parent?: Task;
+  subTasks?: Task[];
   issueId?: number;
   issue?: Issue;
   prId?: number;
@@ -26,11 +29,12 @@ export type TaskStatus =
   | 'queued'
   | 'running'
   | 'retrying'
-  | 'in_development'
-  | 'development_complete'
+  | 'completed'
+  | 'creating_ca'
+  | 'connecting_ca'
+  | 'ai_coding'
+  | 'creating_pr'
   | 'pr_submitted'
-  | 'pr_merged'
-  | 'pr_comments_resolved'
   | 'error'
   | 'cancelled'
   | 'timeout';
@@ -71,11 +75,12 @@ export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
   queued: '排队中',
   running: '运行中',
   retrying: '重试中',
-  in_development: '开发中',
-  development_complete: '开发完成',
+  completed: '已完成',
+  creating_ca: '创建CA中',
+  connecting_ca: '连接CA中',
+  ai_coding: 'AI编码中',
+  creating_pr: '创建PR中',
   pr_submitted: 'PR已提交',
-  pr_merged: 'PR已合并',
-  pr_comments_resolved: 'PR评论已解决',
   error: '错误',
   cancelled: '已取消',
   timeout: '超时'
@@ -86,11 +91,12 @@ export const TASK_STATUS_COLORS: Record<TaskStatus, string> = {
   queued: 'default',
   running: 'processing',
   retrying: 'warning',
-  in_development: 'processing',
-  development_complete: 'success',
+  completed: 'success',
+  creating_ca: 'processing',
+  connecting_ca: 'processing',
+  ai_coding: 'processing',
+  creating_pr: 'processing',
   pr_submitted: 'processing',
-  pr_merged: 'success',
-  pr_comments_resolved: 'success',
   error: 'error',
   cancelled: 'default',
   timeout: 'error'
@@ -118,7 +124,8 @@ export const TASK_TAG_LABELS: Record<string, string> = {
   'agent:coding': 'AI编码',
   'agent:review': 'AI审查',
   'agent:test': 'AI测试',
-  'runtime:long': '长任务'
+  'runtime:long': '长任务',
+  'subtask': '附属任务'
 };
 
 export const TASK_TAG_COLORS: Record<string, string> = {
@@ -127,7 +134,8 @@ export const TASK_TAG_COLORS: Record<string, string> = {
   'agent:coding': 'purple',
   'agent:review': 'orange',
   'agent:test': 'cyan',
-  'runtime:long': 'red'
+  'runtime:long': 'red',
+  'subtask': 'geekblue'
 };
 
 export interface ReorderTasksDto {

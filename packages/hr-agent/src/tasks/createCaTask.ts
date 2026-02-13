@@ -1,19 +1,28 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
 import { TASK_TAGS } from '../config/taskTags.js';
+import { TASK_STATUS } from '../config/taskStatus.js';
 import { getContainerByName } from '../utils/docker/getContainer.js';
 
 export class CreateCaTask extends BaseTask {
   readonly name = 'create_ca';
   readonly dependencies: string[] = [];
-  readonly tags = [TASK_TAGS.MANAGES_CA];
+  readonly tags = [TASK_TAGS.MANAGES_CA, TASK_TAGS.SUBTASK];
 
   async execute(params: Record<string, unknown>, context: TaskContext): Promise<TaskResult> {
     await this.validateParams(params, ['issueNumber', 'caName']);
 
-    const { issueNumber, caName } = params as { issueNumber: number; caName: string };
+    const { parentTaskId, issueNumber, caName } = params as {
+      parentTaskId?: number;
+      issueNumber: number;
+      caName: string;
+    };
 
     await this.logger.info(context.taskId, this.name, '确认 CA 容器状态', { issueNumber, caName });
+
+    if (parentTaskId) {
+      await this.updateParentTaskStatus(parentTaskId, TASK_STATUS.CREATING_CA);
+    }
 
     try {
       const container = await getContainerByName(caName);
@@ -38,10 +47,12 @@ export class CreateCaTask extends BaseTask {
 
       return {
         success: true,
+        finalStatus: TASK_STATUS.COMPLETED,
         data: { containerId: container.id, containerName: caName },
         nextEvent: TASK_EVENTS.CA_CREATED,
         nextTask: 'connect_ca',
         nextParams: {
+          parentTaskId,
           caName,
           issueNumber
         }
