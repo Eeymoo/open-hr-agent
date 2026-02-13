@@ -21,9 +21,12 @@ import './index.css';
 
 const PROGRESS_QUEUED = 0;
 const PROGRESS_RUNNING = 50;
-const PROGRESS_IN_DEVELOPMENT = 70;
+const PROGRESS_CREATING_CA = 20;
+const PROGRESS_CONNECTING_CA = 30;
+const PROGRESS_AI_CODING = 60;
+const PROGRESS_CREATING_PR = 80;
 const PROGRESS_PR_SUBMITTED = 90;
-const PROGRESS_PR_MERGED = 100;
+const PROGRESS_COMPLETED = 100;
 
 interface TaskCardProps {
   task: Task;
@@ -48,14 +51,23 @@ function getProgressByStatus(task: Task) {
   if (task.status === 'running' || task.status === 'retrying') {
     return PROGRESS_RUNNING;
   }
-  if (task.status === 'in_development') {
-    return PROGRESS_IN_DEVELOPMENT;
+  if (task.status === 'creating_ca') {
+    return PROGRESS_CREATING_CA;
+  }
+  if (task.status === 'connecting_ca') {
+    return PROGRESS_CONNECTING_CA;
+  }
+  if (task.status === 'ai_coding') {
+    return PROGRESS_AI_CODING;
+  }
+  if (task.status === 'creating_pr') {
+    return PROGRESS_CREATING_PR;
   }
   if (task.status === 'pr_submitted') {
     return PROGRESS_PR_SUBMITTED;
   }
-  if (task.status === 'pr_merged') {
-    return PROGRESS_PR_MERGED;
+  if (task.status === 'completed') {
+    return PROGRESS_COMPLETED;
   }
   return PROGRESS_QUEUED;
 }
@@ -156,7 +168,12 @@ export function TaskCard({ task, onClick, onEdit, onDelete, showActions = true }
   };
 
   const isRunning =
-    task.status === 'running' || task.status === 'retrying' || task.status === 'in_development';
+    task.status === 'running' ||
+    task.status === 'retrying' ||
+    task.status === 'creating_ca' ||
+    task.status === 'connecting_ca' ||
+    task.status === 'ai_coding' ||
+    task.status === 'creating_pr';
 
   return (
     <Card

@@ -689,7 +689,13 @@ export class TaskScheduler {
   }
 
   private async onTaskSuccess(task: QueuedTask, result: unknown): Promise<void> {
-    await this.updateTaskStatus(task.taskId, TASK_STATUS.PR_SUBMITTED);
+    const typedResult = result as { finalStatus?: string; nextEvent?: string; nextTask?: string; nextParams?: Record<string, unknown> };
+
+    if (typedResult.finalStatus) {
+      await this.updateTaskStatus(task.taskId, typedResult.finalStatus);
+    } else {
+      await this.updateTaskStatus(task.taskId, TASK_STATUS.COMPLETED);
+    }
 
     await this.eventBus.emitAsync(TASK_EVENTS.TASK_COMPLETED, {
       taskId: task.taskId,
@@ -700,21 +706,10 @@ export class TaskScheduler {
 
     await this.logger.info(task.taskId, task.taskName, '任务执行成功', { result });
 
-    if (
-      typeof result === 'object' &&
-      result !== null &&
-      'nextEvent' in result &&
-      'nextTask' in result
-    ) {
-      const typedResult = result as {
-        nextEvent: string;
-        nextTask: string;
-        nextParams: Record<string, unknown>;
-      };
-
+    if (typedResult.nextEvent && typedResult.nextTask) {
       await this.addTask(
         typedResult.nextTask,
-        typedResult.nextParams,
+        typedResult.nextParams ?? {},
         task.priority,
         task.issueId,
         task.prId

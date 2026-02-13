@@ -3,6 +3,7 @@ import { createOpencodeClient } from '@opencode-ai/sdk';
 import { DOCKER_CONFIG } from '../config/docker.js';
 import { readPrompt } from '../utils/promptReader.js';
 import { TASK_TAGS } from '../config/taskTags.js';
+import { TASK_STATUS } from '../config/taskStatus.js';
 import { TASK_CONFIG } from '../config/taskConfig.js';
 import { getPrismaClient, getCurrentTimestamp } from '../utils/database.js';
 
@@ -41,6 +42,7 @@ export class CaStatusCheckTask extends BaseTask {
         await this.logger.warn(context.taskId, this.name, '未找到任何 session', { caId, caName });
         return {
           success: false,
+          finalStatus: TASK_STATUS.COMPLETED,
           error: 'No session found'
         };
       }
@@ -64,6 +66,7 @@ export class CaStatusCheckTask extends BaseTask {
         });
         return {
           success: true,
+          finalStatus: TASK_STATUS.COMPLETED,
           data: {
             caId,
             sessionId: session.id,
@@ -96,6 +99,7 @@ export class CaStatusCheckTask extends BaseTask {
         if (!continueResult.success) {
           return {
             success: false,
+            finalStatus: TASK_STATUS.COMPLETED,
             error: continueResult.error
           };
         }
@@ -109,6 +113,7 @@ export class CaStatusCheckTask extends BaseTask {
 
         return {
           success: true,
+          finalStatus: TASK_STATUS.COMPLETED,
           data: {
             caId,
             sessionId: session.id,
@@ -131,6 +136,7 @@ export class CaStatusCheckTask extends BaseTask {
 
       return {
         success: true,
+        finalStatus: TASK_STATUS.COMPLETED,
         data: {
           caId,
           sessionId: session.id,
@@ -150,6 +156,7 @@ export class CaStatusCheckTask extends BaseTask {
 
       return {
         success: false,
+        finalStatus: TASK_STATUS.COMPLETED,
         error: errorMessage
       };
     }

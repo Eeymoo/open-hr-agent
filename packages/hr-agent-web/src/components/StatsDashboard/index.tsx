@@ -32,7 +32,7 @@ export function StatsDashboard({ tasks }: StatsDashboardProps) {
     total: tasks.length,
     queued: tasks.filter((t) => t.status === 'queued').length,
     running: tasks.filter((t) => t.status === 'running' || t.status === 'retrying').length,
-    completed: tasks.filter((t) => t.status === 'pr_merged').length,
+    completed: tasks.filter((t) => t.status === 'completed').length,
     error: tasks.filter((t) => t.status === 'error').length
   };
 

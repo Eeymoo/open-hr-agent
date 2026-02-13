@@ -1,14 +1,24 @@
 import { Webhooks } from '@octokit/webhooks';
 import crypto from 'node:crypto';
 import { Buffer } from 'node:buffer';
-import {
-  getPrismaClient,
-  getCurrentTimestamp,
-  setTimestamps,
-  INACTIVE_TIMESTAMP
-} from './database.js';
+import { getPrismaClient, getCurrentTimestamp } from './database.js';
 import { getGitHubWebhookSecret } from './secretManager.js';
 import { getPriorityFromLabels as getPriorityFromLabelsConfig } from '../config/taskPriorities.js';
+import {
+  syncIssueFromWebhook,
+  cancelTasksForIssue,
+  completeTasksForIssue,
+  reopenTasksForIssue,
+  type IssueSyncData
+} from '../services/issueSyncService.js';
+import {
+  syncPullRequestFromWebhook,
+  linkPRToIssue,
+  completeTasksForPR,
+  completeLinkedIssue,
+  extractIssueNumberFromTitle,
+  type PullRequestSyncData
+} from '../services/prSyncService.js';
 
 declare global {
   var taskManager: import('../services/taskManager.js').TaskManager;
@@ -111,59 +121,6 @@ function hasHraLabel(labels: { name?: string }[] = []): boolean {
   return labels.some((l) => l.name?.toLowerCase() === 'hra');
 }
 
-/**
- * 从 Webhook 创建 Issue 记录
- * @param issueId - Issue ID
- * @param issueUrl - Issue URL
- * @param issueTitle - Issue 标题
- * @param issueContent - Issue 内容
- * @returns 操作结果
- */
-export async function createIssueFromWebhook(
-  issueId: number,
-  issueUrl: string,
-  issueTitle: string,
-  issueContent?: string
-): Promise<{ success: boolean; data?: unknown; error?: string }> {
-  const prisma = getPrismaClient();
-
-  try {
-    const existingIssue = await prisma.issue.findUnique({
-      where: { issueId }
-    });
-
-    if (existingIssue) {
-      return {
-        success: false,
-        error: 'Issue with this issueId already exists'
-      };
-    }
-
-    const issueData = setTimestamps({
-      issueId,
-      issueUrl,
-      issueTitle,
-      issueContent: issueContent ?? null,
-      completedAt: INACTIVE_TIMESTAMP,
-      deletedAt: INACTIVE_TIMESTAMP,
-      createdAt: 0,
-      updatedAt: 0
-    });
-
-    const issue = await prisma.issue.create({ data: issueData });
-
-    return {
-      success: true,
-      data: issue
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
-    };
-  }
-}
-
 interface IssueWebhookPayload {
   action?: string;
   issue?: {
@@ -173,8 +130,11 @@ interface IssueWebhookPayload {
     body?: string;
     html_url?: string;
     user?: { login?: string };
-    state?: string;
+    state?: 'open' | 'closed';
     labels?: { name?: string }[];
+  };
+  label?: {
+    name?: string;
   };
   repository?: {
     full_name?: string;
@@ -194,8 +154,9 @@ interface PullRequestWebhookPayload {
     body?: string;
     html_url?: string;
     user?: { login?: string };
-    state?: string;
+    state?: 'open' | 'closed';
     merged?: boolean;
+    merged_at?: string | null;
     head?: {
       ref?: string;
       sha?: string;
@@ -219,6 +180,7 @@ interface IssueInfo {
   issueTitle: string;
   issueContent?: string;
   labels: { name?: string }[];
+  state: 'open' | 'closed';
 }
 
 function extractIssueInfo(data: IssueWebhookPayload): IssueInfo | null {
@@ -233,13 +195,15 @@ function extractIssueInfo(data: IssueWebhookPayload): IssueInfo | null {
   const issueTitle = issue.title ?? 'Untitled';
   const issueContent = issue.body;
   const labels = issue.labels ?? [];
+  const state = issue.state ?? 'open';
 
   return {
     issueNumber,
     issueUrl,
     issueTitle,
     issueContent,
-    labels
+    labels,
+    state
   };
 }
 
@@ -264,10 +228,21 @@ async function handleIssuesOpened(data: IssueWebhookPayload): Promise<void> {
     return;
   }
 
-  const priority = getPriorityFromLabelsConfig(issueInfo.labels);
-  console.log(`Task priority: ${priority}`);
+  const syncData: IssueSyncData = {
+    issueId: issueInfo.issueNumber,
+    issueUrl: issueInfo.issueUrl,
+    issueTitle: issueInfo.issueTitle,
+    issueContent: issueInfo.issueContent,
+    state: issueInfo.state
+  };
 
-  await createIssueForTask(issueInfo);
+  const syncResult = await syncIssueFromWebhook(syncData);
+  if (!syncResult.success) {
+    console.error('Failed to sync issue:', syncResult.error);
+    return;
+  }
+
+  await startTaskChain(issueInfo.issueNumber, issueInfo.labels);
 }
 
 webhooks.on('issues.opened', async ({ payload }) => {
@@ -295,29 +270,18 @@ async function handleIssuesLabeled(payload: unknown): Promise<void> {
   console.log(`Repository: ${repository.full_name}`);
   console.log(`Issue #${issueInfo.issueNumber}: ${issueInfo.issueTitle}`);
 
-  await createIssueForTask(issueInfo);
-}
+  const syncData: IssueSyncData = {
+    issueId: issueInfo.issueNumber,
+    issueUrl: issueInfo.issueUrl,
+    issueTitle: issueInfo.issueTitle,
+    issueContent: issueInfo.issueContent,
+    state: issueInfo.state
+  };
 
-async function createIssueForTask(issueInfo: ReturnType<typeof extractIssueInfo>): Promise<void> {
-  if (!issueInfo) {
-    console.log('Invalid issue info, skipping');
+  const syncResult = await syncIssueFromWebhook(syncData);
+  if (!syncResult.success) {
+    console.error('Failed to sync issue:', syncResult.error);
     return;
-  }
-
-  const issueResult = await createIssueFromWebhook(
-    issueInfo.issueNumber,
-    issueInfo.issueUrl,
-    issueInfo.issueTitle,
-    issueInfo.issueContent ?? ''
-  );
-
-  if (!issueResult.success) {
-    const errorMessage = String(issueResult.error ?? '');
-    if (!errorMessage.includes('Issue with this issueId already exists')) {
-      console.error('Failed to create issue:', issueResult.error);
-      return;
-    }
-    console.log('Issue already exists, continuing to create CA');
   }
 
   await startTaskChain(issueInfo.issueNumber, issueInfo.labels);
@@ -391,43 +355,37 @@ webhooks.on('issues.labeled', async ({ payload }) => {
 
 webhooks.on('issues.reopened', async ({ payload }) => {
   const data = payload as IssueWebhookPayload;
+  const issueInfo = extractIssueInfo(data);
 
-  if (!data.issue?.number) {
+  if (!issueInfo) {
     console.log('Invalid issues.reopened payload: missing issue data');
     return;
   }
 
   console.log('=== Issues Webhook: reopened ===');
-  console.log(`Issue #${data.issue.number ?? 'unknown'}: ${data.issue.title}`);
+  console.log(`Issue #${issueInfo.issueNumber}: ${issueInfo.issueTitle}`);
 
-  const prisma = getPrismaClient();
-  const issueNumber = data.issue.number ?? 0;
+  const syncData: IssueSyncData = {
+    issueId: issueInfo.issueNumber,
+    issueUrl: issueInfo.issueUrl,
+    issueTitle: issueInfo.issueTitle,
+    issueContent: issueInfo.issueContent,
+    state: 'open'
+  };
 
-  try {
-    const existingTask = await prisma.task.findFirst({
-      where: {
-        issue: { issueId: issueNumber }
-      }
-    });
-
-    if (!existingTask) {
-      console.log(`No existing task for issue #${issueNumber}`);
-      return;
-    }
-
-    const now = getCurrentTimestamp();
-    await prisma.task.update({
-      where: { id: existingTask.id },
-      data: {
-        status: 'planned',
-        updatedAt: now
-      }
-    });
-
-    console.log(`Task ${existingTask.id} status updated to planned`);
-  } catch (error) {
-    console.error('Failed to update task status:', error instanceof Error ? error.message : error);
+  const syncResult = await syncIssueFromWebhook(syncData);
+  if (!syncResult.success) {
+    console.error('Failed to sync issue:', syncResult.error);
+    return;
   }
+
+  const reopenResult = await reopenTasksForIssue(issueInfo.issueNumber);
+  if (!reopenResult.success) {
+    console.error('Failed to reopen tasks:', reopenResult.error);
+    return;
+  }
+
+  console.log(`Issue synced and ${reopenResult.reopenedCount} tasks reopened`);
 });
 
 webhooks.on('issues.edited', async ({ payload }) => {
@@ -443,69 +401,85 @@ webhooks.on('issues.edited', async ({ payload }) => {
   console.log(`Issue #${data.issue.number}: ${data.issue.title}`);
 
   if (!hasHraLabel(issueInfo.labels)) {
-    console.log('Issue does not have "hra" label, skipping CA creation');
+    console.log('Issue does not have "hra" label, skipping update');
     return;
   }
 
-  const issueResult = await createIssueFromWebhook(
-    issueInfo.issueNumber,
-    issueInfo.issueUrl,
-    issueInfo.issueTitle,
-    issueInfo.issueContent ?? ''
-  );
+  const syncData: IssueSyncData = {
+    issueId: issueInfo.issueNumber,
+    issueUrl: issueInfo.issueUrl,
+    issueTitle: issueInfo.issueTitle,
+    issueContent: issueInfo.issueContent,
+    state: issueInfo.state
+  };
 
-  if (!issueResult.success) {
-    const errorMessage = String(issueResult.error ?? '');
-    if (!errorMessage.includes('Issue with this issueId already exists')) {
-      console.error('Failed to create issue:', issueResult.error);
-      return;
-    }
-    console.log('Issue already exists, continuing to create CA');
+  const syncResult = await syncIssueFromWebhook(syncData);
+  if (!syncResult.success) {
+    console.error('Failed to sync issue:', syncResult.error);
+    return;
   }
 
-  console.log('CA created successfully for issue');
+  console.log('Issue synced successfully');
 });
 
 webhooks.on('issues.closed', async ({ payload }) => {
   const data = payload as IssueWebhookPayload;
+  const issueInfo = extractIssueInfo(data);
 
-  if (!data.issue?.number) {
+  if (!issueInfo) {
     console.log('Invalid issues.closed payload: missing issue data');
     return;
   }
 
   console.log('=== Issues Webhook: closed ===');
-  console.log(`Issue #${data.issue.number ?? 'unknown'}: ${data.issue.title}`);
+  console.log(`Issue #${issueInfo.issueNumber}: ${issueInfo.issueTitle}`);
 
-  const prisma = getPrismaClient();
-  const issueNumber = data.issue.number ?? 0;
+  const syncData: IssueSyncData = {
+    issueId: issueInfo.issueNumber,
+    issueUrl: issueInfo.issueUrl,
+    issueTitle: issueInfo.issueTitle,
+    issueContent: issueInfo.issueContent,
+    state: 'closed'
+  };
 
-  try {
-    const existingTask = await prisma.task.findFirst({
-      where: {
-        issue: { issueId: issueNumber }
-      }
-    });
-
-    if (!existingTask) {
-      console.log(`No existing task for issue #${issueNumber}`);
-      return;
-    }
-
-    const now = getCurrentTimestamp();
-    await prisma.task.update({
-      where: { id: existingTask.id },
-      data: {
-        status: 'completed',
-        completedAt: now,
-        updatedAt: now
-      }
-    });
-
-    console.log(`Task ${existingTask.id} status updated to completed`);
-  } catch (error) {
-    console.error('Failed to update task status:', error instanceof Error ? error.message : error);
+  const syncResult = await syncIssueFromWebhook(syncData);
+  if (!syncResult.success) {
+    console.error('Failed to sync issue:', syncResult.error);
+    return;
   }
+
+  const completeResult = await completeTasksForIssue(issueInfo.issueNumber);
+  if (!completeResult.success) {
+    console.error('Failed to complete tasks:', completeResult.error);
+    return;
+  }
+
+  console.log(`Issue synced and ${completeResult.completedCount} tasks completed`);
+});
+
+webhooks.on('issues.unlabeled', async ({ payload }) => {
+  const data = payload as IssueWebhookPayload;
+
+  if (!data.issue?.number) {
+    console.log('Invalid issues.unlabeled payload: missing issue data');
+    return;
+  }
+
+  const removedLabel = data.label?.name?.toLowerCase();
+  if (removedLabel !== 'hra') {
+    return;
+  }
+
+  console.log('=== Issues Webhook: unlabeled (hra removed) ===');
+  console.log(`Issue #${data.issue.number}: ${data.issue.title}`);
+
+  const cancelResult = await cancelTasksForIssue(data.issue.number);
+  if (!cancelResult.success) {
+    console.error('Failed to cancel tasks:', cancelResult.error);
+    return;
+  }
+
+  console.log(`Cancelled ${cancelResult.cancelledCount} tasks for issue #${data.issue.number}`);
 });
 
 webhooks.on('pull_request.opened', async ({ payload }) => {
@@ -521,93 +495,45 @@ webhooks.on('pull_request.opened', async ({ payload }) => {
   console.log(`PR #${data.pull_request.number}: ${data.pull_request.title}`);
   console.log(`Branch: ${data.pull_request.head?.ref} -> ${data.pull_request.base?.ref}`);
 
-  try {
-    const prisma = getPrismaClient();
-    const prNumber = data.pull_request.number ?? 0;
-    const prTitle = data.pull_request.title ?? 'Untitled';
-    const prBody = data.pull_request.body ?? null;
-    const prHtmlUrl =
-      data.pull_request.html_url ??
-      `https://github.com/${data.repository?.full_name}/pull/${prNumber}`;
-    const issueNumber = extractIssueNumberFromTitle(prTitle);
+  const prNumber = data.pull_request.number ?? 0;
+  const prTitle = data.pull_request.title ?? 'Untitled';
+  const prHtmlUrl =
+    data.pull_request.html_url ??
+    `https://github.com/${data.repository.full_name}/pull/${prNumber}`;
 
-    const now = getCurrentTimestamp();
+  const syncData: PullRequestSyncData = {
+    prId: prNumber,
+    prTitle,
+    prContent: data.pull_request.body ?? null,
+    prUrl: prHtmlUrl,
+    state: 'open',
+    merged: false,
+    headRef: data.pull_request.head?.ref,
+    headSha: data.pull_request.head?.sha,
+    baseRef: data.pull_request.base?.ref
+  };
 
-    const existingPR = await prisma.pullRequest.findUnique({
-      where: { prId: prNumber }
-    });
-
-    if (existingPR) {
-      console.log(`PR #${prNumber} already exists, updating...`);
-      await prisma.pullRequest.update({
-        where: { id: existingPR.id },
-        data: {
-          prTitle,
-          prContent: prBody,
-          prUrl: prHtmlUrl,
-          updatedAt: now
-        }
-      });
-      console.log(`PR #${prNumber} updated successfully`);
-      return;
-    }
-
-    let issueId: number | undefined;
-    if (issueNumber) {
-      const issue = await prisma.issue.findUnique({
-        where: { issueId: issueNumber }
-      });
-      issueId = issue?.id;
-    }
-
-    const pr = await prisma.pullRequest.create({
-      data: {
-        prId: prNumber,
-        prTitle,
-        prContent: prBody,
-        prUrl: prHtmlUrl,
-        issueId: issueId ?? null,
-        completedAt: INACTIVE_TIMESTAMP,
-        deletedAt: INACTIVE_TIMESTAMP,
-        createdAt: now,
-        updatedAt: now
-      }
-    });
-
-    if (issueId) {
-      const existingIssuePr = await prisma.issuePR.findUnique({
-        where: {
-          issueId_prId: {
-            issueId,
-            prId: pr.id
-          }
-        }
-      });
-
-      if (!existingIssuePr) {
-        await prisma.issuePR.create({
-          data: {
-            issueId,
-            prId: pr.id
-          }
-        });
-        console.log(`IssuePR relation created for issue ${issueId} and PR ${pr.id}`);
-      }
-    }
-
-    console.log(`PR #${prNumber} created successfully`);
-  } catch (error) {
-    console.error(
-      'Failed to process pull_request.opened:',
-      error instanceof Error ? error.message : error
-    );
+  const syncResult = await syncPullRequestFromWebhook(syncData);
+  if (!syncResult.success) {
+    console.error('Failed to sync pull request:', syncResult.error);
+    return;
   }
+
+  const issueNumber = extractIssueNumberFromTitle(prTitle);
+  if (issueNumber && syncResult.pullRequest) {
+    const linkResult = await linkPRToIssue(prNumber, issueNumber);
+    if (linkResult.success && linkResult.linked) {
+      console.log(`PR #${prNumber} linked to issue #${issueNumber}`);
+    }
+  }
+
+  console.log(`PR #${prNumber} synced successfully`);
 });
 
 webhooks.on('pull_request.closed', async ({ payload }) => {
   const data = payload as PullRequestWebhookPayload;
 
-  if (!data.pull_request?.number) {
+  if (!data.pull_request?.number || !data.repository?.full_name) {
     console.log('Invalid pull_request.closed payload: missing data');
     return;
   }
@@ -616,72 +542,172 @@ webhooks.on('pull_request.closed', async ({ payload }) => {
   console.log(`PR #${data.pull_request.number}: ${data.pull_request.title}`);
   console.log(`Merged: ${data.pull_request.merged ?? false}`);
 
-  try {
-    const prisma = getPrismaClient();
-    const prNumber = data.pull_request.number ?? 0;
-    const isMerged = data.pull_request.merged ?? false;
+  const prNumber = data.pull_request.number ?? 0;
+  const prTitle = data.pull_request.title ?? 'Untitled';
+  const prHtmlUrl =
+    data.pull_request.html_url ??
+    `https://github.com/${data.repository.full_name}/pull/${prNumber}`;
+  const isMerged = data.pull_request.merged ?? false;
 
-    const pr = await prisma.pullRequest.findUnique({
-      where: { prId: prNumber },
-      include: { tasks: true }
-    });
+  const syncData: PullRequestSyncData = {
+    prId: prNumber,
+    prTitle,
+    prContent: data.pull_request.body ?? null,
+    prUrl: prHtmlUrl,
+    state: 'closed',
+    merged: isMerged,
+    headRef: data.pull_request.head?.ref,
+    headSha: data.pull_request.head?.sha,
+    baseRef: data.pull_request.base?.ref
+  };
 
-    if (!pr) {
-      console.log(`PR #${prNumber} not found in database`);
+  const syncResult = await syncPullRequestFromWebhook(syncData);
+  if (!syncResult.success) {
+    console.error('Failed to sync pull request:', syncResult.error);
+    return;
+  }
+
+  const completeTasksResult = await completeTasksForPR(prNumber);
+  if (!completeTasksResult.success) {
+    console.error('Failed to complete tasks:', completeTasksResult.error);
+    return;
+  }
+  console.log(`Completed ${completeTasksResult.completedCount} tasks for PR #${prNumber}`);
+
+  if (isMerged) {
+    const completeIssueResult = await completeLinkedIssue(prNumber);
+    if (!completeIssueResult.success) {
+      console.error('Failed to complete linked issue:', completeIssueResult.error);
       return;
     }
-
-    const now = getCurrentTimestamp();
-
-    if (isMerged) {
-      await prisma.pullRequest.update({
-        where: { id: pr.id },
-        data: {
-          completedAt: now,
-          updatedAt: now
-        }
-      });
-      console.log(`PR #${prNumber} marked as merged`);
-
-      if (pr.issueId) {
-        await prisma.issue.update({
-          where: { id: pr.issueId },
-          data: {
-            completedAt: now,
-            updatedAt: now
-          }
-        });
-        console.log(`Issue #${pr.issueId} marked as completed`);
-      }
+    if (completeIssueResult.issueId) {
+      console.log(`Linked issue completed for PR #${prNumber}`);
     }
-
-    for (const task of pr.tasks) {
-      await prisma.task.update({
-        where: { id: task.id },
-        data: {
-          status: 'completed',
-          completedAt: now,
-          updatedAt: now
-        }
-      });
-    }
-
-    console.log(`Updated ${pr.tasks.length} tasks for PR #${prNumber}`);
-  } catch (error) {
-    console.error(
-      'Failed to process pull_request.closed:',
-      error instanceof Error ? error.message : error
-    );
   }
+
+  console.log(`PR #${prNumber} closed successfully`);
 });
 
-function extractIssueNumberFromTitle(title: string): number | null {
-  const match = title.match(/#(\d+)/);
-  if (match) {
-    return parseInt(match[1], 10);
+webhooks.on('pull_request.reopened', async ({ payload }) => {
+  const data = payload as PullRequestWebhookPayload;
+
+  if (!data.pull_request?.number || !data.repository?.full_name) {
+    console.log('Invalid pull_request.reopened payload: missing data');
+    return;
   }
-  return null;
-}
+
+  console.log('=== Pull Request Webhook: reopened ===');
+  console.log(`PR #${data.pull_request.number}: ${data.pull_request.title}`);
+
+  const prNumber = data.pull_request.number ?? 0;
+  const prTitle = data.pull_request.title ?? 'Untitled';
+  const prHtmlUrl =
+    data.pull_request.html_url ??
+    `https://github.com/${data.repository.full_name}/pull/${prNumber}`;
+
+  const syncData: PullRequestSyncData = {
+    prId: prNumber,
+    prTitle,
+    prContent: data.pull_request.body ?? null,
+    prUrl: prHtmlUrl,
+    state: 'open',
+    merged: false,
+    headRef: data.pull_request.head?.ref,
+    headSha: data.pull_request.head?.sha,
+    baseRef: data.pull_request.base?.ref
+  };
+
+  const syncResult = await syncPullRequestFromWebhook(syncData);
+  if (!syncResult.success) {
+    console.error('Failed to sync pull request:', syncResult.error);
+    return;
+  }
+
+  console.log(`PR #${prNumber} reopened and synced successfully`);
+});
+
+webhooks.on('pull_request.edited', async ({ payload }) => {
+  const data = payload as PullRequestWebhookPayload;
+
+  if (!data.pull_request?.number || !data.repository?.full_name) {
+    console.log('Invalid pull_request.edited payload: missing data');
+    return;
+  }
+
+  console.log('=== Pull Request Webhook: edited ===');
+  console.log(`PR #${data.pull_request.number}: ${data.pull_request.title}`);
+
+  const prNumber = data.pull_request.number ?? 0;
+  const prTitle = data.pull_request.title ?? 'Untitled';
+  const prHtmlUrl =
+    data.pull_request.html_url ??
+    `https://github.com/${data.repository.full_name}/pull/${prNumber}`;
+
+  const syncData: PullRequestSyncData = {
+    prId: prNumber,
+    prTitle,
+    prContent: data.pull_request.body ?? null,
+    prUrl: prHtmlUrl,
+    state: data.pull_request.state,
+    headRef: data.pull_request.head?.ref,
+    headSha: data.pull_request.head?.sha,
+    baseRef: data.pull_request.base?.ref
+  };
+
+  const syncResult = await syncPullRequestFromWebhook(syncData);
+  if (!syncResult.success) {
+    console.error('Failed to sync pull request:', syncResult.error);
+    return;
+  }
+
+  const issueNumber = extractIssueNumberFromTitle(prTitle);
+  if (issueNumber && syncResult.pullRequest) {
+    const linkResult = await linkPRToIssue(prNumber, issueNumber);
+    if (linkResult.success && linkResult.linked) {
+      console.log(`PR #${prNumber} linked to issue #${issueNumber}`);
+    }
+  }
+
+  console.log(`PR #${prNumber} edited and synced successfully`);
+});
+
+webhooks.on('pull_request.synchronize', async ({ payload }) => {
+  const data = payload as PullRequestWebhookPayload;
+
+  if (!data.pull_request?.number || !data.repository?.full_name) {
+    console.log('Invalid pull_request.synchronize payload: missing data');
+    return;
+  }
+
+  console.log('=== Pull Request Webhook: synchronize ===');
+  console.log(`PR #${data.pull_request.number}: ${data.pull_request.title}`);
+  console.log(`New SHA: ${data.pull_request.head?.sha}`);
+
+  const prNumber = data.pull_request.number ?? 0;
+  const prTitle = data.pull_request.title ?? 'Untitled';
+  const prHtmlUrl =
+    data.pull_request.html_url ??
+    `https://github.com/${data.repository.full_name}/pull/${prNumber}`;
+
+  const syncData: PullRequestSyncData = {
+    prId: prNumber,
+    prTitle,
+    prContent: data.pull_request.body ?? null,
+    prUrl: prHtmlUrl,
+    state: 'open',
+    headRef: data.pull_request.head?.ref,
+    headSha: data.pull_request.head?.sha,
+    baseRef: data.pull_request.base?.ref
+  };
+
+  const syncResult = await syncPullRequestFromWebhook(syncData);
+  if (!syncResult.success) {
+    console.error('Failed to sync pull request:', syncResult.error);
+    return;
+  }
+
+  console.log(`PR #${prNumber} synchronized successfully`);
+});
 
 webhooks.onError((error) => {
   console.error('Webhook error:', error);
