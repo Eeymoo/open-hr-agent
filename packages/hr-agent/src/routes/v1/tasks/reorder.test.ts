@@ -156,5 +156,26 @@ describe('Tasks Reorder Route Tests', () => {
       expect(response.body).toHaveProperty('code', HTTP_STATUS.OK);
       expect(response.body.data).toHaveProperty('id', 1);
     });
+
+    it('应该在 issue 未完成时等待并返回', async () => {
+      mockIssueFindFirst
+        .mockResolvedValueOnce({
+          id: 1,
+          issueId: 123,
+          completedAt: -2
+        })
+        .mockResolvedValueOnce({
+          id: 1,
+          issueId: 123,
+          completedAt: 1739380000
+        });
+
+      const response = await request(app).post('/v1/issues/1/wait').send({
+        timeout: 100,
+        interval: 50
+      });
+
+      expect(response.status).toBe(HTTP_STATUS.OK);
+    });
   });
 });
