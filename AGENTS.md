@@ -50,59 +50,54 @@ pnpm --filter hra test:coverage                 # Run with coverage
 pnpm --filter hra prisma:generate   # Generate Prisma client
 pnpm --filter hra prisma:migrate    # Run migrations
 pnpm --filter hra prisma:push       # Push schema to DB
-pnpm --filter hra prisma:studio     # Open Prisma Studio
 pnpm --filter hra db:setup          # Full DB setup
 ```
 
 ### Running
 ```bash
 pnpm --filter hra dev           # Backend dev server (nodemon)
-pnpm --filter hra start         # Backend prod server
 pnpm --filter hr-agent-web dev  # Frontend dev server (Vite)
 ```
 
-### Scripts (scripts/)
+## Development Workflow (Strictly Follow)
+
+### Phase 1: Environment Setup & Task Breakdown
+
+1. **Sync Code**: `git fetch origin main && git rebase origin/main`
+2. **Task Breakdown**: Create Todo List, **must include "Write/Update test cases"**
+
+### Phase 2: Atomic Development & Testing Loop
+
+1. **Code Standards**: Only modify task-related modules and test files
+2. **Test Writing**: Write unit/integration tests for new functions/APIs
+3. **Check & Validate**: Run `pnpm run check` after each feature
+   - Lint errors: Fix code style
+   - Test failures: Fix business logic until all pass
+4. **Atomic Commit**: Follow Conventional Commits (`feat(scope): description`)
+
+### Phase 3: PR Creation & CI Monitoring
+
 ```bash
-scripts/start.sh                # Start all Docker containers
-scripts/stop.sh                 # Stop all Docker containers
-scripts/test/test-ca-api.sh     # Test CA container API
-scripts/test/test-task-manager.sh  # Test task manager workflow
+git push origin <branch>
+gh pr create --draft --title "feat: [task summary]" --body "## Changes\n- [x] Implementation\n- [x] Tests"
+gh pr checks <PR_NUMBER> --watch 2>&1 || true
 ```
 
-## Development Workflow
+### Phase 4: Final Delivery
 
-1. Create feature branch from main
-2. Develop feature
-3. **Write tests for all new/modified APIs**
-4. Run tests: `pnpm --filter hra test` (must pass)
-5. Format: `pnpm run format`
-6. Type check: `pnpm run typecheck`
-7. Commit and push
+```bash
+gh pr ready <PR_NUMBER>
+```
 
 ## Code Style & Conventions
 
 ### Import Ordering
-1. Standard library (`node:*`)
-2. Third-party packages
-3. Internal modules (`@/` or relative)
-4. Type imports (group separately)
-
-```typescript
-import fs from 'node:fs';
-import { Request, Response } from 'express';
-import { Octokit } from 'octokit';
-import Result from './utils/Result.js';
-import type { TaskConfig } from './types.js';
-```
+1. Standard library (`node:*`) 2. Third-party packages 3. Internal modules 4. Type imports
 
 ### TypeScript Rules
-- Strict mode enabled, target ES2022
-- Explicit return types preferred (warn)
-- No `any` type - use `unknown`
+- Strict mode, target ES2022, no `any` type
 - No unused vars/params unless prefixed with `_`
-- Implicit returns: error
 - Prefer optional chaining (`?.`) and nullish coalescing (`??`)
-- Non-null assertions discouraged (warn)
 
 ### Naming Conventions
 | Type | Convention | Example |
@@ -110,89 +105,27 @@ import type { TaskConfig } from './types.js';
 | Variables/Functions | camelCase | `taskManager` |
 | Constants | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
 | Classes/Interfaces | PascalCase | `TaskScheduler` |
-| Private members | _leadingUnderscore | `_privateField` |
 | Files | camelCase.ts | `taskScheduler.ts` |
 | Routes | name.method.ts | `issues.post.ts` |
 
 ### Error Handling
-Use `Result` class from `packages/hr-agent/src/utils/Result.ts`:
-
 ```typescript
-// Success response
-res.json(new Result(data, 200, 'Operation successful'));
-
-// Error response
-res.json(new Result().error(404, 'Resource not found'));
-
-// Chaining
-new Result().success(data, 'Created').toJSON();
+res.json(new Result(data, 200, 'Success'));
+res.json(new Result().error(404, 'Not found'));
 ```
 
-Response structure: `{ code: number, message: string, data: T }`
-
 ### Formatting (Prettier)
-- 2 space indent, single quotes (double for escape)
-- Semicolons required, trailing commas: never
-- Arrow parens: always, print width: 100
-- End of line: lf
-
-### Code Complexity
-- Max depth: 3
-- Max params: 4 (warn)
-- Max lines per function: 100 (warn)
-- Complexity: C10 (warn)
-- No magic numbers (except -1, 0, 1, 2)
-
-### Best Practices
-- Prefer `const` over `let`
-- Use template literals
-- Object shorthand: `{ x }` over `{ x: x }`
-- Destructuring preferred
-- `async/await` over raw promises
-- No `console/debugger` in production
+- 2 space indent, single quotes, semicolons required
+- Trailing commas: never, print width: 100
 
 ## Testing Guidelines
 
-- Framework: Vitest (node environment, globals enabled)
-- Pattern: `describe`/`it`
-- Test files: `*.test.ts` or `*.spec.ts`
-- Mock external dependencies
-- All public APIs, utilities, error scenarios must be tested
+- Framework: Vitest (globals enabled, node environment)
+- Pattern: `describe`/`it`, Test files: `*.test.ts` or `*.spec.ts`
+- Mock external dependencies, test all public APIs
 
-## Special Features
+## Important Notes
 
-### Auto-Load Routes (hra)
-- Middleware: `src/middleware/autoLoadRoutes.ts`
-- HTTP method suffix: `routeName.get.ts`, `routeName.post.ts`
-- Dynamic routes: `[id].ts` → `:id` parameter
-- Example: `routes/v1/hello.get.ts` → `GET /v1/hello`
-
-### GitHub Webhooks
-- Issues: `routes/v1/webhooks/issues.post.ts`
-- PRs: `routes/v1/webhooks/pullRequests.post.ts`
-- HMAC verification via `crypto.timingSafeEqual`
-
-## File Organization
-
-```
-open-hr-agent2/
-├── packages/
-│   ├── hr-agent/           # Backend (Express + Prisma)
-│   ├── coding-agent/       # Docker container for AI coding
-│   └── hr-agent-web/       # Frontend (React + Vite)
-├── scripts/
-│   ├── start.sh            # Start all containers
-│   ├── stop.sh             # Stop all containers
-│   └── test/               # Test scripts
-├── docker-compose.yml      # Docker orchestration
-└── AGENTS.md               # This file
-```
-
-## Commit & Safety
-
-- Format: `type(scope): description` (feat, fix, refactor, style, docs, test, chore)
-- Run format, lint, tests before commit
-- Never commit secrets
-- Never modify git config
-- Never force push without request
-- Never push to main/master without confirmation
+- **Test First**: Write failing tests first for complex logic
+- **Force Rebase**: `git fetch origin main && git rebase origin/main` before each Todo
+- **CI Blocking**: No next step if CI fails
