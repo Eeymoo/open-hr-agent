@@ -31,14 +31,14 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/tasks" replace />
+        element: <Navigate to="/dashboard" replace />
       },
       {
-        path: 'tasks',
+        path: 'dashboard',
         element: <TaskOrchestration />
       },
       {
-        path: 'tasks/list',
+        path: 'tasks',
         element: <TaskList />
       },
       {

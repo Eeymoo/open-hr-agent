@@ -206,7 +206,7 @@ export function TaskOrchestration() {
           onViewModeChange={setViewMode}
           onFilterTagsChange={setFilterTags}
           onAddTask={handleAddTask}
-          onViewList={() => navigate('/tasks/list')}
+          onViewList={() => navigate('/tasks')}
         />
         <TaskView
           viewMode={viewMode}

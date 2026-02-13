@@ -41,12 +41,12 @@ export function AppLayout({ children }: LayoutProps) {
 
   const menuItems = [
     {
-      key: '/tasks',
+      key: '/dashboard',
       icon: <AppstoreOutlined />,
       label: '任务编排'
     },
     {
-      key: '/tasks/list',
+      key: '/tasks',
       icon: <UnorderedListOutlined />,
       label: '任务列表'
     },
@@ -85,10 +85,10 @@ export function AppLayout({ children }: LayoutProps) {
   ];
 
   const getPageTitle = () => {
-    if (location.pathname === '/tasks/list') {
+    if (location.pathname === '/tasks') {
       return '任务列表';
     }
-    if (location.pathname === '/tasks') {
+    if (location.pathname === '/dashboard') {
       return '任务编排工作台';
     }
     if (location.pathname.startsWith('/issues')) {
@@ -119,8 +119,8 @@ export function AppLayout({ children }: LayoutProps) {
         <Menu
           mode="inline"
           selectedKeys={[
-            location.pathname.startsWith('/tasks') && location.pathname !== '/tasks/list'
-              ? '/tasks'
+            location.pathname.startsWith('/tasks') && location.pathname !== '/tasks'
+              ? '/dashboard'
               : location.pathname
           ]}
           items={menuItems}
