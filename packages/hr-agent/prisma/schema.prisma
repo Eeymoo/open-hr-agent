@@ -74,6 +74,9 @@ model Task {
   status       String      @default("planned")
   priority     Int         @default(0)
   tags         String[]    @default([])
+  parentTaskId Int?
+  parent       Task?       @relation("SubTasks", fields: [parentTaskId], references: [id])
+  subTasks     Task[]      @relation("SubTasks")
   issueId      Int?
   issue        Issue?      @relation(fields: [issueId], references: [id])
   prId         Int?
@@ -85,6 +88,7 @@ model Task {
   updatedAt    Int         @default(-2)
   completedAt  Int         @default(-2)
   deletedAt    Int         @default(-2)
+  @@index([parentTaskId])
   @@index([deletedAt])
   @@index([status])
   @@index([priority])
