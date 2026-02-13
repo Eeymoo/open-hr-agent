@@ -10,7 +10,13 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       enabled: process.env.COVERAGE === 'true',
-      exclude: ['node_modules/', 'dist/', '**/*.test.ts', '**/*.spec.ts']
+      exclude: ['node_modules/', 'dist/', '**/*.test.ts', '**/*.spec.ts'],
+      thresholds: {
+        lines: 90,
+        functions: 90,
+        branches: 90,
+        statements: 90
+      }
     }
   }
 });
