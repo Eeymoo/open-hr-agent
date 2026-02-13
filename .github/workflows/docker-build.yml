@@ -69,6 +69,10 @@ jobs:
         if: matrix.package.needs_build
         run: pnpm run lint
 
+      - name: Run tests with coverage
+        if: matrix.package.needs_build && matrix.package.name == 'hra'
+        run: pnpm --filter hra test:coverage
+
       - name: Build
         if: matrix.package.needs_build
         run: pnpm run build
