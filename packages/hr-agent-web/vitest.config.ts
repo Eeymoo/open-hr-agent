@@ -15,7 +15,8 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.{js,jsx,ts,tsx}'],
     coverage: {
       reporter: ['text', 'json', 'html'],
-      include: ['src/utils/**/*.{ts,tsx}']
-    }
+      include: ['src/utils/**/*.{ts,tsx}', 'src/components/**/*.{ts,tsx}']
+    },
+    setupFiles: ['./src/test/setup.ts']
   }
 });

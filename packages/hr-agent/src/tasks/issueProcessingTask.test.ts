@@ -45,12 +45,10 @@ describe('IssueProcessingTask', () => {
         { taskId: 1, taskName: 'issue_processing', retryCount: 0 }
       );
 
-      expect(logger.info).toHaveBeenCalledWith(
-        1,
-        'issue_processing',
-        '开始处理 Issue',
-        { issueNumber: 123, caName: 'hra_123' }
-      );
+      expect(logger.info).toHaveBeenCalledWith(1, 'issue_processing', '开始处理 Issue', {
+        issueNumber: 123,
+        caName: 'hra_123'
+      });
     });
 
     it('应该正确提取 issueNumber 和 caName', async () => {

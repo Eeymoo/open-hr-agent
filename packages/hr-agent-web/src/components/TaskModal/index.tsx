@@ -5,11 +5,7 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined
 } from '@ant-design/icons';
-import {
-  TASK_STATUS_LABELS,
-  TASK_STATUS_COLORS,
-  type Task
-} from '../../types/task';
+import { TASK_STATUS_LABELS, TASK_STATUS_COLORS, type Task } from '../../types/task';
 import {
   formatTimestamp,
   formatDuration,

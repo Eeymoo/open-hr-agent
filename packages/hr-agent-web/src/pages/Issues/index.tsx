@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Card, Button, Table, Space, Empty, Spin, Input, Modal, Form, message } from 'antd';
+import { Card, Button, Table, Space, Empty, Input, Modal, Form, message } from 'antd';
 import { PlusOutlined, LinkOutlined, EditOutlined } from '@ant-design/icons';
 import { useIssues, useCreateIssue } from '../../hooks/useIssues';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Issue } from '../../types/issue';
 import { formatDate, getIssueStatusTag } from '../../utils/formatters';
 import { ListHeader } from '../../components/ListHeader';
+import { Page } from '../../components/Page';
 
 import './index.css';
 
@@ -136,98 +137,92 @@ function IssuesListContent({
 
   const columns = getIssueColumns(navigate);
 
-  if (isLoading) {
-    return (
-      <div className="issues-loading">
-        <Spin size="large" tip="加载中..." />
-      </div>
-    );
-  }
-
   return (
-    <div className="issues-list">
-      <ListHeader
-        title="Issues 列表"
-        count={pagination?.total || 0}
-        countLabel="个 Issue"
-        searchPlaceholder="搜索 Issue ID 或标题"
-        searchValue={searchText}
-        onSearchChange={setSearchText}
-        onSearch={handleSearch}
-        actionButton={{
-          icon: <PlusOutlined />,
-          text: '添加 Issue',
-          onClick: () => setModalOpen(true)
-        }}
-      />
+    <Page loading={isLoading}>
+      <div className="issues-list">
+        <ListHeader
+          title="Issues 列表"
+          count={pagination?.total || 0}
+          countLabel="个 Issue"
+          searchPlaceholder="搜索 Issue ID 或标题"
+          searchValue={searchText}
+          onSearchChange={setSearchText}
+          onSearch={handleSearch}
+          actionButton={{
+            icon: <PlusOutlined />,
+            text: '添加 Issue',
+            onClick: () => setModalOpen(true)
+          }}
+        />
 
-      <Card className="issues-card">
-        {filteredIssues.length === 0 ? (
-          <Empty description="暂无 Issues" />
-        ) : (
-          <Table
-            dataSource={filteredIssues}
-            columns={columns}
-            rowKey="id"
-            scroll={{ x: 'max-content' }}
-            pagination={{
-              current: page,
-              pageSize,
-              total: pagination?.total || 0,
-              showSizeChanger: true,
-              showTotal: (total) => `共 ${total} 条`,
-              onChange: handleTableChange
-            }}
-          />
-        )}
-      </Card>
+        <Card className="issues-card">
+          {filteredIssues.length === 0 ? (
+            <Empty description="暂无 Issues" />
+          ) : (
+            <Table
+              dataSource={filteredIssues}
+              columns={columns}
+              rowKey="id"
+              scroll={{ x: 'max-content' }}
+              pagination={{
+                current: page,
+                pageSize,
+                total: pagination?.total || 0,
+                showSizeChanger: true,
+                showTotal: (total) => `共 ${total} 条`,
+                onChange: handleTableChange
+              }}
+            />
+          )}
+        </Card>
 
-      <Modal
-        title="添加 Issue"
-        open={modalOpen}
-        onCancel={() => {
-          setModalOpen(false);
-          form.resetFields();
-        }}
-        footer={null}
-        width={600}
-      >
-        <Form form={form} layout="vertical" onFinish={handleCreate}>
-          <Form.Item
-            name="issueId"
-            label="Issue ID"
-            rules={[{ required: true, message: '请输入 Issue ID' }]}
-          >
-            <Input type="number" placeholder="请输入 GitHub Issue ID" />
-          </Form.Item>
-          <Form.Item
-            name="issueUrl"
-            label="Issue URL"
-            rules={[{ required: true, message: '请输入 Issue URL' }]}
-          >
-            <Input placeholder="https://github.com/..." />
-          </Form.Item>
-          <Form.Item
-            name="issueTitle"
-            label="Issue 标题"
-            rules={[{ required: true, message: '请输入 Issue 标题' }]}
-          >
-            <Input placeholder="请输入 Issue 标题" />
-          </Form.Item>
-          <Form.Item name="issueContent" label="Issue 内容">
-            <Input.TextArea rows={4} placeholder="请输入 Issue 内容" />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit" loading={createIssue.isPending}>
-                提交
-              </Button>
-              <Button onClick={() => setModalOpen(false)}>取消</Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
+        <Modal
+          title="添加 Issue"
+          open={modalOpen}
+          onCancel={() => {
+            setModalOpen(false);
+            form.resetFields();
+          }}
+          footer={null}
+          width={600}
+        >
+          <Form form={form} layout="vertical" onFinish={handleCreate}>
+            <Form.Item
+              name="issueId"
+              label="Issue ID"
+              rules={[{ required: true, message: '请输入 Issue ID' }]}
+            >
+              <Input type="number" placeholder="请输入 GitHub Issue ID" />
+            </Form.Item>
+            <Form.Item
+              name="issueUrl"
+              label="Issue URL"
+              rules={[{ required: true, message: '请输入 Issue URL' }]}
+            >
+              <Input placeholder="https://github.com/..." />
+            </Form.Item>
+            <Form.Item
+              name="issueTitle"
+              label="Issue 标题"
+              rules={[{ required: true, message: '请输入 Issue 标题' }]}
+            >
+              <Input placeholder="请输入 Issue 标题" />
+            </Form.Item>
+            <Form.Item name="issueContent" label="Issue 内容">
+              <Input.TextArea rows={4} placeholder="请输入 Issue 内容" />
+            </Form.Item>
+            <Form.Item>
+              <Space>
+                <Button type="primary" htmlType="submit" loading={createIssue.isPending}>
+                  提交
+                </Button>
+                <Button onClick={() => setModalOpen(false)}>取消</Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Modal>
+      </div>
+    </Page>
   );
 }
 

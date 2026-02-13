@@ -701,7 +701,12 @@ export class TaskScheduler {
   }
 
   private async onTaskSuccess(task: QueuedTask, result: unknown): Promise<void> {
-    const typedResult = result as { finalStatus?: string; nextEvent?: string; nextTask?: string; nextParams?: Record<string, unknown> };
+    const typedResult = result as {
+      finalStatus?: string;
+      nextEvent?: string;
+      nextTask?: string;
+      nextParams?: Record<string, unknown>;
+    };
 
     if (typedResult.finalStatus) {
       await this.updateTaskStatus(task.taskId, typedResult.finalStatus);
@@ -738,9 +743,14 @@ export class TaskScheduler {
     const isTempTask = task.taskId < 0;
 
     if (isManagesCA && isTempTask) {
-      await this.logger.error(task.taskId, task.taskName, 'MANAGES_CA 任务失败，记录错误日志到数据库', {
-        error: error.message
-      });
+      await this.logger.error(
+        task.taskId,
+        task.taskName,
+        'MANAGES_CA 任务失败，记录错误日志到数据库',
+        {
+          error: error.message
+        }
+      );
 
       const prisma = getPrismaClient();
       const now = getCurrentTimestamp();

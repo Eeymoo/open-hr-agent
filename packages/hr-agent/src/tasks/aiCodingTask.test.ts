@@ -92,7 +92,9 @@ describe('AiCodingTask', () => {
         issueContent: '登录时密码验证失败'
       };
 
-      const prompt = (task as unknown as { buildCodingPrompt: BuildCodingPromptFn }).buildCodingPrompt(issue);
+      const prompt = (
+        task as unknown as { buildCodingPrompt: BuildCodingPromptFn }
+      ).buildCodingPrompt(issue);
 
       expect(prompt).toContain('#123: 修复登录 Bug');
       expect(prompt).toContain('登录时密码验证失败');
@@ -110,7 +112,9 @@ describe('AiCodingTask', () => {
         issueContent: null
       };
 
-      const prompt = (task as unknown as { buildCodingPrompt: BuildCodingPromptFn }).buildCodingPrompt(issue);
+      const prompt = (
+        task as unknown as { buildCodingPrompt: BuildCodingPromptFn }
+      ).buildCodingPrompt(issue);
 
       expect(prompt).toContain('#456: 添加新功能');
       expect(prompt).toContain('No description provided');
@@ -123,7 +127,9 @@ describe('AiCodingTask', () => {
         issueContent: '测试内容'
       };
 
-      const prompt = (task as unknown as { buildCodingPrompt: BuildCodingPromptFn }).buildCodingPrompt(issue);
+      const prompt = (
+        task as unknown as { buildCodingPrompt: BuildCodingPromptFn }
+      ).buildCodingPrompt(issue);
 
       expect(prompt).toContain('### 第一阶段：环境准备与任务拆解');
       expect(prompt).toContain('### 第二阶段：原子化开发与测试闭环');

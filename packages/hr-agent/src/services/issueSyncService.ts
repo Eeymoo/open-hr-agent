@@ -1,8 +1,4 @@
-import {
-  getPrismaClient,
-  getCurrentTimestamp,
-  INACTIVE_TIMESTAMP
-} from '../utils/database.js';
+import { getPrismaClient, getCurrentTimestamp, INACTIVE_TIMESTAMP } from '../utils/database.js';
 
 export interface IssueSyncData {
   issueId: number;

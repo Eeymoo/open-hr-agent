@@ -41,7 +41,10 @@ describe('ContainerSyncTask', () => {
     it('应该处理 Docker API 错误', async () => {
       mockListContainers.mockRejectedValue(new Error('Docker error'));
 
-      const result = await task.execute({}, { taskId: 1, taskName: 'container_sync', retryCount: 0 });
+      const result = await task.execute(
+        {},
+        { taskId: 1, taskName: 'container_sync', retryCount: 0 }
+      );
 
       expect(result.success).toBe(false);
     });

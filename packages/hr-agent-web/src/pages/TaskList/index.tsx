@@ -4,13 +4,19 @@ import type { TablePaginationConfig } from 'antd/es/table';
 import { ReloadOutlined, FilterOutlined } from '@ant-design/icons';
 import { useTasks } from '../../hooks/useTasks';
 import { useNavigate } from 'react-router-dom';
-import { TASK_TAG_LABELS, type Task, type TaskStatus, type TaskQueryParams } from '../../types/task';
+import {
+  TASK_TAG_LABELS,
+  type Task,
+  type TaskStatus,
+  type TaskQueryParams
+} from '../../types/task';
 import {
   getTaskListColumns,
   isRunningStatus,
   STATUS_FILTER_OPTIONS,
   PRIORITY_FILTER_OPTIONS
 } from './columns';
+import { Page } from '../../components/Page';
 import './index.css';
 
 const DEFAULT_FILTER_TAGS = ['requires:ca', 'agent:coding', 'agent:review', 'agent:test'];
@@ -76,41 +82,42 @@ export function TaskList() {
   };
 
   return (
-    <div className="task-list-page">
-      <TaskListHeader
-        total={data?.pagination?.total || 0}
-        searchText={searchText}
-        onSearchChange={setSearchText}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        priorityFilter={priorityFilter}
-        onPriorityFilterChange={setPriorityFilter}
-        filterTags={filterTags}
-        onFilterTagsChange={setFilterTags}
-        onRefresh={refetch}
-      />
-      <Card className="task-list-card">
-        <Table
-          dataSource={filteredTasks}
-          columns={columns}
-          rowKey="id"
-          loading={isLoading}
-          scroll={{ x: 1400 }}
-          pagination={{
-            current: page,
-            pageSize,
-            total: data?.pagination?.total || 0,
-            showSizeChanger: true,
-            showTotal: (total) => `共 ${total} 条`,
-            pageSizeOptions: ['10', '20', '50', '100']
-          }}
-          onChange={handleTableChange}
-          rowClassName={(record: Task) =>
-            isRunningStatus(record.status) ? 'task-list-row-running' : ''
-          }
+    <Page loading={isLoading}>
+      <div className="task-list-page">
+        <TaskListHeader
+          total={data?.pagination?.total || 0}
+          searchText={searchText}
+          onSearchChange={setSearchText}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          priorityFilter={priorityFilter}
+          onPriorityFilterChange={setPriorityFilter}
+          filterTags={filterTags}
+          onFilterTagsChange={setFilterTags}
+          onRefresh={refetch}
         />
-      </Card>
-    </div>
+        <Card className="task-list-card">
+          <Table
+            dataSource={filteredTasks}
+            columns={columns}
+            rowKey="id"
+            scroll={{ x: 1400 }}
+            pagination={{
+              current: page,
+              pageSize,
+              total: data?.pagination?.total || 0,
+              showSizeChanger: true,
+              showTotal: (total) => `共 ${total} 条`,
+              pageSizeOptions: ['10', '20', '50', '100']
+            }}
+            onChange={handleTableChange}
+            rowClassName={(record: Task) =>
+              isRunningStatus(record.status) ? 'task-list-row-running' : ''
+            }
+          />
+        </Card>
+      </div>
+    </Page>
   );
 }
 

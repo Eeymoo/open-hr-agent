@@ -169,9 +169,7 @@ describe('Tasks GET Route Tests', () => {
       mockTaskFindMany.mockResolvedValueOnce(mockTasks.slice(0, 2));
       mockTaskCount.mockResolvedValueOnce(2);
 
-      const response = await request(app).get(
-        '/v1/tasks?tags=requires:ca,agent:coding'
-      );
+      const response = await request(app).get('/v1/tasks?tags=requires:ca,agent:coding');
 
       expect(response.status).toBe(HTTP_STATUS.OK);
       expect(mockTaskFindMany).toHaveBeenCalledWith(
