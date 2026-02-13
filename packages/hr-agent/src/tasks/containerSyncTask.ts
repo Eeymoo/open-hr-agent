@@ -1,6 +1,7 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
 import { TASK_TAGS } from '../config/taskTags.js';
+import { TASK_STATUS } from '../config/taskStatus.js';
 import { getPrismaClient, getCurrentTimestamp } from '../utils/database.js';
 import { listContainers, type ContainerInfo } from '../utils/docker/listContainers.js';
 
@@ -78,6 +79,7 @@ export class ContainerSyncTask extends BaseTask {
 
       return {
         success: true,
+        finalStatus: TASK_STATUS.COMPLETED,
         data: { syncedCount, inconsistenciesFound, errorCount }
       };
     } catch (error) {
@@ -96,6 +98,7 @@ export class ContainerSyncTask extends BaseTask {
 
       return {
         success: false,
+        finalStatus: TASK_STATUS.COMPLETED,
         error: errorMessage
       };
     }

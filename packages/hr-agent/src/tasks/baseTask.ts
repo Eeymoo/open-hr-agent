@@ -9,6 +9,7 @@ export interface TaskResult {
   success: boolean;
   data?: Record<string, unknown>;
   error?: string;
+  finalStatus?: string;
   nextEvent?: string;
   nextTask?: string;
   nextParams?: Record<string, unknown>;
@@ -76,5 +77,18 @@ export abstract class BaseTask {
     data: Record<string, unknown>
   ): Promise<void> {
     await this.eventBus.emit(eventType, data);
+  }
+
+  protected async updateParentTaskStatus(parentTaskId: number, status: string): Promise<void> {
+    const prisma = getPrismaClient();
+    const now = getCurrentTimestamp();
+
+    await prisma.task.update({
+      where: { id: parentTaskId },
+      data: {
+        status,
+        updatedAt: now
+      }
+    });
   }
 }

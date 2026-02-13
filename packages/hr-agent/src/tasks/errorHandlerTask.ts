@@ -1,5 +1,6 @@
 import { BaseTask, type TaskResult, type TaskContext } from './baseTask.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
+import { TASK_STATUS } from '../config/taskStatus.js';
 import { getPrismaClient } from '../utils/database.js';
 import { createGitHubClient } from '../utils/github.js';
 import type { EventBus } from '../services/eventBus.js';
@@ -139,7 +140,8 @@ export class ErrorHandlerTask extends BaseTask {
 
   async execute(_params: Record<string, unknown>, _context: TaskContext): Promise<TaskResult> {
     return {
-      success: true
+      success: true,
+      finalStatus: TASK_STATUS.COMPLETED
     };
   }
 }

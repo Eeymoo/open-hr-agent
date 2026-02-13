@@ -4,7 +4,8 @@ export const TASK_TAGS = {
   AGENT_CODING: 'agent:coding',
   AGENT_REVIEW: 'agent:review',
   AGENT_TEST: 'agent:test',
-  LONG_RUNNING: 'runtime:long'
+  LONG_RUNNING: 'runtime:long',
+  SUBTASK: 'subtask'
 } as const;
 
 export type TaskTag = (typeof TASK_TAGS)[keyof typeof TASK_TAGS];

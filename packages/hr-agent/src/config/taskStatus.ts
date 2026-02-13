@@ -7,7 +7,12 @@ export const TASK_STATUS = {
   RUNNING: 'running',
   RETRYING: 'retrying',
   TIMEOUT: 'timeout',
-  CANCELLED: 'cancelled'
+  CANCELLED: 'cancelled',
+  COMPLETED: 'completed',
+  CREATING_CA: 'creating_ca',
+  CONNECTING_CA: 'connecting_ca',
+  AI_CODING: 'ai_coding',
+  CREATING_PR: 'creating_pr'
 } as const;
 
 export const VALID_TASK_STATUSES = Object.values(TASK_STATUS);
