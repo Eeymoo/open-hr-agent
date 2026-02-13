@@ -4,7 +4,7 @@ export const POLLING_INTERVAL = Number(import.meta.env.VITE_POLLING_INTERVAL) ||
 
 export const ROUTES = {
   LOGIN: '/login',
-  ORCHESTRATION: '/orchestration',
+  DASHBOARD: '/dashboard',
   TASKS: '/tasks',
   TASK_DETAIL: '/tasks/:id'
 } as const;

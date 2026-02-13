@@ -53,6 +53,47 @@
   flex-wrap: wrap;
 }
 
+.filter-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-glass-light);
+  border: 1px solid var(--border-glass);
+  border-radius: 10px;
+  padding: 0 12px;
+  transition: all 0.3s ease;
+}
+
+.filter-container:hover {
+  border-color: var(--border-glow);
+}
+
+.filter-icon {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.tag-filter {
+  min-width: 200px;
+}
+
+.tag-filter .ant-select-selector {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.tag-filter .ant-select-selection-item {
+  background: rgba(139, 92, 246, 0.15) !important;
+  border: 1px solid rgba(139, 92, 246, 0.3) !important;
+  border-radius: 6px !important;
+  color: var(--text-primary) !important;
+}
+
+.tag-filter .ant-select-selection-placeholder {
+  color: var(--text-muted);
+}
+
 .task-list-card {
   background: var(--bg-glass) !important;
   backdrop-filter: blur(20px);

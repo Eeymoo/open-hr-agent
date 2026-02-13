@@ -144,7 +144,7 @@ export const getTaskListColumns = (onNavigate: (path: string) => void): ColumnsT
       <span
         className="task-list-id"
         onClick={() => {
-          onNavigate('/tasks');
+          onNavigate('/dashboard');
         }}
       >
         #{id}

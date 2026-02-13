@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import { Card, Table, Space, Badge, Input, Select, Button } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import { ReloadOutlined, FilterOutlined } from '@ant-design/icons';
 import { useTasks } from '../../hooks/useTasks';
 import { useNavigate } from 'react-router-dom';
-import type { Task, TaskStatus } from '../../types/task';
+import { TASK_TAG_LABELS, type Task, type TaskStatus } from '../../types/task';
 import {
   getTaskListColumns,
   calculateStatusCounts,
@@ -13,12 +13,18 @@ import {
 } from './columns';
 import './index.css';
 
+const TAG_OPTIONS = Object.entries(TASK_TAG_LABELS).map(([value, label]) => ({
+  value,
+  label
+}));
+
 export function TaskList() {
   const navigate = useNavigate();
   const { data, isLoading, refetch } = useTasks();
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
   const [priorityFilter, setPriorityFilter] = useState<number | 'all'>('all');
+  const [filterTags, setFilterTags] = useState<string[]>([]);
 
   const tasks = useMemo(() => {
     return data?.tasks || [];
@@ -34,10 +40,12 @@ export function TaskList() {
 
       const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
       const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
+      const matchesTags =
+        filterTags.length === 0 || filterTags.some((tag) => task.tags?.includes(tag));
 
-      return matchesSearch && matchesStatus && matchesPriority;
+      return matchesSearch && matchesStatus && matchesPriority && matchesTags;
     });
-  }, [tasks, searchText, statusFilter, priorityFilter]);
+  }, [tasks, searchText, statusFilter, priorityFilter, filterTags]);
 
   const columns = getTaskListColumns(navigate);
   const statusCounts = calculateStatusCounts(tasks);
@@ -52,6 +60,8 @@ export function TaskList() {
         onStatusFilterChange={setStatusFilter}
         priorityFilter={priorityFilter}
         onPriorityFilterChange={setPriorityFilter}
+        filterTags={filterTags}
+        onFilterTagsChange={setFilterTags}
         onRefresh={refetch}
       />
       <Card className="task-list-card">
@@ -89,6 +99,8 @@ interface TaskListHeaderProps {
   onStatusFilterChange: (value: TaskStatus | 'all') => void;
   priorityFilter: number | 'all';
   onPriorityFilterChange: (value: number | 'all') => void;
+  filterTags: string[];
+  onFilterTagsChange: (value: string[]) => void;
   onRefresh: () => void;
 }
 
@@ -100,6 +112,8 @@ function TaskListHeader({
   onStatusFilterChange,
   priorityFilter,
   onPriorityFilterChange,
+  filterTags,
+  onFilterTagsChange,
   onRefresh
 }: TaskListHeaderProps) {
   return (
@@ -121,6 +135,19 @@ function TaskListHeader({
           style={{ width: 280 }}
           allowClear
         />
+        <div className="filter-container">
+          <FilterOutlined className="filter-icon" />
+          <Select
+            mode="multiple"
+            allowClear
+            placeholder="筛选标签"
+            value={filterTags}
+            onChange={onFilterTagsChange}
+            options={TAG_OPTIONS}
+            className="tag-filter"
+            maxTagCount="responsive"
+          />
+        </div>
         <Select
           value={statusFilter}
           onChange={onStatusFilterChange}
