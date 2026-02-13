@@ -16,7 +16,12 @@ import { TaskModal } from '../../components/TaskModal';
 import { StatsDashboard } from '../../components/StatsDashboard';
 import { TaskKanban } from '../../components/TaskKanban';
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '../../hooks/useTasks';
-import { TASK_TAG_LABELS, type Task, type CreateTaskDto, type UpdateTaskDto } from '../../types/task';
+import {
+  TASK_TAG_LABELS,
+  type Task,
+  type CreateTaskDto,
+  type UpdateTaskDto
+} from '../../types/task';
 import './index.css';
 
 type ViewMode = 'card' | 'table' | 'kanban';
@@ -42,7 +47,9 @@ function TaskView({ viewMode, tasks, onTaskClick, onEdit, onDelete }: TaskViewPr
   }
 
   if (viewMode === 'kanban') {
-    return <TaskKanban tasks={tasks} onTaskClick={onTaskClick} onEdit={onEdit} onDelete={onDelete} />;
+    return (
+      <TaskKanban tasks={tasks} onTaskClick={onTaskClick} onEdit={onEdit} onDelete={onDelete} />
+    );
   }
 
   if (viewMode === 'card') {

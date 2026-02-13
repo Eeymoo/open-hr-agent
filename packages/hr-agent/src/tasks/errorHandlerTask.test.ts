@@ -39,13 +39,19 @@ describe('ErrorHandlerTask', () => {
 
   describe('execute', () => {
     it('应该返回 success 为 true', async () => {
-      const result = await task.execute({}, { taskId: 1, taskName: 'error_handler', retryCount: 0 });
+      const result = await task.execute(
+        {},
+        { taskId: 1, taskName: 'error_handler', retryCount: 0 }
+      );
 
       expect(result.success).toBe(true);
     });
 
     it('应该返回 finalStatus 为 COMPLETED', async () => {
-      const result = await task.execute({}, { taskId: 1, taskName: 'error_handler', retryCount: 0 });
+      const result = await task.execute(
+        {},
+        { taskId: 1, taskName: 'error_handler', retryCount: 0 }
+      );
 
       expect(result.finalStatus).toBe(TASK_STATUS.COMPLETED);
     });
