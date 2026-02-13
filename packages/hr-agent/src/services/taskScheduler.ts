@@ -8,7 +8,7 @@ import { getPrismaClient, getCurrentTimestamp } from '../utils/database.js';
 import { TASK_CONFIG } from '../config/taskConfig.js';
 import { TASK_EVENTS } from '../config/taskEvents.js';
 import { TASK_STATUS } from '../config/taskStatus.js';
-import { hasRequiresCATag } from '../config/taskTags.js';
+import { hasRequiresCATag, hasManagesCATag } from '../config/taskTags.js';
 import type { BaseTask } from '../tasks/baseTask.js';
 import type { Prisma } from '@prisma/client';
 
@@ -46,6 +46,7 @@ export class TaskScheduler {
   private runningTasks: Set<number> = new Set();
   private monitoringInterval: NodeJS.Timeout | null = null;
   private isRunning: boolean = false;
+  private tempTaskIdCounter: number = -1;
 
   private pollTimeout: NodeJS.Timeout | null = null;
   private pollIntervalIndex: number = 0;
@@ -382,23 +383,34 @@ export class TaskScheduler {
     const dependencies = task?.dependencies ?? [];
     const tags = task?.tags ?? [];
 
-    const taskRecord = await prisma.task.create({
-      data: {
-        type: taskName,
-        status: TASK_STATUS.QUEUED,
-        priority,
-        tags,
-        issue: issueId ? { connect: { id: issueId } } : undefined,
-        pullRequest: prId ? { connect: { id: prId } } : undefined,
-        metadata: params as Prisma.InputJsonValue,
-        completedAt: -2,
-        deletedAt: -2,
-        createdAt: now,
-        updatedAt: now
-      }
-    });
+    const isManagesCA = hasManagesCATag(tags);
+    let taskId: number;
 
-    const taskId = taskRecord.id;
+    if (isManagesCA) {
+      taskId = this.tempTaskIdCounter--;
+      await this.logger.info(taskId, taskName, 'MANAGES_CA 任务使用临时 ID，跳过数据库写入', {
+        priority,
+        tags
+      });
+    } else {
+      const taskRecord = await prisma.task.create({
+        data: {
+          type: taskName,
+          status: TASK_STATUS.QUEUED,
+          priority,
+          tags,
+          issue: issueId ? { connect: { id: issueId } } : undefined,
+          pullRequest: prId ? { connect: { id: prId } } : undefined,
+          metadata: params as Prisma.InputJsonValue,
+          completedAt: -2,
+          deletedAt: -2,
+          createdAt: now,
+          updatedAt: now
+        }
+      });
+
+      taskId = taskRecord.id;
+    }
 
     this.taskQueue.enqueue({
       taskId,
@@ -722,6 +734,45 @@ export class TaskScheduler {
   private async onTaskFailure(task: QueuedTask, error: Error): Promise<void> {
     await this.logger.error(task.taskId, task.taskName, `任务执行失败: ${error.message}`);
 
+    const isManagesCA = hasManagesCATag(task.tags);
+    const isTempTask = task.taskId < 0;
+
+    if (isManagesCA && isTempTask) {
+      await this.logger.error(task.taskId, task.taskName, 'MANAGES_CA 任务失败，记录错误日志到数据库', {
+        error: error.message
+      });
+
+      const prisma = getPrismaClient();
+      const now = getCurrentTimestamp();
+
+      await prisma.task.create({
+        data: {
+          type: task.taskName,
+          status: TASK_STATUS.ERROR,
+          priority: task.priority,
+          tags: task.tags,
+          issue: task.issueId ? { connect: { id: task.issueId } } : undefined,
+          pullRequest: task.prId ? { connect: { id: task.prId } } : undefined,
+          metadata: { params: task.params, error: error.message } as Prisma.InputJsonValue,
+          completedAt: now,
+          deletedAt: -2,
+          createdAt: task.createdAt,
+          updatedAt: now
+        }
+      });
+
+      await this.eventBus.emitAsync(TASK_EVENTS.TASK_FAILED, {
+        taskId: task.taskId,
+        taskName: task.taskName,
+        error: error.message,
+        issueId: task.issueId,
+        prId: task.prId,
+        caId: task.caId ?? undefined
+      });
+
+      return;
+    }
+
     const retryCount = this.retryManager.incrementRetry(task.taskId);
 
     if (this.retryManager.canRetry(task.taskId)) {
@@ -772,6 +823,11 @@ export class TaskScheduler {
   }
 
   private async updateTaskStatus(taskId: number, status: string): Promise<void> {
+    if (taskId < 0) {
+      await this.logger.info(taskId, 'Scheduler', '临时任务跳过状态更新', { status });
+      return;
+    }
+
     const prisma = getPrismaClient();
     const now = getCurrentTimestamp();
 

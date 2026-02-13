@@ -14,6 +14,7 @@ import { TaskScheduler } from './services/taskScheduler.js';
 import { TaskManager } from './services/taskManager.js';
 import { TASK_CONFIG } from './config/taskConfig.js';
 import { CONTAINER_TASK_PRIORITIES } from './config/taskPriorities.js';
+import { TASK_EVENTS } from './config/taskEvents.js';
 import type { BaseTask } from './tasks/baseTask.js';
 
 dotenv.config();
@@ -60,25 +61,42 @@ let currentSyncIndex = 0;
 let syncTimeout: NodeJS.Timeout | null = null;
 let lastSyncHadInconsistency = false;
 
+eventBus.register(TASK_EVENTS.TASK_COMPLETED, (data) => {
+  const { taskName, result } = data as {
+    taskName: string;
+    result: { data?: { inconsistenciesFound?: number; errorCount?: number } };
+  };
+
+  if (taskName === 'container_sync' && result?.data) {
+    const { inconsistenciesFound = 0, errorCount = 0 } = result.data;
+    lastSyncHadInconsistency = inconsistenciesFound > 0 || errorCount > 0;
+  }
+});
+
+eventBus.register(TASK_EVENTS.TASK_FAILED, (data) => {
+  const { taskName } = data as { taskName: string };
+
+  if (taskName === 'container_sync') {
+    lastSyncHadInconsistency = true;
+  }
+});
+
 function scheduleContainerSync(): void {
   const intervals = TASK_CONFIG.CA_STATUS_CHECK_INTERVALS;
-  let interval: number;
 
   if (lastSyncHadInconsistency) {
-    interval = intervals[0];
     currentSyncIndex = 0;
-  } else {
-    interval = intervals[currentSyncIndex];
-    if (currentSyncIndex < intervals.length - 1) {
-      currentSyncIndex++;
-    }
+  }
+
+  const interval = intervals[currentSyncIndex];
+
+  if (!lastSyncHadInconsistency && currentSyncIndex < intervals.length - 1) {
+    currentSyncIndex++;
   }
 
   syncTimeout = setTimeout(async () => {
     try {
-      const result = await taskManager.run('container_sync', {}, CONTAINER_TASK_PRIORITIES.SYNC);
-
-      lastSyncHadInconsistency = result !== null;
+      await taskManager.run('container_sync', {}, CONTAINER_TASK_PRIORITIES.SYNC);
     } catch (error) {
       console.error('Container sync error:', error);
       lastSyncHadInconsistency = true;
