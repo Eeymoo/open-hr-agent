@@ -6,6 +6,7 @@ import { TASK_CONFIG } from '../config/taskConfig.js';
 import { getPrismaClient, getCurrentTimestamp } from '../utils/database.js';
 import { createOpencodeClient } from '@opencode-ai/sdk';
 import { DOCKER_CONFIG } from '../config/docker.js';
+import { readPrompt } from '../utils/promptReader.js';
 
 export class AiCodingTask extends BaseTask {
   readonly name = 'ai_coding';
@@ -189,21 +190,9 @@ export class AiCodingTask extends BaseTask {
     issueContent: string | null;
   }): string {
     const issueContent = issue.issueContent ?? 'No description provided';
+    const template = readPrompt('task');
+    const taskContent = `#${issue.issueId}: ${issue.issueTitle}\n${issueContent}`;
 
-    return `请根据以下 GitHub Issue，完成代码修改任务：
-
-## Issue #${issue.issueId}: ${issue.issueTitle}
-
-### Issue 内容：
-${issueContent}
-
-### 任务要求：
-1. 打开工作目录：/home/workspace/repo
-2. 分析需求并实现功能
-3. 编写测试用例（如果有新的 API）
-4. 运行测试确保通过
-5. 提交代码
-
-请开始执行任务。`;
+    return template.replace('<Task></Task>', `<Task>\n${taskContent}\n</Task>`);
   }
 }
