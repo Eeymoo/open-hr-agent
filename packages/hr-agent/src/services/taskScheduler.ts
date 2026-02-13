@@ -701,7 +701,12 @@ export class TaskScheduler {
   }
 
   private async onTaskSuccess(task: QueuedTask, result: unknown): Promise<void> {
-    const typedResult = result as { finalStatus?: string; nextEvent?: string; nextTask?: string; nextParams?: Record<string, unknown> };
+    const typedResult = result as {
+      finalStatus?: string;
+      nextEvent?: string;
+      nextTask?: string;
+      nextParams?: Record<string, unknown>;
+    };
 
     if (typedResult.finalStatus) {
       await this.updateTaskStatus(task.taskId, typedResult.finalStatus);

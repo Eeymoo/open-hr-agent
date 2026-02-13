@@ -94,12 +94,9 @@ describe('DestroyCaTask', () => {
         );
 
         expect(result.success).toBe(true);
-        expect(logger.warn).toHaveBeenCalledWith(
-          1,
-          'destroy_ca',
-          'CA 容器不存在，跳过销毁',
-          { caName: 'hra_123' }
-        );
+        expect(logger.warn).toHaveBeenCalledWith(1, 'destroy_ca', 'CA 容器不存在，跳过销毁', {
+          caName: 'hra_123'
+        });
       });
     });
 

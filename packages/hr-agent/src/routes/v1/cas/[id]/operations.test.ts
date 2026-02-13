@@ -216,4 +216,40 @@ describe('CAS Operations Routes Tests', () => {
       expect(mockTaskManagerRun).toHaveBeenCalled();
     });
   });
+
+  describe('POST /v1/cas/:id/sync', () => {
+    it('应该在 ID 无效时返回 400', async () => {
+      const response = await request(app).post('/v1/cas/invalid/sync');
+
+      expect(response.status).toBe(HTTP_STATUS.OK);
+      expect(response.body).toHaveProperty('code', HTTP_STATUS.BAD_REQUEST);
+    });
+
+    it('应该在 CA 不存在时返回 404', async () => {
+      mockCodingAgentFindFirst.mockResolvedValueOnce(null);
+
+      const response = await request(app).post('/v1/cas/999/sync');
+
+      expect(response.status).toBe(HTTP_STATUS.OK);
+      expect(response.body).toHaveProperty('code', HTTP_STATUS.NOT_FOUND);
+    });
+
+    it('应该成功创建同步任务', async () => {
+      const response = await request(app).post('/v1/cas/1/sync');
+
+      expect(response.status).toBe(HTTP_STATUS.OK);
+      expect(response.body).toHaveProperty('code', HTTP_STATUS.OK);
+      expect(response.body.data).toHaveProperty('message', 'Container sync task queued');
+      expect(mockTaskManagerRun).toHaveBeenCalled();
+    });
+
+    it('应该在 TaskManager 未初始化时返回 500', async () => {
+      global.taskManager = undefined as never;
+
+      const response = await request(app).post('/v1/cas/1/sync');
+
+      expect(response.status).toBe(HTTP_STATUS.OK);
+      expect(response.body).toHaveProperty('code', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+    });
+  });
 });

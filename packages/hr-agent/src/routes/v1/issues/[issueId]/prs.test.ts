@@ -131,12 +131,14 @@ describe('Issue PR Relation API', () => {
 
     it('should return 404 when no PR exists', async () => {
       mockPrismaClient.issuePR.findFirst.mockResolvedValue(null);
+      mockPrismaClient.issuePR.findMany.mockResolvedValue([]);
 
       const { default: route } = await import('./latest-pr.get.js');
       app.get('/v1/issues/:issueId/latest-pr', route);
 
       const response = await request(app).get('/v1/issues/1/latest-pr');
 
+      expect(response.status).toBe(HTTP_STATUS.OK);
       expect(response.body.code).toBe(HTTP_STATUS.NOT_FOUND);
       expect(response.body.message).toContain('No PR found');
     });

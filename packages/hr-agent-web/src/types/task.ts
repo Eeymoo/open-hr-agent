@@ -113,7 +113,7 @@ export const TASK_TAG_LABELS: Record<string, string> = {
   'agent:review': 'AI审查',
   'agent:test': 'AI测试',
   'runtime:long': '长任务',
-  'subtask': '附属任务'
+  subtask: '附属任务'
 };
 
 export const TASK_TAG_COLORS: Record<string, string> = {
@@ -123,7 +123,7 @@ export const TASK_TAG_COLORS: Record<string, string> = {
   'agent:review': 'orange',
   'agent:test': 'cyan',
   'runtime:long': 'red',
-  'subtask': 'geekblue'
+  subtask: 'geekblue'
 };
 
 export interface ReorderTasksDto {
