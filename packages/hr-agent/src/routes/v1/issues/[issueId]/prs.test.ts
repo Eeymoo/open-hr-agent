@@ -55,7 +55,7 @@ describe('Issue PR Relation API', () => {
     (getPrismaClient as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockPrismaClient);
   });
 
-  describe('GET /api/v1/issues/:issueId/prs', () => {
+  describe('GET /v1/issues/:issueId/prs', () => {
     it('should return all PRs for a valid issue', async () => {
       const mockPrs = [
         { id: 1, prId: 101, prTitle: 'PR 1' },
@@ -76,9 +76,9 @@ describe('Issue PR Relation API', () => {
       mockPrismaClient.issuePR.findMany.mockResolvedValue([mockIssuePr1, mockIssuePr2]);
 
       const { default: route } = await import('./prs.get.js');
-      app.get('/api/v1/issues/:issueId/prs', route);
+      app.get('/v1/issues/:issueId/prs', route);
 
-      const response = await request(app).get('/api/v1/issues/1/prs');
+      const response = await request(app).get('/v1/issues/1/prs');
 
       expect(response.body.code).toBe(HTTP_STATUS.OK);
       expect(response.body.data).toHaveLength(2);
@@ -88,9 +88,9 @@ describe('Issue PR Relation API', () => {
 
     it('should return 400 for invalid issue ID', async () => {
       const { default: route } = await import('./prs.get.js');
-      app.get('/api/v1/issues/:issueId/prs', route);
+      app.get('/v1/issues/:issueId/prs', route);
 
-      const response = await request(app).get('/api/v1/issues/invalid/prs');
+      const response = await request(app).get('/v1/issues/invalid/prs');
 
       expect(response.body.code).toBe(HTTP_STATUS.BAD_REQUEST);
       expect(response.body.message).toContain('Invalid issue ID');
@@ -100,16 +100,16 @@ describe('Issue PR Relation API', () => {
       mockPrismaClient.issuePR.findMany.mockResolvedValue([]);
 
       const { default: route } = await import('./prs.get.js');
-      app.get('/api/v1/issues/:issueId/prs', route);
+      app.get('/v1/issues/:issueId/prs', route);
 
-      const response = await request(app).get('/api/v1/issues/1/prs');
+      const response = await request(app).get('/v1/issues/1/prs');
 
       expect(response.body.code).toBe(HTTP_STATUS.OK);
       expect(response.body.data).toEqual([]);
     });
   });
 
-  describe('GET /api/v1/issues/:issueId/latest-pr', () => {
+  describe('GET /v1/issues/:issueId/latest-pr', () => {
     it('should return the latest PR for a valid issue', async () => {
       const mockPr = { id: 1, prId: 101, prTitle: 'Latest PR' };
 
@@ -120,9 +120,9 @@ describe('Issue PR Relation API', () => {
       });
 
       const { default: route } = await import('./latest-pr.get.js');
-      app.get('/api/v1/issues/:issueId/latest-pr', route);
+      app.get('/v1/issues/:issueId/latest-pr', route);
 
-      const response = await request(app).get('/api/v1/issues/1/latest-pr');
+      const response = await request(app).get('/v1/issues/1/latest-pr');
 
       expect(response.body.code).toBe(HTTP_STATUS.OK);
       expect(response.body.data).not.toBeNull();
@@ -133,16 +133,16 @@ describe('Issue PR Relation API', () => {
       mockPrismaClient.issuePR.findFirst.mockResolvedValue(null);
 
       const { default: route } = await import('./latest-pr.get.js');
-      app.get('/api/v1/issues/:issueId/latest-pr', route);
+      app.get('/v1/issues/:issueId/latest-pr', route);
 
-      const response = await request(app).get('/api/v1/issues/1/latest-pr');
+      const response = await request(app).get('/v1/issues/1/latest-pr');
 
       expect(response.body.code).toBe(HTTP_STATUS.NOT_FOUND);
       expect(response.body.message).toContain('No PR found');
     });
   });
 
-  describe('PUT /api/v1/issues/:issueId/latest-pr', () => {
+  describe('PUT /v1/issues/:issueId/latest-pr', () => {
     it('should associate a PR with an issue', async () => {
       mockPrismaClient.issue.findFirst.mockResolvedValue({ id: 1, deletedAt: -2 });
       mockPrismaClient.pullRequest.findFirst.mockResolvedValue({ id: 2, deletedAt: -2 });
@@ -155,9 +155,9 @@ describe('Issue PR Relation API', () => {
       });
 
       const { default: route } = await import('./latest-pr.put.js');
-      app.put('/api/v1/issues/:issueId/latest-pr', route);
+      app.put('/v1/issues/:issueId/latest-pr', route);
 
-      const response = await request(app).put('/api/v1/issues/1/latest-pr').send({ prId: 2 });
+      const response = await request(app).put('/v1/issues/1/latest-pr').send({ prId: 2 });
 
       expect(response.body.code).toBe(HTTP_STATUS.CREATED);
       expect(response.body.message).toContain('PR associated with issue successfully');
@@ -165,9 +165,9 @@ describe('Issue PR Relation API', () => {
 
     it('should return 400 for invalid issue ID', async () => {
       const { default: route } = await import('./latest-pr.put.js');
-      app.put('/api/v1/issues/:issueId/latest-pr', route);
+      app.put('/v1/issues/:issueId/latest-pr', route);
 
-      const response = await request(app).put('/api/v1/issues/invalid/latest-pr').send({ prId: 2 });
+      const response = await request(app).put('/v1/issues/invalid/latest-pr').send({ prId: 2 });
 
       expect(response.body.code).toBe(HTTP_STATUS.BAD_REQUEST);
       expect(response.body.message).toContain('Invalid issue ID');
@@ -175,11 +175,9 @@ describe('Issue PR Relation API', () => {
 
     it('should return 400 for invalid PR ID', async () => {
       const { default: route } = await import('./latest-pr.put.js');
-      app.put('/api/v1/issues/:issueId/latest-pr', route);
+      app.put('/v1/issues/:issueId/latest-pr', route);
 
-      const response = await request(app)
-        .put('/api/v1/issues/1/latest-pr')
-        .send({ prId: 'invalid' });
+      const response = await request(app).put('/v1/issues/1/latest-pr').send({ prId: 'invalid' });
 
       expect(response.body.code).toBe(HTTP_STATUS.BAD_REQUEST);
       expect(response.body.message).toContain('Invalid PR ID');
@@ -196,16 +194,16 @@ describe('Issue PR Relation API', () => {
       });
 
       const { default: route } = await import('./latest-pr.put.js');
-      app.put('/api/v1/issues/:issueId/latest-pr', route);
+      app.put('/v1/issues/:issueId/latest-pr', route);
 
-      const response = await request(app).put('/api/v1/issues/1/latest-pr').send({ prId: 2 });
+      const response = await request(app).put('/v1/issues/1/latest-pr').send({ prId: 2 });
 
       expect(response.body.code).toBe(HTTP_STATUS.OK);
       expect(response.body.message).toContain('PR already associated');
     });
   });
 
-  describe('GET /api/v1/prs/:prId/issue', () => {
+  describe('GET /v1/prs/:prId/issue', () => {
     it('should return the associated issue for a valid PR', async () => {
       const mockIssue = { id: 1, issueId: 101, issueTitle: 'Test Issue' };
 
@@ -216,9 +214,9 @@ describe('Issue PR Relation API', () => {
       });
 
       const { default: route } = await import('../../prs/[prId]/issue.get.js');
-      app.get('/api/v1/prs/:prId/issue', route);
+      app.get('/v1/prs/:prId/issue', route);
 
-      const response = await request(app).get('/api/v1/prs/1/issue');
+      const response = await request(app).get('/v1/prs/1/issue');
 
       expect(response.body.code).toBe(HTTP_STATUS.OK);
       expect(response.body.data).not.toBeNull();
@@ -229,9 +227,9 @@ describe('Issue PR Relation API', () => {
       mockPrismaClient.issuePR.findFirst.mockResolvedValue(null);
 
       const { default: route } = await import('../../prs/[prId]/issue.get.js');
-      app.get('/api/v1/prs/:prId/issue', route);
+      app.get('/v1/prs/:prId/issue', route);
 
-      const response = await request(app).get('/api/v1/prs/1/issue');
+      const response = await request(app).get('/v1/prs/1/issue');
 
       expect(response.body.code).toBe(HTTP_STATUS.NOT_FOUND);
       expect(response.body.message).toContain('No issue found');
@@ -239,9 +237,9 @@ describe('Issue PR Relation API', () => {
 
     it('should return 400 for invalid PR ID', async () => {
       const { default: route } = await import('../../prs/[prId]/issue.get.js');
-      app.get('/api/v1/prs/:prId/issue', route);
+      app.get('/v1/prs/:prId/issue', route);
 
-      const response = await request(app).get('/api/v1/prs/invalid/issue');
+      const response = await request(app).get('/v1/prs/invalid/issue');
 
       expect(response.body.code).toBe(HTTP_STATUS.BAD_REQUEST);
       expect(response.body.message).toContain('Invalid PR ID');

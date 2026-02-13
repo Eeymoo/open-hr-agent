@@ -12,10 +12,10 @@ export default defineConfig({
       enabled: process.env.COVERAGE === 'true',
       exclude: ['node_modules/', 'dist/', '**/*.test.ts', '**/*.spec.ts'],
       thresholds: {
-        lines: 34,
-        functions: 42,
-        branches: 25,
-        statements: 34
+        lines: 54,
+        functions: 60,
+        branches: 43,
+        statements: 54
       }
     }
   }
