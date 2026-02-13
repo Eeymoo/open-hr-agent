@@ -6,7 +6,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 
 export default [
   {
-    ignores: ['dist', 'vite.config.ts'],
+    ignores: ['dist', 'vite.config.ts', 'vitest.config.ts'],
   },
   js.configs.recommended,
   {

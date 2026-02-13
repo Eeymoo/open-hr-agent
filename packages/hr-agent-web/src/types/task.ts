@@ -106,18 +106,6 @@ export const PRIORITY_LOW = 10;
 export const PRIORITY_MEDIUM = 20;
 export const PRIORITY_HIGH = 30;
 
-export const PRIORITY_LABELS: Record<number, string> = {
-  [PRIORITY_LOW]: '低',
-  [PRIORITY_MEDIUM]: '中',
-  [PRIORITY_HIGH]: '高'
-};
-
-export const PRIORITY_COLORS: Record<number, string> = {
-  [PRIORITY_LOW]: 'default',
-  [PRIORITY_MEDIUM]: 'processing',
-  [PRIORITY_HIGH]: 'error'
-};
-
 export const TASK_TAG_LABELS: Record<string, string> = {
   'requires:ca': '需要CA',
   'manages:ca': '管理CA',

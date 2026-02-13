@@ -12,8 +12,9 @@ export const TIMESTAMP_NEGATIVE_TWO = -2;
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 3600;
 const SECONDS_PER_DAY = 86400;
-const PRIORITY_HIGH = 30;
+const PRIORITY_LOW = 10;
 const PRIORITY_MEDIUM = 20;
+const PRIORITY_HIGH = 30;
 
 export const formatTimestamp = (timestamp: number): string => {
   if (timestamp === TIMESTAMP_NEGATIVE_TWO) {
@@ -72,13 +73,26 @@ export const formatStatus = (status: string): string => {
 };
 
 export const formatPriority = (priority: number): string => {
-  if (priority >= PRIORITY_HIGH) {
-    return '高';
+  if (priority === PRIORITY_LOW) {
+    return '低';
   }
-  if (priority >= PRIORITY_MEDIUM) {
+  if (priority === PRIORITY_MEDIUM) {
     return '中';
   }
-  return '低';
+  if (priority === PRIORITY_HIGH) {
+    return '高';
+  }
+  return String(priority);
+};
+
+export const getPriorityColor = (priority: number): string => {
+  if (priority < PRIORITY_LOW) {
+    return 'default';
+  }
+  if (priority > PRIORITY_HIGH) {
+    return 'error';
+  }
+  return 'processing';
 };
 
 export const formatDate = (timestamp: number): string => {

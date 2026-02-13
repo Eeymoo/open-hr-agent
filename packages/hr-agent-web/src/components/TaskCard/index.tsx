@@ -10,12 +10,15 @@ import {
 import {
   TASK_STATUS_LABELS,
   TASK_STATUS_COLORS,
-  PRIORITY_COLORS,
   TASK_TAG_LABELS,
   TASK_TAG_COLORS,
   type Task
 } from '../../types/task';
-import { formatTimestamp, formatPriority } from '../../utils/formatters';
+import {
+  formatTimestamp,
+  formatPriority,
+  getPriorityColor
+} from '../../utils/formatters';
 import { CA_BASE_URL } from '../../utils/constants';
 import './index.css';
 
@@ -186,7 +189,7 @@ export function TaskCard({ task, onClick, onEdit, onDelete, showActions = true }
           <Tag color={TASK_STATUS_COLORS[task.status]} className="status-tag">
             {TASK_STATUS_LABELS[task.status]}
           </Tag>
-          <Tag color={PRIORITY_COLORS[task.priority] ?? 'default'} className="priority-tag">
+          <Tag color={getPriorityColor(task.priority)} className="priority-tag">
             {formatPriority(task.priority)}
           </Tag>
         </Space>
