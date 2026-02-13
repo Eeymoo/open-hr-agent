@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Radio, Space, Empty, Spin, Select, Tooltip } from 'antd';
+import { Button, Radio, Space, Empty, Select, Tooltip } from 'antd';
 import {
   PlusOutlined,
   TableOutlined,
@@ -22,6 +22,7 @@ import {
   type CreateTaskDto,
   type UpdateTaskDto
 } from '../../types/task';
+import { Page } from '../../components/Page';
 import './index.css';
 
 type ViewMode = 'card' | 'table' | 'kanban';
@@ -194,54 +195,48 @@ export function TaskOrchestration() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="task-orchestration-loading">
-        <Spin size="large" tip="加载中..." />
-      </div>
-    );
-  }
-
   return (
-    <div className="task-orchestration">
-      <StatsDashboard tasks={tasks} />
-      <div className="task-orchestration-content">
-        <TaskHeader
-          taskCount={tasks.length}
-          viewMode={viewMode}
-          filterTags={filterTags}
-          onViewModeChange={setViewMode}
-          onFilterTagsChange={setFilterTags}
-          onAddTask={handleAddTask}
-          onViewList={() => navigate('/tasks')}
+    <Page loading={isLoading}>
+      <div className="task-orchestration">
+        <StatsDashboard tasks={tasks} />
+        <div className="task-orchestration-content">
+          <TaskHeader
+            taskCount={tasks.length}
+            viewMode={viewMode}
+            filterTags={filterTags}
+            onViewModeChange={setViewMode}
+            onFilterTagsChange={setFilterTags}
+            onAddTask={handleAddTask}
+            onViewList={() => navigate('/tasks')}
+          />
+          <TaskView
+            viewMode={viewMode}
+            tasks={tasks}
+            onTaskClick={handleTaskClick}
+            onEdit={handleEditTask}
+            onDelete={handleDeleteTask}
+          />
+        </div>
+        <TaskFormModal
+          open={formModalOpen}
+          task={editingTask}
+          mode={editingTask ? 'edit' : 'create'}
+          onCancel={() => {
+            setFormModalOpen(false);
+            setEditingTask(null);
+          }}
+          onSubmit={handleFormSubmit}
+          loading={createTask.isPending || updateTask.isPending}
         />
-        <TaskView
-          viewMode={viewMode}
-          tasks={tasks}
-          onTaskClick={handleTaskClick}
-          onEdit={handleEditTask}
-          onDelete={handleDeleteTask}
+        <TaskModal
+          open={detailModalOpen}
+          task={selectedTask}
+          onClose={() => {
+            setDetailModalOpen(false);
+            setSelectedTask(null);
+          }}
         />
       </div>
-      <TaskFormModal
-        open={formModalOpen}
-        task={editingTask}
-        mode={editingTask ? 'edit' : 'create'}
-        onCancel={() => {
-          setFormModalOpen(false);
-          setEditingTask(null);
-        }}
-        onSubmit={handleFormSubmit}
-        loading={createTask.isPending || updateTask.isPending}
-      />
-      <TaskModal
-        open={detailModalOpen}
-        task={selectedTask}
-        onClose={() => {
-          setDetailModalOpen(false);
-          setSelectedTask(null);
-        }}
-      />
-    </div>
+    </Page>
   );
 }

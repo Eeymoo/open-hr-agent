@@ -14,11 +14,7 @@ import {
   TASK_TAG_COLORS,
   type Task
 } from '../../types/task';
-import {
-  formatTimestamp,
-  formatPriority,
-  getPriorityColor
-} from '../../utils/formatters';
+import { formatTimestamp, formatPriority, getPriorityColor } from '../../utils/formatters';
 import { CA_BASE_URL } from '../../utils/constants';
 import './index.css';
 

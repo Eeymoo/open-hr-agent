@@ -61,11 +61,7 @@ async function getContainerNameByCAName(caName: string): Promise<string | null> 
   }
 }
 
-function handleProxyResponse(
-  proxyRes: http.IncomingMessage,
-  res: Response,
-  caName: string
-): void {
+function handleProxyResponse(proxyRes: http.IncomingMessage, res: Response, caName: string): void {
   const chunks: Buffer[] = [];
 
   proxyRes.on('data', (chunk) => {

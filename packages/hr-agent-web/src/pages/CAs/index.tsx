@@ -1,18 +1,5 @@
 import { useState } from 'react';
-import {
-  Card,
-  Button,
-  Table,
-  Space,
-  Empty,
-  Spin,
-  Input,
-  Modal,
-  Form,
-  message,
-  Tag,
-  Drawer
-} from 'antd';
+import { Card, Button, Table, Space, Empty, Input, Modal, Form, message, Tag, Drawer } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -36,6 +23,7 @@ import {
   CA_STATUS_COLORS
 } from '../../types/ca';
 import { ListHeader } from '../../components/ListHeader';
+import { Page } from '../../components/Page';
 
 import './index.css';
 
@@ -257,147 +245,149 @@ function CAsListContent({
 
   const columns = getCAColumns(handleOpenProxy, handleEdit, handleDelete, handleViewLogs);
 
-  if (isLoading) {
-    return (
-      <div className="cas-loading">
-        <Spin size="large" tip="加载中..." />
-      </div>
-    );
-  }
-
   return (
-    <div className="cas-list">
-      <ListHeader
-        title="Coding Agents 列表"
-        count={pagination?.total || 0}
-        countLabel="个 Coding Agent"
-        searchPlaceholder="搜索 ID 或名称"
-        searchValue={searchText}
-        onSearchChange={setSearchText}
-        onSearch={handleSearch}
-        actionButton={{
-          icon: <PlusOutlined />,
-          text: '添加 CA',
-          onClick: () => setModalOpen(true)
-        }}
-      />
+    <Page loading={isLoading}>
+      <div className="cas-list">
+        <ListHeader
+          title="Coding Agents 列表"
+          count={pagination?.total || 0}
+          countLabel="个 Coding Agent"
+          searchPlaceholder="搜索 ID 或名称"
+          searchValue={searchText}
+          onSearchChange={setSearchText}
+          onSearch={handleSearch}
+          actionButton={{
+            icon: <PlusOutlined />,
+            text: '添加 CA',
+            onClick: () => setModalOpen(true)
+          }}
+        />
 
-      <Card className="cas-card">
-        {filteredCAs.length === 0 ? (
-          <Empty description="暂无 Coding Agents" />
-        ) : (
-          <Table
-            dataSource={filteredCAs}
-            columns={columns}
-            rowKey="id"
-            scroll={{ x: 'max-content' }}
-            pagination={{
-              current: page,
-              pageSize,
-              total: pagination?.total || 0,
-              showSizeChanger: true,
-              showTotal: (total) => `共 ${total} 条`,
-              onChange: handleTableChange
-            }}
-          />
-        )}
-      </Card>
+        <Card className="cas-card">
+          {filteredCAs.length === 0 ? (
+            <Empty description="暂无 Coding Agents" />
+          ) : (
+            <Table
+              dataSource={filteredCAs}
+              columns={columns}
+              rowKey="id"
+              scroll={{ x: 'max-content' }}
+              pagination={{
+                current: page,
+                pageSize,
+                total: pagination?.total || 0,
+                showSizeChanger: true,
+                showTotal: (total) => `共 ${total} 条`,
+                onChange: handleTableChange
+              }}
+            />
+          )}
+        </Card>
 
-      <Modal
-        title="添加 Coding Agent"
-        open={modalOpen}
-        onCancel={() => {
-          setModalOpen(false);
-          form.resetFields();
-        }}
-        footer={null}
-        width={600}
-      >
-        <Form form={form} layout="vertical" onFinish={handleCreate}>
-          <Form.Item name="caName" label="名称" rules={[{ required: true, message: '请输入名称' }]}>
-            <Input addonBefore={caNamePrefix} placeholder="请输入 CA 名称" />
-          </Form.Item>
-          <Form.Item name="status" label="状态" initialValue="pending">
-            <Input placeholder="pending, running, idle, error, etc." />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit" loading={createCA.isPending}>
-                提交
-              </Button>
-              <Button onClick={() => setModalOpen(false)}>取消</Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
+        <Modal
+          title="添加 Coding Agent"
+          open={modalOpen}
+          onCancel={() => {
+            setModalOpen(false);
+            form.resetFields();
+          }}
+          footer={null}
+          width={600}
+        >
+          <Form form={form} layout="vertical" onFinish={handleCreate}>
+            <Form.Item
+              name="caName"
+              label="名称"
+              rules={[{ required: true, message: '请输入名称' }]}
+            >
+              <Input addonBefore={caNamePrefix} placeholder="请输入 CA 名称" />
+            </Form.Item>
+            <Form.Item name="status" label="状态" initialValue="pending">
+              <Input placeholder="pending, running, idle, error, etc." />
+            </Form.Item>
+            <Form.Item>
+              <Space>
+                <Button type="primary" htmlType="submit" loading={createCA.isPending}>
+                  提交
+                </Button>
+                <Button onClick={() => setModalOpen(false)}>取消</Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Modal>
 
-      <Modal
-        title="编辑 Coding Agent"
-        open={editModalOpen}
-        onCancel={() => {
-          setEditModalOpen(false);
-          editForm.resetFields();
-          setSelectedCA(null);
-        }}
-        footer={null}
-        width={600}
-      >
-        <Form form={editForm} layout="vertical" onFinish={handleUpdate}>
-          <Form.Item name="status" label="状态" rules={[{ required: true, message: '请输入状态' }]}>
-            <Input placeholder="pending, running, idle, error, etc." />
-          </Form.Item>
-          <Form.Item name="containerId" label="容器 ID">
-            <Input placeholder="请输入容器 ID" />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit" loading={updateCA.isPending}>
-                提交
-              </Button>
-              <Button onClick={() => setEditModalOpen(false)}>取消</Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
+        <Modal
+          title="编辑 Coding Agent"
+          open={editModalOpen}
+          onCancel={() => {
+            setEditModalOpen(false);
+            editForm.resetFields();
+            setSelectedCA(null);
+          }}
+          footer={null}
+          width={600}
+        >
+          <Form form={editForm} layout="vertical" onFinish={handleUpdate}>
+            <Form.Item
+              name="status"
+              label="状态"
+              rules={[{ required: true, message: '请输入状态' }]}
+            >
+              <Input placeholder="pending, running, idle, error, etc." />
+            </Form.Item>
+            <Form.Item name="containerId" label="容器 ID">
+              <Input placeholder="请输入容器 ID" />
+            </Form.Item>
+            <Form.Item>
+              <Space>
+                <Button type="primary" htmlType="submit" loading={updateCA.isPending}>
+                  提交
+                </Button>
+                <Button onClick={() => setEditModalOpen(false)}>取消</Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Modal>
 
-      <Drawer
-        title={`${selectedCA?.caName} - 操作日志`}
-        placement="right"
-        width={600}
-        open={logsDrawerOpen}
-        onClose={() => {
-          setLogsDrawerOpen(false);
-          setSelectedCA(null);
-        }}
-      >
-        {selectedCA?.logs && selectedCA.logs.length > 0 ? (
-          <div className="ca-logs">
-            {selectedCA.logs.map((log: CodingAgentLog) => (
-              <div key={log.id} className="ca-log-item">
-                <div className="log-header">
-                  <Tag>{log.action}</Tag>
-                  <span className="log-time">{formatDate(log.createdAt)}</span>
+        <Drawer
+          title={`${selectedCA?.caName} - 操作日志`}
+          placement="right"
+          width={600}
+          open={logsDrawerOpen}
+          onClose={() => {
+            setLogsDrawerOpen(false);
+            setSelectedCA(null);
+          }}
+        >
+          {selectedCA?.logs && selectedCA.logs.length > 0 ? (
+            <div className="ca-logs">
+              {selectedCA.logs.map((log: CodingAgentLog) => (
+                <div key={log.id} className="ca-log-item">
+                  <div className="log-header">
+                    <Tag>{log.action}</Tag>
+                    <span className="log-time">{formatDate(log.createdAt)}</span>
+                  </div>
+                  {log.oldValue && (
+                    <div className="log-field">
+                      <span className="field-label">旧值:</span>
+                      <span className="field-value">{log.oldValue}</span>
+                    </div>
+                  )}
+                  {log.newValue && (
+                    <div className="log-field">
+                      <span className="field-label">新值:</span>
+                      <span className="field-value">{log.newValue}</span>
+                    </div>
+                  )}
                 </div>
-                {log.oldValue && (
-                  <div className="log-field">
-                    <span className="field-label">旧值:</span>
-                    <span className="field-value">{log.oldValue}</span>
-                  </div>
-                )}
-                {log.newValue && (
-                  <div className="log-field">
-                    <span className="field-label">新值:</span>
-                    <span className="field-value">{log.newValue}</span>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <Empty description="暂无操作日志" />
-        )}
-      </Drawer>
-    </div>
+              ))}
+            </div>
+          ) : (
+            <Empty description="暂无操作日志" />
+          )}
+        </Drawer>
+      </div>
+    </Page>
   );
 }
 

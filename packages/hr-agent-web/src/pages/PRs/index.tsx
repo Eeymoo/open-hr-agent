@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Card, Button, Table, Space, Empty, Spin, Input, Modal, Form, message } from 'antd';
+import { Card, Button, Table, Space, Empty, Input, Modal, Form, message } from 'antd';
 import { PlusOutlined, LinkOutlined } from '@ant-design/icons';
 import { usePRs, useCreatePR } from '../../hooks/usePRs';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { PullRequest } from '../../types/pr';
 import { formatDate, getPRStatusTag } from '../../utils/formatters';
 import { ListHeader } from '../../components/ListHeader';
+import { Page } from '../../components/Page';
 
 import './index.css';
 
@@ -136,94 +137,88 @@ function PRsListContent({
 
   const columns = getPRColumns(navigate);
 
-  if (isLoading) {
-    return (
-      <div className="prs-loading">
-        <Spin size="large" tip="加载中..." />
-      </div>
-    );
-  }
-
   return (
-    <div className="prs-list">
-      <ListHeader
-        title="Pull Requests 列表"
-        count={pagination?.total || 0}
-        countLabel="个 PR"
-        searchPlaceholder="搜索 PR ID 或标题"
-        searchValue={searchText}
-        onSearchChange={setSearchText}
-        onSearch={handleSearch}
-        actionButton={{
-          icon: <PlusOutlined />,
-          text: '添加 PR',
-          onClick: () => setModalOpen(true)
-        }}
-      />
+    <Page loading={isLoading}>
+      <div className="prs-list">
+        <ListHeader
+          title="Pull Requests 列表"
+          count={pagination?.total || 0}
+          countLabel="个 PR"
+          searchPlaceholder="搜索 PR ID 或标题"
+          searchValue={searchText}
+          onSearchChange={setSearchText}
+          onSearch={handleSearch}
+          actionButton={{
+            icon: <PlusOutlined />,
+            text: '添加 PR',
+            onClick: () => setModalOpen(true)
+          }}
+        />
 
-      <Card className="prs-card">
-        {filteredPRs.length === 0 ? (
-          <Empty description="暂无 Pull Requests" />
-        ) : (
-          <Table
-            dataSource={filteredPRs}
-            columns={columns}
-            rowKey="id"
-            scroll={{ x: 'max-content' }}
-            pagination={{
-              current: page,
-              pageSize,
-              total: pagination?.total || 0,
-              showSizeChanger: true,
-              showTotal: (total) => `共 ${total} 条`,
-              onChange: handleTableChange
-            }}
-          />
-        )}
-      </Card>
+        <Card className="prs-card">
+          {filteredPRs.length === 0 ? (
+            <Empty description="暂无 Pull Requests" />
+          ) : (
+            <Table
+              dataSource={filteredPRs}
+              columns={columns}
+              rowKey="id"
+              scroll={{ x: 'max-content' }}
+              pagination={{
+                current: page,
+                pageSize,
+                total: pagination?.total || 0,
+                showSizeChanger: true,
+                showTotal: (total) => `共 ${total} 条`,
+                onChange: handleTableChange
+              }}
+            />
+          )}
+        </Card>
 
-      <Modal
-        title="添加 Pull Request"
-        open={modalOpen}
-        onCancel={() => {
-          setModalOpen(false);
-          form.resetFields();
-        }}
-        footer={null}
-        width={600}
-      >
-        <Form form={form} layout="vertical" onFinish={handleCreate}>
-          <Form.Item
-            name="prId"
-            label="PR ID"
-            rules={[{ required: true, message: '请输入 PR ID' }]}
-          >
-            <Input type="number" placeholder="请输入 GitHub PR ID" />
-          </Form.Item>
-          <Form.Item
-            name="prTitle"
-            label="PR 标题"
-            rules={[{ required: true, message: '请输入 PR 标题' }]}
-          >
-            <Input placeholder="请输入 PR 标题" />
-          </Form.Item>
-          <Form.Item name="issueId" label="关联 Issue ID">
-            <Input type="number" placeholder="请输入关联的 Issue ID（可选）" />
-          </Form.Item>
-          <Form.Item name="prContent" label="PR 内容">
-            <Input.TextArea rows={4} placeholder="请输入 PR 内容" />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit" loading={createPR.isPending}>
-                提交
-              </Button>
-              <Button onClick={() => setModalOpen(false)}>取消</Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
+        <Modal
+          title="添加 Pull Request"
+          open={modalOpen}
+          onCancel={() => {
+            setModalOpen(false);
+            form.resetFields();
+          }}
+          footer={null}
+          width={600}
+        >
+          <Form form={form} layout="vertical" onFinish={handleCreate}>
+            <Form.Item
+              name="prId"
+              label="PR ID"
+              rules={[{ required: true, message: '请输入 PR ID' }]}
+            >
+              <Input type="number" placeholder="请输入 GitHub PR ID" />
+            </Form.Item>
+            <Form.Item
+              name="prTitle"
+              label="PR 标题"
+              rules={[{ required: true, message: '请输入 PR 标题' }]}
+            >
+              <Input placeholder="请输入 PR 标题" />
+            </Form.Item>
+            <Form.Item name="issueId" label="关联 Issue ID">
+              <Input type="number" placeholder="请输入关联的 Issue ID（可选）" />
+            </Form.Item>
+            <Form.Item name="prContent" label="PR 内容">
+              <Input.TextArea rows={4} placeholder="请输入 PR 内容" />
+            </Form.Item>
+            <Form.Item>
+              <Space>
+                <Button type="primary" htmlType="submit" loading={createPR.isPending}>
+                  提交
+                </Button>
+                <Button onClick={() => setModalOpen(false)}>取消</Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Modal>
+      </div>
+    </Page>
   );
 }
 

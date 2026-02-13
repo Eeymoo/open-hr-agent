@@ -743,9 +743,14 @@ export class TaskScheduler {
     const isTempTask = task.taskId < 0;
 
     if (isManagesCA && isTempTask) {
-      await this.logger.error(task.taskId, task.taskName, 'MANAGES_CA 任务失败，记录错误日志到数据库', {
-        error: error.message
-      });
+      await this.logger.error(
+        task.taskId,
+        task.taskName,
+        'MANAGES_CA 任务失败，记录错误日志到数据库',
+        {
+          error: error.message
+        }
+      );
 
       const prisma = getPrismaClient();
       const now = getCurrentTimestamp();
