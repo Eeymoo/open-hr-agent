@@ -8,11 +8,15 @@ import {
 import {
   TASK_STATUS_LABELS,
   TASK_STATUS_COLORS,
-  PRIORITY_LABELS,
-  PRIORITY_COLORS,
   type Task
 } from '../../types/task';
-import { formatTimestamp, formatDuration, TIMESTAMP_NEGATIVE_TWO } from '../../utils/formatters';
+import {
+  formatTimestamp,
+  formatDuration,
+  TIMESTAMP_NEGATIVE_TWO,
+  formatPriority,
+  getPriorityColor
+} from '../../utils/formatters';
 import { CA_BASE_URL } from '../../utils/constants';
 
 const { Paragraph } = Typography;
@@ -54,7 +58,7 @@ export function TaskModal({ open, task, onClose }: TaskModalProps) {
         <Tag color={TASK_STATUS_COLORS[task.status]}>{TASK_STATUS_LABELS[task.status]}</Tag>
       </Descriptions.Item>
       <Descriptions.Item label="优先级">
-        <Tag color={PRIORITY_COLORS[task.priority]}>{PRIORITY_LABELS[task.priority] || '其他'}</Tag>
+        <Tag color={getPriorityColor(task.priority)}>{formatPriority(task.priority)}</Tag>
       </Descriptions.Item>
       <Descriptions.Item label="创建时间">{formatTimestamp(task.createdAt)}</Descriptions.Item>
       <Descriptions.Item label="更新时间">{formatTimestamp(task.updatedAt)}</Descriptions.Item>

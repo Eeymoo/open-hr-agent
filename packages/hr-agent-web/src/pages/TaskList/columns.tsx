@@ -12,15 +12,18 @@ import type { ColumnsType } from 'antd/es/table';
 import {
   TASK_STATUS_LABELS,
   TASK_STATUS_COLORS,
-  PRIORITY_COLORS,
-  PRIORITY_LABELS,
   PRIORITY_LOW,
   PRIORITY_MEDIUM,
   PRIORITY_HIGH,
   type Task,
   type TaskStatus
 } from '../../types/task';
-import { formatTimestamp, formatRelativeTime } from '../../utils/formatters';
+import {
+  formatTimestamp,
+  formatRelativeTime,
+  formatPriority,
+  getPriorityColor
+} from '../../utils/formatters';
 import { CA_BASE_URL } from '../../utils/constants';
 
 const RUNNING_STATUSES = ['running', 'retrying', 'in_development'];
@@ -209,8 +212,8 @@ export const getTaskListColumns = (onNavigate: (path: string) => void): ColumnsT
     key: 'priority',
     width: 90,
     render: (priority: number) => (
-      <Tag color={PRIORITY_COLORS[priority] ?? 'default'} className="task-list-priority-tag">
-        {PRIORITY_LABELS[priority] ?? '未知'}
+      <Tag color={getPriorityColor(priority)} className="task-list-priority-tag">
+        {formatPriority(priority)}
       </Tag>
     ),
     sorter: (a: Task, b: Task) => a.priority - b.priority
