@@ -13,3 +13,5 @@ export type TaskTag = (typeof TASK_TAGS)[keyof typeof TASK_TAGS];
 export const hasTag = (tags: string[], tag: string): boolean => tags.includes(tag);
 
 export const hasRequiresCATag = (tags: string[]): boolean => hasTag(tags, TASK_TAGS.REQUIRES_CA);
+
+export const hasManagesCATag = (tags: string[]): boolean => hasTag(tags, TASK_TAGS.MANAGES_CA);
