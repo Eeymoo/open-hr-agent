@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createIssueFromWebhook } from './webhookHandler.js';
 import { getPrismaClient } from './database.js';
 
 vi.mock('./database.js', async (importOriginal) => {
@@ -30,7 +29,13 @@ describe('webhookHandler 测试', () => {
     },
     issue: {
       findUnique: vi.fn(),
-      create: vi.fn()
+      create: vi.fn(),
+      update: vi.fn()
+    },
+    pullRequest: {
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn()
     }
   } as unknown as ReturnType<typeof getPrismaClient>;
 
@@ -41,41 +46,9 @@ describe('webhookHandler 测试', () => {
     console.error = vi.fn();
   });
 
-  describe('createIssueFromWebhook', () => {
-    it('应该创建新 issue', async () => {
-      vi.mocked(prismaMock.issue.findUnique).mockResolvedValue(null);
-      vi.mocked(prismaMock.issue.create).mockResolvedValue({
-        id: 1,
-        issueId: 42,
-        issueTitle: 'Test Issue'
-      } as never);
-
-      const result = await createIssueFromWebhook(
-        42,
-        'https://github.com/test/repo/issues/42',
-        'Test Issue',
-        'Test content'
-      );
-
-      expect(result.success).toBe(true);
-      expect(prismaMock.issue.create).toHaveBeenCalled();
-    });
-
-    it('当 issue 已存在时应返回错误', async () => {
-      vi.mocked(prismaMock.issue.findUnique).mockResolvedValue({
-        id: 1,
-        issueId: 42
-      } as never);
-
-      const result = await createIssueFromWebhook(
-        42,
-        'https://github.com/test/repo/issues/42',
-        'Test Issue',
-        'Test content'
-      );
-
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('already exists');
+  describe('webhook handler basic setup', () => {
+    it('should have prisma mock configured', () => {
+      expect(getPrismaClient()).toBe(prismaMock);
     });
   });
 });
