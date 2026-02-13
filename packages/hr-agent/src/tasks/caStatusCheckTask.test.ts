@@ -219,6 +219,56 @@ describe('CaStatusCheckTask', () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain('Connection refused');
     });
+
+    it('所有成功情况应该返回 finalStatus 为 COMPLETED', async () => {
+      mockClient.session.list.mockResolvedValue({
+        data: [{ id: 'session-1' }]
+      });
+      mockClient.session.messages.mockResolvedValue({
+        data: [
+          {
+            parts: [{ type: 'text', text: '任务执行中...' }]
+          }
+        ]
+      });
+      mockClient.session.shell.mockResolvedValue({
+        data: { output: 'All checks passed' }
+      });
+
+      const result = await task.execute(
+        { caId: 1, caName: 'hra_123' },
+        {
+          taskId: 0,
+          taskName: 'ca_status_check',
+          caId: 1,
+          issueId: undefined,
+          prId: undefined,
+          retryCount: 0
+        }
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.finalStatus).toBe('completed');
+    });
+
+    it('所有失败情况应该返回 finalStatus 为 COMPLETED', async () => {
+      mockClient.session.list.mockRejectedValue(new Error('Connection refused'));
+
+      const result = await task.execute(
+        { caId: 1, caName: 'hra_123' },
+        {
+          taskId: 0,
+          taskName: 'ca_status_check',
+          caId: 1,
+          issueId: undefined,
+          prId: undefined,
+          retryCount: 0
+        }
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.finalStatus).toBe('completed');
+    });
   });
 
   describe('checkForXML', () => {
