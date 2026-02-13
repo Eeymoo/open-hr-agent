@@ -9,7 +9,7 @@ import {
 } from '@ant-design/icons';
 import type { Task } from '../../types/task';
 import { CountUp } from '../CountUp';
-import { useCAStatus } from '../../hooks/useCAs';
+import { useCAStatus } from '../../hooks/useCas';
 import { CA_STATUS_LABELS, CA_STATUS_COLORS, type CADetail } from '../../types/ca';
 import './index.css';
 

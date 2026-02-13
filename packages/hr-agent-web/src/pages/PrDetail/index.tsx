@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Button, Descriptions, Space, Empty, Modal, message } from 'antd';
 import { ArrowLeftOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { usePR, useDeletePR } from '../../hooks/usePRs';
+import { usePR, useDeletePR } from '../../hooks/usePrs';
 import { formatDate, getPRStatusTag } from '../../utils/formatters';
 import { Page } from '../../components/Page';
 import './index.css';
