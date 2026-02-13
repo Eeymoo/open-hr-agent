@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, Button, Table, Space, Empty, Input, Modal, Form, message } from 'antd';
 import { PlusOutlined, LinkOutlined } from '@ant-design/icons';
-import { usePRs, useCreatePR } from '../../hooks/usePRs';
+import { usePRs, useCreatePR } from '../../hooks/usePrs';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { PullRequest } from '../../types/pr';
 import { formatDate, getPRStatusTag } from '../../utils/formatters';

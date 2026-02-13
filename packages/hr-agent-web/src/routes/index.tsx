@@ -1,12 +1,12 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { Login } from '../pages/Login';
-import { TaskOrchestration } from '../pages/TaskOrchestration';
+import { Dashboard } from '../pages/Dashboard';
 import { TaskList } from '../pages/TaskList';
 import { IssuesList } from '../pages/Issues';
 import { IssueDetail } from '../pages/IssueDetail';
-import { PRsList } from '../pages/PRs';
-import { PRDetail } from '../pages/PRDetail';
-import { CAsList } from '../pages/CAs';
+import { PRsList } from '../pages/Prs';
+import { PRDetail } from '../pages/PrDetail';
+import { CAsList } from '../pages/Cas';
 import { AppLayout } from '../components/Layout';
 import { AuthGuard } from '../components/AuthGuard';
 
@@ -35,7 +35,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'dashboard',
-        element: <TaskOrchestration />
+        element: <Dashboard />
       },
       {
         path: 'tasks',

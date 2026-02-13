@@ -6,7 +6,7 @@ import {
   updateCodingAgent,
   deleteCodingAgent,
   getCAStatus
-} from '../api/ca';
+} from '../api/cas';
 import type { PaginationParams } from '../types/ca';
 
 export function useCodingAgents(params?: PaginationParams) {

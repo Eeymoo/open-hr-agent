@@ -12,7 +12,7 @@ import {
   useCreateCodingAgent,
   useUpdateCodingAgent,
   useDeleteCodingAgent
-} from '../../hooks/useCAs';
+} from '../../hooks/useCas';
 import { useConfig } from '../../hooks/useConfig';
 import { useSearchParams } from 'react-router-dom';
 import { formatDate } from '../../utils/formatters';
