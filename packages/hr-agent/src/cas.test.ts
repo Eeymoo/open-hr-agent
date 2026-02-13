@@ -156,7 +156,7 @@ describe('Coding Agents CRUD Routes Tests', () => {
 
       expect(response.status).toBe(HTTP_STATUS.OK);
       expect(response.body).toHaveProperty('code', HTTP_STATUS.OK);
-      expect(response.body.data).toHaveProperty('caName', 'test-ca-new');
+      expect(response.body.data).toHaveProperty('caName', 'hra_test-ca-new');
       expect(response.body.data).toHaveProperty('status', 'pending_create');
       expect(response.body.data).toHaveProperty('taskId');
     });
