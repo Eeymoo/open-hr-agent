@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { Login } from '../pages/Login';
-import { TaskOrchestration } from '../pages/TaskOrchestration';
+import { Dashboard } from '../pages/Dashboard';
 import { TaskList } from '../pages/TaskList';
 import { IssuesList } from '../pages/Issues';
 import { IssueDetail } from '../pages/IssueDetail';
@@ -35,7 +35,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'dashboard',
-        element: <TaskOrchestration />
+        element: <Dashboard />
       },
       {
         path: 'tasks',

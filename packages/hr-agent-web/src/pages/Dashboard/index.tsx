@@ -140,7 +140,7 @@ function TaskHeader({
   );
 }
 
-export function TaskOrchestration() {
+export function Dashboard() {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>('kanban');
   const [formModalOpen, setFormModalOpen] = useState(false);
