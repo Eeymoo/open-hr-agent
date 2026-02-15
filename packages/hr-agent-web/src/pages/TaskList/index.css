@@ -132,7 +132,7 @@
 
 .task-list-card .ant-table-tbody > tr > td {
   border-bottom: 1px solid var(--border-glass) !important;
-  background: transparent !important;
+  background: var(--bg-glass) !important;
   color: var(--text-primary);
   transition: all 0.3s ease;
 }
