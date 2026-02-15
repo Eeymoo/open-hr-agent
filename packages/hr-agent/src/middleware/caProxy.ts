@@ -87,10 +87,9 @@ function handleProxyResponse(proxyRes: http.IncomingMessage, res: Response, caNa
       if (key.toLowerCase() === 'set-cookie') {
         res.setHeader(key, modifySetCookie(value, caName));
       } else if (key.toLowerCase() === 'content-security-policy') {
-        const csp = String(value).replace(
-          /default-src [^;]+/gi,
-          `default-src 'self' ${CSP_DOMAIN}`
-        );
+        let csp = String(value);
+        csp = csp.replace(/default-src [^;]+/gi, `default-src 'self' ${CSP_DOMAIN}`);
+        csp = csp.replace(/script-src [^;]+/gi, `script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' ${CSP_DOMAIN}`);
         res.setHeader(key, csp);
       } else {
         res.setHeader(key, value);
