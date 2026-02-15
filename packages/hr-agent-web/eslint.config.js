@@ -6,7 +6,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 
 export default [
   {
-    ignores: ['dist', 'vite.config.ts', 'vitest.config.ts', '**/*.test.ts', '**/*.spec.ts'],
+    ignores: ['dist', 'vite.config.ts', 'vitest.config.ts', '**/*.test.ts', '**/*.spec.ts', '**/*.test.tsx', '**/*.spec.tsx'],
   },
   js.configs.recommended,
   {
@@ -158,13 +158,6 @@ export default [
       'wrap-iife': 'error',
       'no-mixed-spaces-and-tabs': 'error',
       'padded-blocks': ['error', 'never'],
-    },
-  },
-  {
-    files: ['**/*.{test,spec}.{ts,tsx}'],
-    rules: {
-      'max-lines-per-function': 'off',
-      'no-magic-numbers': 'off',
     },
   },
 ];
