@@ -10,10 +10,12 @@ import {
   BranchesOutlined as PROutlined
 } from '@ant-design/icons';
 import type { Task } from '../../types/task';
+import type { Issue } from '../../types/issue';
+import type { PullRequest } from '../../types/pr';
 import { CountUp } from '../CountUp';
-import { useCAStatus } from '../../hooks/useCAs';
+import { useCAStatus } from '../../hooks/useCas';
 import { useIssues } from '../../hooks/useIssues';
-import { usePRs } from '../../hooks/usePRs';
+import { usePRs } from '../../hooks/usePrs';
 import { CA_STATUS_LABELS, CA_STATUS_COLORS, type CADetail } from '../../types/ca';
 import './index.css';
 
@@ -36,8 +38,8 @@ export function StatsDashboard({ tasks }: StatsDashboardProps) {
   const { data: issuesData } = useIssues({ page: 1, pageSize: ISSUE_PR_PAGE_SIZE });
   const { data: prsData } = usePRs({ page: 1, pageSize: ISSUE_PR_PAGE_SIZE });
 
-  const issues = issuesData?.issues ?? [];
-  const prs = prsData?.prs ?? [];
+  const issues: Issue[] = issuesData?.issues ?? [];
+  const prs: PullRequest[] = prsData?.prs ?? [];
 
   const stats = {
     total: tasks.length,
