@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import Result from '../../../../utils/Result.js';
-import { getPrismaClient, SOFT_DELETE_FLAG } from '../../../../utils/database.js';
+import Result from '../../../../../utils/Result.js';
+import { getPrismaClient, SOFT_DELETE_FLAG } from '../../../../../utils/database.js';
 
 const HTTP = {
   BAD_REQUEST: 400,
@@ -8,7 +8,7 @@ const HTTP = {
   NOT_FOUND: 404
 };
 
-export default async function getIssueLatestPRRoute(req: Request, res: Response): Promise<void> {
+export default async function getIssuePRsRoute(req: Request, res: Response): Promise<void> {
   const prisma = getPrismaClient();
   const { issueId } = req.params;
   const parsedIssueId = parseInt(issueId as string, 10);
@@ -19,7 +19,7 @@ export default async function getIssueLatestPRRoute(req: Request, res: Response)
   }
 
   try {
-    const issuePr = await prisma.issuePR.findFirst({
+    const issuePrs = await prisma.issuePR.findMany({
       where: {
         issueId: parsedIssueId,
         issue: { deletedAt: SOFT_DELETE_FLAG },
@@ -31,19 +31,11 @@ export default async function getIssueLatestPRRoute(req: Request, res: Response)
       orderBy: { createdAt: 'desc' }
     });
 
-    if (!issuePr) {
-      res.json(new Result().error(HTTP.NOT_FOUND, 'No PR found for this issue'));
-      return;
-    }
-
-    res.json(new Result(issuePr.pr));
+    res.json(new Result(issuePrs.map((ip) => ip.pr)));
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     res.json(
-      new Result().error(
-        HTTP.INTERNAL_SERVER_ERROR,
-        `Failed to fetch latest issue PR: ${errorMessage}`
-      )
+      new Result().error(HTTP.INTERNAL_SERVER_ERROR, `Failed to fetch issue PRs: ${errorMessage}`)
     );
   }
 }

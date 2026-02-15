@@ -8,7 +8,7 @@ describe('Health Route Tests', () => {
   beforeEach(async () => {
     app = express();
     app.use(express.json());
-    const { default: healthRoute } = await import('./health.js');
+    const { default: healthRoute } = await import('./index.get.js');
     app.get('/health', healthRoute);
   });
 

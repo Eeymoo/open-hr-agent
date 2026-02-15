@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import express, { Express } from 'express';
-import { getPrismaClient } from '../../../../utils/database.js';
+import { getPrismaClient } from '../../../../../utils/database.js';
 
 const HTTP_STATUS = {
   OK: 200,
@@ -11,7 +11,7 @@ const HTTP_STATUS = {
   INTERNAL_SERVER_ERROR: 500
 } as const;
 
-vi.mock('../../../../utils/database.js', () => ({
+vi.mock('../../../../../utils/database.js', () => ({
   getPrismaClient: vi.fn(),
   SOFT_DELETE_FLAG: -2
 }));
@@ -75,7 +75,7 @@ describe('Issue PR Relation API', () => {
 
       mockPrismaClient.issuePR.findMany.mockResolvedValue([mockIssuePr1, mockIssuePr2]);
 
-      const { default: route } = await import('./prs.get.js');
+      const { default: route } = await import('./index.get.js');
       app.get('/v1/issues/:issueId/prs', route);
 
       const response = await request(app).get('/v1/issues/1/prs');
@@ -87,7 +87,7 @@ describe('Issue PR Relation API', () => {
     });
 
     it('should return 400 for invalid issue ID', async () => {
-      const { default: route } = await import('./prs.get.js');
+      const { default: route } = await import('./index.get.js');
       app.get('/v1/issues/:issueId/prs', route);
 
       const response = await request(app).get('/v1/issues/invalid/prs');
@@ -99,7 +99,7 @@ describe('Issue PR Relation API', () => {
     it('should return empty array for issue with no PRs', async () => {
       mockPrismaClient.issuePR.findMany.mockResolvedValue([]);
 
-      const { default: route } = await import('./prs.get.js');
+      const { default: route } = await import('./index.get.js');
       app.get('/v1/issues/:issueId/prs', route);
 
       const response = await request(app).get('/v1/issues/1/prs');
@@ -119,7 +119,7 @@ describe('Issue PR Relation API', () => {
         issueId: 1
       });
 
-      const { default: route } = await import('./latest-pr.get.js');
+      const { default: route } = await import('../latest-pr/index.get.js');
       app.get('/v1/issues/:issueId/latest-pr', route);
 
       const response = await request(app).get('/v1/issues/1/latest-pr');
@@ -133,7 +133,7 @@ describe('Issue PR Relation API', () => {
       mockPrismaClient.issuePR.findFirst.mockResolvedValue(null);
       mockPrismaClient.issuePR.findMany.mockResolvedValue([]);
 
-      const { default: route } = await import('./latest-pr.get.js');
+      const { default: route } = await import('../latest-pr/index.get.js');
       app.get('/v1/issues/:issueId/latest-pr', route);
 
       const response = await request(app).get('/v1/issues/1/latest-pr');
@@ -156,7 +156,7 @@ describe('Issue PR Relation API', () => {
         createdAt: 0
       });
 
-      const { default: route } = await import('./latest-pr.put.js');
+      const { default: route } = await import('../latest-pr/index.put.js');
       app.put('/v1/issues/:issueId/latest-pr', route);
 
       const response = await request(app).put('/v1/issues/1/latest-pr').send({ prId: 2 });
@@ -166,7 +166,7 @@ describe('Issue PR Relation API', () => {
     });
 
     it('should return 400 for invalid issue ID', async () => {
-      const { default: route } = await import('./latest-pr.put.js');
+      const { default: route } = await import('../latest-pr/index.put.js');
       app.put('/v1/issues/:issueId/latest-pr', route);
 
       const response = await request(app).put('/v1/issues/invalid/latest-pr').send({ prId: 2 });
@@ -176,7 +176,7 @@ describe('Issue PR Relation API', () => {
     });
 
     it('should return 400 for invalid PR ID', async () => {
-      const { default: route } = await import('./latest-pr.put.js');
+      const { default: route } = await import('../latest-pr/index.put.js');
       app.put('/v1/issues/:issueId/latest-pr', route);
 
       const response = await request(app).put('/v1/issues/1/latest-pr').send({ prId: 'invalid' });
@@ -195,7 +195,7 @@ describe('Issue PR Relation API', () => {
         createdAt: 0
       });
 
-      const { default: route } = await import('./latest-pr.put.js');
+      const { default: route } = await import('../latest-pr/index.put.js');
       app.put('/v1/issues/:issueId/latest-pr', route);
 
       const response = await request(app).put('/v1/issues/1/latest-pr').send({ prId: 2 });
@@ -215,7 +215,7 @@ describe('Issue PR Relation API', () => {
         createdAt: 0
       });
 
-      const { default: route } = await import('../../prs/[prId]/issue.get.js');
+      const { default: route } = await import('../../../prs/[prId]/issue/index.get.js');
       app.get('/v1/prs/:prId/issue', route);
 
       const response = await request(app).get('/v1/prs/1/issue');
@@ -228,7 +228,7 @@ describe('Issue PR Relation API', () => {
     it('should return 404 when no associated issue exists', async () => {
       mockPrismaClient.issuePR.findFirst.mockResolvedValue(null);
 
-      const { default: route } = await import('../../prs/[prId]/issue.get.js');
+      const { default: route } = await import('../../../prs/[prId]/issue/index.get.js');
       app.get('/v1/prs/:prId/issue', route);
 
       const response = await request(app).get('/v1/prs/1/issue');
@@ -238,7 +238,7 @@ describe('Issue PR Relation API', () => {
     });
 
     it('should return 400 for invalid PR ID', async () => {
-      const { default: route } = await import('../../prs/[prId]/issue.get.js');
+      const { default: route } = await import('../../../prs/[prId]/issue/index.get.js');
       app.get('/v1/prs/:prId/issue', route);
 
       const response = await request(app).get('/v1/prs/invalid/issue');

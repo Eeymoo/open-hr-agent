@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import express, { Express } from 'express';
 import request from 'supertest';
 
-vi.mock('../../config/taskConfig.js', () => ({
+vi.mock('../../../config/taskConfig.js', () => ({
   TASK_CONFIG: {
     CA_NAME_PREFIX: 'test-ca-prefix'
   }
@@ -15,7 +15,7 @@ describe('Config Route Tests', () => {
     vi.clearAllMocks();
     app = express();
     app.use(express.json());
-    const { default: configRoute } = await import('./config.get.js');
+    const { default: configRoute } = await import('./index.get.js');
     app.get('/v1/config', configRoute);
   });
 
