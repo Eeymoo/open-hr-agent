@@ -330,27 +330,37 @@ code {
 
 .ant-table-cell-fix-left,
 .ant-table-cell-fix-right {
-  background: var(--bg-glass-solid) !important;
+  background: var(--bg-secondary) !important;
 }
 
 .ant-table-thead > tr > th.ant-table-cell-fix-left,
 .ant-table-thead > tr > th.ant-table-cell-fix-right {
-  background: var(--bg-glass-light) !important;
+  background: var(--bg-tertiary) !important;
 }
 
 .ant-table-tbody > tr:hover > td.ant-table-cell-fix-left,
 .ant-table-tbody > tr:hover > td.ant-table-cell-fix-right {
-  background: var(--bg-glass-hover) !important;
+  background: var(--bg-tertiary) !important;
 }
 
 .ant-table-tbody > tr.task-list-row-running > td.ant-table-cell-fix-left,
 .ant-table-tbody > tr.task-list-row-running > td.ant-table-cell-fix-right {
-  background: rgba(59, 130, 246, 0.08) !important;
+  background: #0c1929 !important;
+}
+
+[data-theme='light'] .ant-table-tbody > tr.task-list-row-running > td.ant-table-cell-fix-left,
+[data-theme='light'] .ant-table-tbody > tr.task-list-row-running > td.ant-table-cell-fix-right {
+  background: #e0f2fe !important;
 }
 
 .ant-table-tbody > tr.task-list-row-running:hover > td.ant-table-cell-fix-left,
 .ant-table-tbody > tr.task-list-row-running:hover > td.ant-table-cell-fix-right {
-  background: rgba(59, 130, 246, 0.12) !important;
+  background: #0f2744 !important;
+}
+
+[data-theme='light'] .ant-table-tbody > tr.task-list-row-running:hover > td.ant-table-cell-fix-left,
+[data-theme='light'] .ant-table-tbody > tr.task-list-row-running:hover > td.ant-table-cell-fix-right {
+  background: #bae6fd !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
