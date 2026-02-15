@@ -33,6 +33,7 @@ const getPRColumns = (navigate: (path: string) => void) => [
     dataIndex: 'prId',
     key: 'prId',
     width: 120,
+    fixed: 'left' as const,
     render: (id: number) => <span className="pr-id">#{id}</span>
   },
   {
@@ -78,6 +79,7 @@ const getPRColumns = (navigate: (path: string) => void) => [
     title: '操作',
     key: 'actions',
     width: 150,
+    fixed: 'right' as const,
     render: (_: unknown, record: PullRequest) => (
       <Space size="small">
         <Button
