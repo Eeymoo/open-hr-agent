@@ -1,0 +1,72 @@
+.overview-card {
+  height: 100%;
+  transition: all 0.3s ease;
+}
+
+.overview-card.ant-card-hoverable:hover {
+  border-color: #9333EA;
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.15);
+  cursor: pointer;
+}
+
+.overview-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.overview-card-icon {
+  font-size: 20px;
+  color: #9333EA;
+}
+
+.overview-card-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.overview-card-content {
+  min-height: 80px;
+}
+
+.overview-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.overview-stat:last-child {
+  border-bottom: none;
+}
+
+.overview-stat-label {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.overview-stat-value {
+  font-weight: 600;
+  font-size: 18px;
+  color: #1f2937;
+}
+
+.overview-stat-value.running {
+  color: #1890ff;
+}
+
+.overview-stat-value.success {
+  color: #52c41a;
+}
+
+.overview-stat-value.error {
+  color: #ff4d4f;
+}
+
+.overview-stat-value.warning {
+  color: #faad14;
+}
