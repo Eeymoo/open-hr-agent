@@ -15,6 +15,11 @@ const PROXY_TIMEOUT_MS = 30000;
 
 const CSP_DOMAIN = getOptionalEnvValue('CSP_DOMAIN', 'http://rha.onemue.cn');
 
+function rewriteHtmlPaths(html: string, proxyPrefix: string): string {
+  const absolutePathPattern = /(\s)(src|href|action|data|poster|background)=["']\/(?!\/|ca\/)([^"']*)["']/gi;
+  return html.replace(absolutePathPattern, `$1$2="${proxyPrefix}$3"`);
+}
+
 function injectBaseTag(html: string, basePath: string): string {
   const baseTag = `<base href="${basePath}">`;
   const headPattern = /<head>/i;
@@ -95,7 +100,8 @@ function handleProxyResponse(proxyRes: http.IncomingMessage, res: Response, caNa
     if (contentType?.includes('text/html')) {
       const html = buffer.toString('utf8');
       const basePath = `${CA_PROXY_PATH}/${caName}/`;
-      const modifiedHtml = injectBaseTag(html, basePath);
+      const rewrittenHtml = rewriteHtmlPaths(html, basePath);
+      const modifiedHtml = injectBaseTag(rewrittenHtml, basePath);
       res.send(modifiedHtml);
     } else {
       res.send(buffer);
@@ -180,4 +186,4 @@ async function caProxyMiddleware(req: Request, res: Response, next: NextFunction
 }
 
 export default caProxyMiddleware;
-export { CA_PROXY_PATH };
+export { CA_PROXY_PATH, rewriteHtmlPaths, injectBaseTag };
