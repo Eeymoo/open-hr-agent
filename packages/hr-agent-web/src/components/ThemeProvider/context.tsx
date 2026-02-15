@@ -67,9 +67,11 @@ function updateCSSVariables(themeName: ThemeName) {
 
   root.style.setProperty('--bg-primary', theme.colors.bg.primary);
   root.style.setProperty('--bg-secondary', theme.colors.bg.secondary);
+  root.style.setProperty('--bg-tertiary', theme.colors.bg.tertiary);
   root.style.setProperty('--bg-glass', theme.colors.bg.glass);
   root.style.setProperty('--bg-glass-light', theme.colors.bg['glass-light']);
   root.style.setProperty('--bg-glass-hover', theme.colors.bg['glass-hover']);
+  root.style.setProperty('--bg-glass-solid', theme.colors.bg['glass-solid']);
 
   root.style.setProperty('--text-primary', theme.colors.text.primary);
   root.style.setProperty('--text-secondary', theme.colors.text.secondary);
@@ -78,13 +80,24 @@ function updateCSSVariables(themeName: ThemeName) {
   root.style.setProperty('--border-glass', theme.colors.border.glass);
   root.style.setProperty('--border-glass-hover', theme.colors.border['glass-hover']);
   root.style.setProperty('--border-purple', theme.colors.border.purple);
+  root.style.setProperty('--border-glow', theme.colors.border.glow);
+  root.style.setProperty('--border-glow-strong', theme.colors.border['glow-strong']);
 
   root.style.setProperty('--purple-main', theme.colors.purple.main);
   root.style.setProperty('--purple-light', theme.colors.purple.light);
   root.style.setProperty('--purple-dark', theme.colors.purple.dark);
+  root.style.setProperty('--purple-glow', theme.colors.purple.glow);
+
+  root.style.setProperty('--accent-cyan', theme.colors.accent.cyan);
+  root.style.setProperty('--accent-pink', theme.colors.accent.pink);
+  root.style.setProperty('--accent-blue', theme.colors.accent.blue);
 
   root.style.setProperty('--status-success', theme.colors.status.success);
   root.style.setProperty('--status-warning', theme.colors.status.warning);
   root.style.setProperty('--status-error', theme.colors.status.error);
   root.style.setProperty('--status-info', theme.colors.status.info);
+
+  root.style.setProperty('--shadow-glass', theme.colors.shadow.glass);
+  root.style.setProperty('--shadow-glow', theme.colors.shadow.glow);
+  root.style.setProperty('--shadow-card', theme.colors.shadow.card);
 }

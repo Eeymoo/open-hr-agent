@@ -1,5 +1,7 @@
 .pr-detail {
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .pr-detail-loading {
@@ -17,14 +19,15 @@
 }
 
 .pr-card {
-  background: var(--bg-glass);
+  background: var(--bg-glass) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-glass);
-  border-radius: 16px;
-  box-shadow: var(--shadow-glass);
+  border: 1px solid var(--border-glass) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--shadow-card);
   overflow: hidden;
   position: relative;
+  transition: all 0.3s ease;
 }
 
 .pr-card::before {
@@ -56,6 +59,7 @@
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.4;
+  transition: color 0.3s ease;
 }
 
 .pr-number {
@@ -78,6 +82,7 @@
   color: var(--text-secondary);
   font-weight: 500;
   border: 1px solid var(--border-glass);
+  transition: all 0.3s ease;
 }
 
 .pr-descriptions .ant-descriptions-item-content {
@@ -85,16 +90,21 @@
   background: var(--bg-glass);
   border: 1px solid var(--border-glass);
   border-left: none;
+  transition: all 0.3s ease;
 }
 
 .issue-link {
   color: var(--purple-light);
   font-weight: 600;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .issue-link:hover {
   color: var(--accent-cyan);
+}
+
+[data-theme='dark'] .issue-link:hover {
   text-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
 }
 
@@ -112,6 +122,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  transition: color 0.3s ease;
 }
 
 .pr-content h3::before {
@@ -133,13 +144,10 @@
   line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;
+  transition: all 0.3s ease;
 }
 
 @media (max-width: 768px) {
-  .pr-detail {
-    padding: 16px;
-  }
-
   .pr-card .ant-card-body {
     padding: 20px;
   }
@@ -152,13 +160,13 @@
     flex-direction: column;
     gap: 12px;
   }
+
+  .pr-card {
+    border-radius: 14px !important;
+  }
 }
 
 @media (max-width: 375px) {
-  .pr-detail {
-    padding: 12px;
-  }
-
   .pr-card .ant-card-body {
     padding: 16px;
   }

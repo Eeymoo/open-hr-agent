@@ -1,5 +1,7 @@
 .prs-list {
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .prs-header {
@@ -14,22 +16,25 @@
   font-size: 22px;
   font-weight: 600;
   color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .pr-count {
   margin-left: 12px;
   font-size: 14px;
   color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .prs-card {
-  background: var(--bg-glass);
+  background: var(--bg-glass) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-glass);
-  border-radius: 16px;
+  border: 1px solid var(--border-glass) !important;
+  border-radius: 16px !important;
   overflow: hidden;
-  box-shadow: var(--shadow-glass);
+  box-shadow: var(--shadow-card);
+  transition: all 0.3s ease;
 }
 
 .prs-card .ant-card-body {
@@ -45,6 +50,7 @@
   color: var(--text-secondary) !important;
   font-weight: 600;
   border-bottom: 1px solid var(--border-glass) !important;
+  transition: all 0.3s ease;
 }
 
 .prs-card .ant-table-tbody > tr > td {
@@ -78,11 +84,15 @@
 .pr-title-link {
   color: var(--text-primary);
   font-weight: 500;
+  cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .pr-title-link:hover {
   color: var(--purple-light);
+}
+
+[data-theme='dark'] .pr-title-link:hover {
   text-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
 }
 
@@ -97,21 +107,26 @@
   color: var(--text-secondary) !important;
 }
 
+.prs-card .ant-btn {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
 @media (max-width: 768px) {
   .prs-list {
-    padding: 16px;
+    gap: 16px;
   }
 
   .header-left h2 {
     font-size: 18px;
   }
+
+  .prs-card {
+    border-radius: 14px !important;
+  }
 }
 
 @media (max-width: 375px) {
-  .prs-list {
-    padding: 12px;
-  }
-
   .header-left h2 {
     font-size: 16px;
   }

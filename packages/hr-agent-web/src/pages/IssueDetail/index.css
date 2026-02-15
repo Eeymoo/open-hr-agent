@@ -1,5 +1,7 @@
 .issue-detail {
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .issue-detail-loading {
@@ -17,14 +19,15 @@
 }
 
 .issue-card {
-  background: var(--bg-glass);
+  background: var(--bg-glass) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-glass);
-  border-radius: 16px;
-  box-shadow: var(--shadow-glass);
+  border: 1px solid var(--border-glass) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--shadow-card);
   overflow: hidden;
   position: relative;
+  transition: all 0.3s ease;
 }
 
 .issue-card::before {
@@ -56,6 +59,7 @@
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.4;
+  transition: color 0.3s ease;
 }
 
 .issue-number {
@@ -78,6 +82,7 @@
   color: var(--text-secondary);
   font-weight: 500;
   border: 1px solid var(--border-glass);
+  transition: all 0.3s ease;
 }
 
 .issue-descriptions .ant-descriptions-item-content {
@@ -85,16 +90,21 @@
   background: var(--bg-glass);
   border: 1px solid var(--border-glass);
   border-left: none;
+  transition: all 0.3s ease;
 }
 
 .issue-descriptions a {
   color: var(--purple-light);
   word-break: break-all;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .issue-descriptions a:hover {
   color: var(--accent-cyan);
+}
+
+[data-theme='dark'] .issue-descriptions a:hover {
   text-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
 }
 
@@ -112,6 +122,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  transition: color 0.3s ease;
 }
 
 .issue-content h3::before {
@@ -133,13 +144,10 @@
   line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;
+  transition: all 0.3s ease;
 }
 
 @media (max-width: 768px) {
-  .issue-detail {
-    padding: 16px;
-  }
-
   .issue-card .ant-card-body {
     padding: 20px;
   }
@@ -152,13 +160,13 @@
     flex-direction: column;
     gap: 12px;
   }
+
+  .issue-card {
+    border-radius: 14px !important;
+  }
 }
 
 @media (max-width: 375px) {
-  .issue-detail {
-    padding: 12px;
-  }
-
   .issue-card .ant-card-body {
     padding: 16px;
   }

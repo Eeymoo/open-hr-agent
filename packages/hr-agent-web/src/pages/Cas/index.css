@@ -1,5 +1,7 @@
 .cas-page {
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .cas-loading {
@@ -20,8 +22,10 @@
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-glass);
   border-radius: 16px;
+  box-shadow: var(--shadow-card);
   position: relative;
   overflow: hidden;
+  transition: all 0.3s ease;
 }
 
 .cas-header::before {
@@ -45,25 +49,37 @@
   pointer-events: none;
 }
 
+[data-theme='light'] .cas-header::after {
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.03), transparent);
+}
+
 .header-left h2 {
   margin: 0 0 4px 0;
   font-size: 22px;
   font-weight: 600;
   color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .ca-count {
   font-size: 14px;
   color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .cas-card {
-  background: var(--bg-glass);
+  background: var(--bg-glass) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-glass);
-  border-radius: 16px;
+  border: 1px solid var(--border-glass) !important;
+  border-radius: 16px !important;
   overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition: all 0.3s ease;
+}
+
+.cas-card .ant-card-body {
+  padding: 0;
 }
 
 .cas-card .ant-table {
@@ -75,6 +91,7 @@
   color: var(--text-secondary) !important;
   font-weight: 600;
   border-bottom: 1px solid var(--border-glass) !important;
+  transition: all 0.3s ease;
 }
 
 .cas-card .ant-table-tbody > tr > td {
@@ -106,6 +123,7 @@
   border: 1px solid var(--border-glass);
   border-radius: 12px;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .ca-log-item:hover {
@@ -125,6 +143,7 @@
 .log-time {
   font-size: 12px;
   color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .log-field {
@@ -138,21 +157,27 @@
   font-weight: 500;
   color: var(--text-secondary);
   min-width: 50px;
+  transition: color 0.3s ease;
 }
 
 .field-value {
   color: var(--text-primary);
   word-break: break-all;
+  transition: color 0.3s ease;
 }
 
 .issue-title-link {
   color: var(--purple-light);
   text-decoration: none;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .issue-title-link:hover {
   color: var(--accent-cyan);
+}
+
+[data-theme='dark'] .issue-title-link:hover {
   text-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
 }
 
@@ -203,6 +228,7 @@
   color: var(--text-secondary);
   border-radius: 8px;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .ca-action-btn:hover {
@@ -212,10 +238,6 @@
 }
 
 @media (max-width: 768px) {
-  .cas-page {
-    padding: 16px;
-  }
-
   .cas-header {
     padding: 16px;
     flex-direction: column;
@@ -225,6 +247,10 @@
 
   .header-left h2 {
     font-size: 18px;
+  }
+
+  .cas-card {
+    border-radius: 14px !important;
   }
 
   .ca-log-item {
@@ -242,10 +268,6 @@
 }
 
 @media (max-width: 375px) {
-  .cas-page {
-    padding: 12px;
-  }
-
   .cas-header {
     padding: 12px;
   }
