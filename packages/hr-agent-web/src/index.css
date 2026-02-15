@@ -257,3 +257,28 @@ code {
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
+
+.ant-table-cell-fix-left,
+.ant-table-cell-fix-right {
+  background: var(--bg-glass-solid) !important;
+}
+
+.ant-table-thead > tr > th.ant-table-cell-fix-left,
+.ant-table-thead > tr > th.ant-table-cell-fix-right {
+  background: var(--bg-glass-light) !important;
+}
+
+.ant-table-tbody > tr:hover > td.ant-table-cell-fix-left,
+.ant-table-tbody > tr:hover > td.ant-table-cell-fix-right {
+  background: var(--bg-glass-hover) !important;
+}
+
+.ant-table-tbody > tr.task-list-row-running > td.ant-table-cell-fix-left,
+.ant-table-tbody > tr.task-list-row-running > td.ant-table-cell-fix-right {
+  background: rgba(59, 130, 246, 0.08) !important;
+}
+
+.ant-table-tbody > tr.task-list-row-running:hover > td.ant-table-cell-fix-left,
+.ant-table-tbody > tr.task-list-row-running:hover > td.ant-table-cell-fix-right {
+  background: rgba(59, 130, 246, 0.12) !important;
+}

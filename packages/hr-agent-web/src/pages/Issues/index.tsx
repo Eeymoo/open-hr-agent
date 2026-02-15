@@ -33,6 +33,7 @@ const getIssueColumns = (navigate: (path: string) => void) => [
     dataIndex: 'issueId',
     key: 'issueId',
     width: 120,
+    fixed: 'left' as const,
     render: (id: number) => <span className="issue-id">#{id}</span>
   },
   {
@@ -70,6 +71,7 @@ const getIssueColumns = (navigate: (path: string) => void) => [
     title: '操作',
     key: 'actions',
     width: 150,
+    fixed: 'right' as const,
     render: (_: unknown, record: Issue) => (
       <Space size="small">
         <Button
