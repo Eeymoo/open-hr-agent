@@ -54,7 +54,7 @@
 }
 
 .prs-card .ant-table-tbody > tr > td {
-  background: transparent !important;
+  background: var(--bg-glass) !important;
   color: var(--text-primary) !important;
   border-bottom: 1px solid var(--border-glass) !important;
   transition: all 0.3s ease;
