@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import Result from '../../../utils/Result.js';
-import { getPrismaClient, setTimestamps } from '../../../utils/database.js';
+import Result from '../../../../utils/Result.js';
+import { getPrismaClient, setTimestamps } from '../../../../utils/database.js';
 
 const HTTP = {
   BAD_REQUEST: 400,

@@ -1,11 +1,11 @@
 import type { Request, Response } from 'express';
-import Result from '../../../utils/Result.js';
-import { getDockerCASecret } from '../../../utils/secretManager.js';
-import { getPrismaClient, getCurrentTimestamp } from '../../../utils/database.js';
-import { CONTAINER_TASK_PRIORITIES } from '../../../config/taskPriorities.js';
+import Result from '../../../../utils/Result.js';
+import { getDockerCASecret } from '../../../../utils/secretManager.js';
+import { getPrismaClient, getCurrentTimestamp } from '../../../../utils/database.js';
+import { CONTAINER_TASK_PRIORITIES } from '../../../../config/taskPriorities.js';
 
 declare global {
-  var taskManager: import('../../../services/taskManager.js').TaskManager;
+  var taskManager: import('../../../../services/taskManager.js').TaskManager;
 }
 
 const HTTP = {

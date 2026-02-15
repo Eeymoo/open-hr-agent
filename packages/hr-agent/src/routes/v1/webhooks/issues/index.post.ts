@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { receiveWebhook } from '../../../utils/webhookHandler.js';
+import { receiveWebhook } from '../../../../utils/webhookHandler.js';
 
 const HTTP = {
   BAD_REQUEST: 400,
@@ -7,8 +7,13 @@ const HTTP = {
   INTERNAL_SERVER_ERROR: 500
 };
 
-export default async function pullRequestsWebhook(req: Request, res: Response): Promise<void> {
-  console.log('=== Pull Requests Webhook Received ===');
+/**
+ * POST /v1/webhooks/issues - 处理 GitHub Issues Webhook 路由
+ * @param req - Express 请求对象
+ * @param res - Express 响应对象
+ */
+export default async function issuesWebhook(req: Request, res: Response): Promise<void> {
+  console.log('=== Issues Webhook Received ===');
   console.log('Headers:', JSON.stringify(req.headers, null, 2));
   console.log('Event:', req.headers['x-github-event']);
 
@@ -23,7 +28,7 @@ export default async function pullRequestsWebhook(req: Request, res: Response): 
 
     res.status(HTTP.OK).json({ message: 'Webhook processed successfully' });
   } catch (error) {
-    console.error('Pull requests webhook error:', error);
+    console.error('Issues webhook error:', error);
     res.status(HTTP.INTERNAL_SERVER_ERROR).json({
       error: error instanceof Error ? error.message : 'Internal server error'
     });

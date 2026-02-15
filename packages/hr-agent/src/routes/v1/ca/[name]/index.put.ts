@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
 import Docker from 'dockerode';
-import Result from '../../../utils/Result.js';
-import { getDockerCASecret } from '../../../utils/secretManager.js';
-import { DOCKER_CONFIG } from '../../../config/docker.js';
+import Result from '../../../../utils/Result.js';
+import { getDockerCASecret } from '../../../../utils/secretManager.js';
+import { DOCKER_CONFIG } from '../../../../config/docker.js';
 
 const HTTP = {
   BAD_REQUEST: 400,
@@ -13,8 +13,9 @@ const HTTP = {
 
 const docker = new Docker();
 
-export default async function getCARoute(req: Request, res: Response): Promise<void> {
+export default async function updateCARoute(req: Request, res: Response): Promise<void> {
   const { name } = req.params;
+  const { restart } = req.body;
 
   const authHeader = req.headers['x-ca-secret'];
   if (!authHeader || authHeader !== getDockerCASecret()) {
@@ -32,14 +33,18 @@ export default async function getCARoute(req: Request, res: Response): Promise<v
   try {
     const container = docker.getContainer(containerName);
 
-    let containerInfo;
     try {
-      containerInfo = await container.inspect();
+      await container.inspect();
     } catch {
       res.json(new Result().error(HTTP.NOT_FOUND, `Container ${containerName} not found`));
       return;
     }
 
+    if (restart === true) {
+      await container.restart();
+    }
+
+    const containerInfo = await container.inspect();
     const internalUrl = `${containerName}:${DOCKER_CONFIG.PORT}`;
 
     res.json(
@@ -47,12 +52,9 @@ export default async function getCARoute(req: Request, res: Response): Promise<v
         name,
         containerId: containerInfo.Id,
         containerName,
-        image: containerInfo.Config.Image,
         status: containerInfo.State.Status,
-        created: containerInfo.Created,
-        state: containerInfo.State,
-        networkSettings: containerInfo.NetworkSettings,
-        internalUrl
+        internalUrl,
+        message: 'Docker container updated successfully'
       })
     );
   } catch (error) {
@@ -60,7 +62,7 @@ export default async function getCARoute(req: Request, res: Response): Promise<v
     res.json(
       new Result().error(
         HTTP.INTERNAL_SERVER_ERROR,
-        `Failed to get Docker container: ${errorMessage}`
+        `Failed to update Docker container: ${errorMessage}`
       )
     );
   }

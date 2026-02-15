@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import Result from '../../../utils/Result.js';
-import { getPrismaClient } from '../../../utils/database.js';
+import Result from '../../../../utils/Result.js';
+import { getPrismaClient } from '../../../../utils/database.js';
 
 const HTTP = {
   INTERNAL_SERVER_ERROR: 500,
