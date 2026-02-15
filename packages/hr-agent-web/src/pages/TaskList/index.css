@@ -19,6 +19,7 @@
   box-shadow: var(--shadow-card);
   position: relative;
   overflow: hidden;
+  transition: all 0.3s ease;
 }
 
 .task-list-header::before {
@@ -36,6 +37,7 @@
   font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .task-list-stats {
@@ -44,6 +46,7 @@
 
 .task-list-stats .ant-badge-status-text {
   color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .task-list-header-right {
@@ -71,6 +74,7 @@
 .filter-icon {
   color: var(--text-secondary);
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 .tag-filter {
@@ -90,6 +94,11 @@
   color: var(--text-primary) !important;
 }
 
+[data-theme='light'] .tag-filter .ant-select-selection-item {
+  background: rgba(147, 51, 234, 0.12) !important;
+  border-color: rgba(147, 51, 234, 0.25) !important;
+}
+
 .tag-filter .ant-select-selection-placeholder {
   color: var(--text-muted);
 }
@@ -101,6 +110,11 @@
   border: 1px solid var(--border-glass) !important;
   border-radius: 16px !important;
   box-shadow: var(--shadow-card);
+  transition: all 0.3s ease;
+}
+
+.task-list-card .ant-card-body {
+  padding: 0;
 }
 
 .task-list-card .ant-table {
@@ -113,12 +127,14 @@
   color: var(--text-secondary) !important;
   font-weight: 600;
   font-size: 13px;
+  transition: all 0.3s ease;
 }
 
 .task-list-card .ant-table-tbody > tr > td {
   border-bottom: 1px solid var(--border-glass) !important;
   background: transparent !important;
   color: var(--text-primary);
+  transition: all 0.3s ease;
 }
 
 .task-list-card .ant-table-tbody > tr:hover > td {
@@ -186,6 +202,7 @@
   color: var(--text-secondary);
   font-weight: 500;
   min-width: 35px;
+  transition: color 0.3s ease;
 }
 
 .task-list-type-icon {
@@ -197,6 +214,8 @@
   height: auto !important;
   font-size: 13px;
   color: var(--text-secondary) !important;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .task-list-link:hover {
@@ -210,10 +229,12 @@
 .task-list-time {
   font-size: 13px;
   color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .task-list-card .ant-pagination {
   margin: 16px 0 0 0 !important;
+  padding: 0 16px 16px;
 }
 
 .task-list-card .ant-pagination-item,
@@ -221,6 +242,7 @@
 .task-list-card .ant-pagination-next {
   background: var(--bg-glass-light) !important;
   border-color: var(--border-glass) !important;
+  transition: all 0.3s ease;
 }
 
 .task-list-card .ant-pagination-item a {
@@ -234,6 +256,10 @@
 
 .task-list-card .ant-pagination-item-active a {
   color: white !important;
+}
+
+.task-list-card .ant-btn {
+  cursor: pointer;
 }
 
 @media (max-width: 1024px) {

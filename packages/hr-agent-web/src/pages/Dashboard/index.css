@@ -12,6 +12,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  transition: color 0.3s ease;
 }
 
 .dashboard-section-title .anticon {
@@ -26,6 +27,7 @@
   border-radius: 16px;
   padding: 24px;
   box-shadow: var(--shadow-card);
+  transition: all 0.3s ease;
 }
 
 .dashboard-queue-section {
@@ -45,6 +47,7 @@
   border: 1px solid var(--border-glass);
   border-radius: 16px;
   box-shadow: var(--shadow-card);
+  transition: all 0.3s ease;
 }
 
 .dashboard-queue-header .dashboard-section-title {
@@ -52,12 +55,13 @@
 }
 
 .dashboard-queue-card {
-  background: var(--bg-glass);
+  background: var(--bg-glass) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-glass);
-  border-radius: 16px;
+  border: 1px solid var(--border-glass) !important;
+  border-radius: 16px !important;
   box-shadow: var(--shadow-card);
+  transition: all 0.3s ease;
 }
 
 .dashboard-queue-card .ant-card-body {
@@ -82,6 +86,7 @@
 .filter-icon {
   color: var(--text-secondary);
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 .tag-filter {
@@ -99,6 +104,11 @@
   border: 1px solid rgba(139, 92, 246, 0.3) !important;
   border-radius: 6px !important;
   color: var(--text-primary) !important;
+}
+
+[data-theme='light'] .tag-filter .ant-select-selection-item {
+  background: rgba(147, 51, 234, 0.12) !important;
+  border-color: rgba(147, 51, 234, 0.25) !important;
 }
 
 .tag-filter .ant-select-selection-placeholder {
