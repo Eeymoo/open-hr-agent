@@ -5,11 +5,17 @@ import {
   CheckCircleOutlined,
   ExclamationCircleOutlined,
   RobotOutlined,
-  ApiOutlined
+  ApiOutlined,
+  GitlabOutlined as IssueOutlined,
+  BranchesOutlined as PROutlined
 } from '@ant-design/icons';
 import type { Task } from '../../types/task';
+import type { Issue } from '../../types/issue';
+import type { PullRequest } from '../../types/pr';
 import { CountUp } from '../CountUp';
 import { useCAStatus } from '../../hooks/useCas';
+import { useIssues } from '../../hooks/useIssues';
+import { usePRs } from '../../hooks/usePrs';
 import { CA_STATUS_LABELS, CA_STATUS_COLORS, type CADetail } from '../../types/ca';
 import './index.css';
 
@@ -18,6 +24,7 @@ const GRID_GUTTER = 20;
 const ANIMATION_DURATION = 2000;
 const PROGRESS_STROKE_WIDTH = 12;
 const MAX_CA_DISPLAY_COUNT = 4;
+const ISSUE_PR_PAGE_SIZE = 100;
 
 interface StatsDashboardProps {
   tasks: Task[];
@@ -28,12 +35,32 @@ export function StatsDashboard({ tasks }: StatsDashboardProps) {
   const caStatus = caResponse?.data?.caPool;
   const caList = caResponse?.data?.caList ?? [];
 
+  const { data: issuesData } = useIssues({ page: 1, pageSize: ISSUE_PR_PAGE_SIZE });
+  const { data: prsData } = usePRs({ page: 1, pageSize: ISSUE_PR_PAGE_SIZE });
+
+  const issues: Issue[] = issuesData?.issues ?? [];
+  const prs: PullRequest[] = prsData?.prs ?? [];
+
   const stats = {
     total: tasks.length,
     queued: tasks.filter((t) => t.status === 'queued').length,
     running: tasks.filter((t) => t.status === 'running' || t.status === 'retrying').length,
     completed: tasks.filter((t) => t.status === 'completed').length,
     error: tasks.filter((t) => t.status === 'error').length
+  };
+
+  const issueStats = {
+    total: issues.length,
+    inProgress: issues.filter((i) => i.deletedAt < 0 && i.completedAt < 0).length,
+    completed: issues.filter((i) => i.completedAt > -1).length,
+    deleted: issues.filter((i) => i.deletedAt > -1).length
+  };
+
+  const prStats = {
+    total: prs.length,
+    inProgress: prs.filter((p) => p.deletedAt < 0 && p.completedAt < 0).length,
+    merged: prs.filter((p) => p.completedAt > -1).length,
+    deleted: prs.filter((p) => p.deletedAt > -1).length
   };
 
   const completionRate =
@@ -46,6 +73,10 @@ export function StatsDashboard({ tasks }: StatsDashboardProps) {
         <CompletionRateCard completionRate={completionRate} strokeWidth={PROGRESS_STROKE_WIDTH} />
         <AISystemCard caStatus={caStatus} queuedCount={stats.queued} />
         <CAResourcePoolCard caStatus={caStatus} caList={caList} maxDisplay={MAX_CA_DISPLAY_COUNT} />
+      </Row>
+      <Row gutter={[GRID_GUTTER, GRID_GUTTER]} style={{ marginTop: GRID_GUTTER }}>
+        <IssueStatusCard issueStats={issueStats} />
+        <PRStatusCard prStats={prStats} />
       </Row>
     </div>
   );
@@ -221,6 +252,68 @@ function CAResourcePoolCard({
               </div>
             </div>
           )}
+        </div>
+      </Card>
+    </Col>
+  );
+}
+
+function IssueStatusCard({
+  issueStats
+}: {
+  issueStats: { total: number; inProgress: number; completed: number; deleted: number };
+}) {
+  return (
+    <Col xs={24} lg={12}>
+      <Card className="issue-status-card">
+        <div className="ai-status-header">
+          <IssueOutlined className="ai-icon issue-icon" />
+          <span className="ai-status-title">Issues 状态</span>
+        </div>
+        <div className="ai-status-content">
+          <div className="status-item">
+            <span className="status-label">进行中</span>
+            <span className="status-value">{issueStats.inProgress}</span>
+          </div>
+          <div className="status-item">
+            <span className="status-label">已完成</span>
+            <span className="status-value">{issueStats.completed}</span>
+          </div>
+          <div className="status-item">
+            <span className="status-label">已删除</span>
+            <span className="status-value">{issueStats.deleted}</span>
+          </div>
+        </div>
+      </Card>
+    </Col>
+  );
+}
+
+function PRStatusCard({
+  prStats
+}: {
+  prStats: { total: number; inProgress: number; merged: number; deleted: number };
+}) {
+  return (
+    <Col xs={24} lg={12}>
+      <Card className="pr-status-card">
+        <div className="ai-status-header">
+          <PROutlined className="ai-icon pr-icon" />
+          <span className="ai-status-title">PRs 状态</span>
+        </div>
+        <div className="ai-status-content">
+          <div className="status-item">
+            <span className="status-label">进行中</span>
+            <span className="status-value">{prStats.inProgress}</span>
+          </div>
+          <div className="status-item">
+            <span className="status-label">已合并</span>
+            <span className="status-value">{prStats.merged}</span>
+          </div>
+          <div className="status-item">
+            <span className="status-label">已删除</span>
+            <span className="status-value">{prStats.deleted}</span>
+          </div>
         </div>
       </Card>
     </Col>
