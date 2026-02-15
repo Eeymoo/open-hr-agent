@@ -102,6 +102,31 @@
   color: var(--status-warning);
 }
 
+.overview-stat-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.overview-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.overview-stat-item .ant-tag {
+  margin: 0;
+  font-size: 12px;
+}
+
+.overview-stat-count {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+  min-width: 20px;
+}
+
 @media (max-width: 768px) {
   .overview-card .ant-card-body {
     padding: 16px;
