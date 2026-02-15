@@ -148,6 +148,7 @@ async function caProxyMiddleware(req: Request, res: Response, next: NextFunction
   }
 
   const targetUrl = `http://${containerName}:${DOCKER_CONFIG.PORT}`;
+  const basicAuth = Buffer.from(`admin:${DOCKER_CONFIG.SECRET}`).toString('base64');
 
   const proxyReq = http.request(
     targetUrl + subPath,
@@ -158,7 +159,8 @@ async function caProxyMiddleware(req: Request, res: Response, next: NextFunction
         ...req.headers,
         host: `${containerName}:${DOCKER_CONFIG.PORT}`,
         'x-forwarded-host': req.get('host'),
-        'x-forwarded-proto': req.protocol
+        'x-forwarded-proto': req.protocol,
+        authorization: `Basic ${basicAuth}`
       }
     },
     (proxyRes) => handleProxyResponse(proxyRes, res, caName)
