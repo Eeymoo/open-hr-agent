@@ -55,7 +55,8 @@ const getCAColumns = (
     title: 'ID',
     dataIndex: 'id',
     key: 'id',
-    width: 80
+    width: 80,
+    fixed: 'left' as const
   },
   {
     title: '名称',
@@ -100,6 +101,7 @@ const getCAColumns = (
     title: '操作',
     key: 'actions',
     width: 250,
+    fixed: 'right' as const,
     render: (_: unknown, record: CodingAgent) => (
       <Space size="small">
         <Button
