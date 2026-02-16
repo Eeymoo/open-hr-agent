@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AiCodingTask } from './aiCodingTask.js';
 import { EventBus } from '../services/eventBus.js';
 import { TaskLogger } from '../utils/taskLogger.js';
@@ -10,20 +10,32 @@ type BuildCodingPromptFn = (issue: {
   issueContent: string | null;
 }) => string;
 
+const mockIssueFindUnique = vi.fn();
+const mockIssueUpdate = vi.fn();
+const mockTaskUpdate = vi.fn();
+const mockSessionCreate = vi.fn();
+const mockSessionPrompt = vi.fn();
+
 vi.mock('../utils/database.js', () => ({
   getPrismaClient: vi.fn(() => ({
     issue: {
-      findUnique: vi.fn()
+      findUnique: mockIssueFindUnique,
+      update: mockIssueUpdate
     },
     task: {
-      update: vi.fn().mockResolvedValue({})
+      update: mockTaskUpdate
     }
   })),
   getCurrentTimestamp: vi.fn(() => Date.now())
 }));
 
 vi.mock('@opencode-ai/sdk', () => ({
-  createOpencodeClient: vi.fn()
+  createOpencodeClient: vi.fn(() => ({
+    session: {
+      create: mockSessionCreate,
+      prompt: mockSessionPrompt
+    }
+  }))
 }));
 
 vi.mock('../config/docker.js', () => ({
@@ -44,6 +56,18 @@ describe('AiCodingTask', () => {
   let logger: TaskLogger;
 
   beforeEach(async () => {
+    vi.clearAllMocks();
+    mockIssueFindUnique.mockReset();
+    mockIssueUpdate.mockReset();
+    mockTaskUpdate.mockReset();
+    mockSessionCreate.mockReset();
+    mockSessionPrompt.mockReset();
+
+    mockIssueUpdate.mockResolvedValue({});
+    mockTaskUpdate.mockResolvedValue({});
+    mockSessionCreate.mockResolvedValue({ data: { id: 'default-session' } });
+    mockSessionPrompt.mockResolvedValue({ data: { info: { id: 'default-msg' } } });
+
     eventBus = new EventBus();
     logger = new TaskLogger();
     vi.spyOn(logger, 'info').mockResolvedValue(undefined);
@@ -52,11 +76,13 @@ describe('AiCodingTask', () => {
     task = new AiCodingTask(eventBus, logger);
   });
 
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
   describe('execute', () => {
     it('应该处理 Issue 未找到', async () => {
-      const { getPrismaClient } = await import('../utils/database.js');
-      const prisma = getPrismaClient();
-      vi.mocked(prisma.issue.findUnique).mockResolvedValue(null);
+      mockIssueFindUnique.mockResolvedValue(null);
 
       const result = await task.execute(
         { caName: 'hra_123', issueNumber: 123, taskId: 1 },
@@ -140,6 +166,72 @@ describe('AiCodingTask', () => {
       expect(prompt).toContain('pnpm check');
       expect(prompt).toContain('gh pr create --draft');
       expect(prompt).toContain('gh pr ready');
+    });
+  });
+
+  describe('session 复用逻辑', () => {
+    it('当 sessionId 不存在时应创建新 session 并保存到 Issue', async () => {
+      mockIssueFindUnique.mockResolvedValue({
+        issueId: 123,
+        issueTitle: '测试任务',
+        issueContent: '测试内容',
+        sessionId: null
+      });
+
+      mockSessionCreate.mockResolvedValue({
+        data: { id: 'new-session-123' }
+      });
+
+      mockSessionPrompt.mockResolvedValue({
+        data: { info: { id: 'msg-123' } }
+      });
+
+      const result = await task.execute(
+        { caName: 'hra_123', issueNumber: 123, taskId: 1 },
+        { taskId: 1, taskName: 'ai_coding', retryCount: 0 }
+      );
+
+      if (!result.success) {
+        console.log('Test failed with error:', result.error);
+      }
+
+      expect(result.success).toBe(true);
+      expect(mockSessionCreate).toHaveBeenCalled();
+      expect(mockIssueUpdate).toHaveBeenCalledWith({
+        where: { issueId: 123 },
+        data: { sessionId: 'new-session-123' }
+      });
+    });
+
+    it('当 sessionId 存在时应复用 session 而不创建新的', async () => {
+      mockIssueFindUnique.mockResolvedValue({
+        issueId: 456,
+        issueTitle: '已有 session 的任务',
+        issueContent: '测试内容',
+        sessionId: 'existing-session-456'
+      });
+
+      mockSessionPrompt.mockResolvedValue({
+        data: { info: { id: 'msg-456' } }
+      });
+
+      const result = await task.execute(
+        { caName: 'hra_456', issueNumber: 456, taskId: 2 },
+        { taskId: 2, taskName: 'ai_coding', retryCount: 0 }
+      );
+
+      if (!result.success) {
+        console.log('Test failed with error:', result.error);
+      }
+
+      expect(result.success).toBe(true);
+      expect(mockSessionCreate).not.toHaveBeenCalled();
+      expect(mockIssueUpdate).not.toHaveBeenCalled();
+      expect(mockSessionPrompt).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: { id: 'existing-session-456' }
+        })
+      );
     });
   });
 });

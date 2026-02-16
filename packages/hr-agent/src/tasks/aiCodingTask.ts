@@ -7,6 +7,7 @@ import { getPrismaClient, getCurrentTimestamp } from '../utils/database.js';
 import { createOpencodeClient } from '@opencode-ai/sdk';
 import { DOCKER_CONFIG } from '../config/docker.js';
 import { readPrompt } from '../utils/promptReader.js';
+import { Buffer } from 'node:buffer';
 
 export class AiCodingTask extends BaseTask {
   readonly name = 'ai_coding';
@@ -99,6 +100,7 @@ export class AiCodingTask extends BaseTask {
     issueId: number;
     issueTitle: string;
     issueContent: string | null;
+    sessionId: string | null;
   }> {
     const prisma = getPrismaClient();
     const issue = await prisma.issue.findUnique({
@@ -113,17 +115,31 @@ export class AiCodingTask extends BaseTask {
   }
 
   private createClient(caName: string): ReturnType<typeof createOpencodeClient> {
+    const credentials = `opencode:${DOCKER_CONFIG.SECRET}`;
+    const auth = Buffer.from(credentials).toString('base64');
+    const host = DOCKER_CONFIG.CA_HOST ?? caName;
     return createOpencodeClient({
-      baseUrl: `http://${caName}:${DOCKER_CONFIG.PORT}`
+      baseUrl: `http://${host}:${DOCKER_CONFIG.PORT}`,
+      headers: {
+        Authorization: `Basic ${auth}`
+      }
     });
   }
 
   private async createOpenCodeSession(
     client: ReturnType<typeof createOpencodeClient>,
-    issue: { issueId: number; issueTitle: string },
+    issue: { issueId: number; issueTitle: string; sessionId: string | null },
     taskId: number,
     issueNumber: number
   ): Promise<string> {
+    if (issue.sessionId) {
+      await this.logger.info(taskId, this.name, '复用现有会话', {
+        sessionId: issue.sessionId,
+        issueNumber
+      });
+      return issue.sessionId;
+    }
+
     await this.logger.info(taskId, this.name, '创建会话', { issueNumber });
 
     const session = await client.session.create({
@@ -138,8 +154,15 @@ export class AiCodingTask extends BaseTask {
 
     const sessionId = session.data.id;
 
-    await this.logger.info(taskId, this.name, '会话创建成功', {
-      sessionId
+    const prisma = getPrismaClient();
+    await prisma.issue.update({
+      where: { issueId: issueNumber },
+      data: { sessionId }
+    });
+
+    await this.logger.info(taskId, this.name, '会话创建成功并关联到 Issue', {
+      sessionId,
+      issueNumber
     });
 
     return sessionId;
