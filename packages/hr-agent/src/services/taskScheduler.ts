@@ -556,7 +556,9 @@ export class TaskScheduler {
   }
 
   private async allocateCAForTask(task: QueuedTask): Promise<{ id: number } | null> {
+    await this.logger.info(task.taskId, task.taskName, '检查空闲 CA...');
     const ca = await this.caManager.getIdleCA();
+    await this.logger.info(task.taskId, task.taskName, '空闲 CA 检查完成', { ca: ca ?? '无' });
 
     if (ca) {
       await this.logger.info(task.taskId, task.taskName, '使用现有空闲 CA', {

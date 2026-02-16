@@ -41,7 +41,6 @@ export class CAResourceManager {
   }
 
   async getAllCA(): Promise<CAResource[]> {
-    await this.refreshCACache();
     return Array.from(this.caCache.values()).sort((a, b) => b.createdAt - a.createdAt);
   }
 
@@ -52,7 +51,6 @@ export class CAResourceManager {
   }
 
   async getBusyCA(): Promise<CAResource[]> {
-    await this.refreshCACache();
     return Array.from(this.caCache.values()).filter((ca) => ca.status === 'busy');
   }
 
@@ -75,6 +73,7 @@ export class CAResourceManager {
     pending_restart: number;
     pending_update: number;
   }> {
+    await this.refreshCACache();
     const allCA = await this.getAllCA();
     return {
       total: allCA.length,

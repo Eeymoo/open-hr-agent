@@ -183,8 +183,7 @@ describe('TaskScheduler', () => {
 
       scheduler.start();
 
-      // eslint-disable-next-line max-nested-callbacks
-      await vi.waitFor(() => {
+      const verifyTaskProcessing = () => {
         expect(mockPrisma.task.findMany).toHaveBeenCalledWith(
           expect.objectContaining({
             where: expect.objectContaining({
@@ -202,7 +201,9 @@ describe('TaskScheduler', () => {
             })
           })
         );
-      });
+      };
+
+      await vi.waitFor(verifyTaskProcessing);
     });
 
     it('should not process tasks when queue is empty', async () => {
@@ -250,9 +251,71 @@ describe('TaskScheduler', () => {
       await new Promise((resolve) => setTimeout(resolve, 50));
 
       const taskId = await scheduler.addTask('test_task', { param1: 'value1' }, 50);
-
+      await new Promise((resolve) => setTimeout(resolve, 50));
       expect(taskId).toBe(1);
       expect(mockPrisma.task.create).toHaveBeenCalled();
+    });
+  });
+
+  describe('scheduleNext', () => {
+    it('should call getIdleCA when task has requires:ca tag', async () => {
+      const caTask = {
+        execute: vi.fn().mockResolvedValue({ success: true }),
+        tags: ['requires:ca'],
+        dependencies: []
+      } as unknown as BaseTask;
+      taskRegistry.set('ca_task', caTask);
+
+      mockPrisma.task.create.mockResolvedValue({
+        id: 1,
+        type: 'ca_task',
+        status: TASK_STATUS.QUEUED,
+        priority: 50,
+        tags: ['requires:ca'],
+        metadata: { issueId: 123 },
+        issueId: 123,
+        prId: null,
+        createdAt: Date.now() / 1000,
+        updatedAt: Date.now() / 1000,
+        deletedAt: -2
+      });
+
+      mockPrisma.task.update.mockResolvedValue({
+        id: 1,
+        status: TASK_STATUS.RUNNING
+      });
+
+      const getIdleCASpy = vi
+        .spyOn(scheduler['caManager'], 'getIdleCA')
+        .mockResolvedValue({
+          id: 1,
+          name: 'test-ca',
+          containerId: 'test',
+          status: 'idle',
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        });
+      const allocateCASpy = vi
+        .spyOn(scheduler['caManager'], 'allocateCA')
+        .mockResolvedValue({
+          id: 1,
+          name: 'test-ca',
+          containerId: 'test',
+          status: 'busy',
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        });
+
+      scheduler.start();
+
+      await scheduler.addTask('ca_task', { issueId: 123 }, 50, 123);
+
+      await vi.waitFor(() => {
+        expect(getIdleCASpy).toHaveBeenCalled();
+      });
+
+      getIdleCASpy.mockRestore();
+      allocateCASpy.mockRestore();
     });
   });
 
