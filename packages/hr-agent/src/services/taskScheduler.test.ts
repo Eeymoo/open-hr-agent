@@ -183,26 +183,26 @@ describe('TaskScheduler', () => {
 
       scheduler.start();
 
-      // Wait for async operations to complete
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      expect(mockPrisma.task.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            status: TASK_STATUS.QUEUED,
-            deletedAt: -2
+      // eslint-disable-next-line max-nested-callbacks
+      await vi.waitFor(() => {
+        expect(mockPrisma.task.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: expect.objectContaining({
+              status: TASK_STATUS.QUEUED,
+              deletedAt: -2
+            })
           })
-        })
-      );
+        );
 
-      expect(mockPrisma.task.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { id: 101 },
-          data: expect.objectContaining({
-            status: TASK_STATUS.RUNNING
+        expect(mockPrisma.task.update).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: { id: 101 },
+            data: expect.objectContaining({
+              status: TASK_STATUS.RUNNING
+            })
           })
-        })
-      );
+        );
+      });
     });
 
     it('should not process tasks when queue is empty', async () => {
@@ -250,8 +250,6 @@ describe('TaskScheduler', () => {
       await new Promise((resolve) => setTimeout(resolve, 50));
 
       const taskId = await scheduler.addTask('test_task', { param1: 'value1' }, 50);
-
-      await new Promise((resolve) => setTimeout(resolve, 50));
 
       expect(taskId).toBe(1);
       expect(mockPrisma.task.create).toHaveBeenCalled();
