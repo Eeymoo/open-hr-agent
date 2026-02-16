@@ -684,7 +684,12 @@ export class TaskScheduler {
     await this.logger.info(task.taskId, task.taskName, '任务开始执行');
 
     try {
-      const result = await taskInstance.execute(task.params, {
+      const paramsWithTaskId = {
+        ...task.params,
+        taskId: task.taskId
+      };
+
+      const result = await taskInstance.execute(paramsWithTaskId, {
         taskId: task.taskId,
         taskName: task.taskName,
         issueId: task.issueId,
