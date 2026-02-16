@@ -158,6 +158,7 @@ export class CAResourceManager {
 
     const ca = this.caCache.get(caId);
     if (ca) {
+      const taskId = ca.currentTaskId;
       ca.status = 'idle';
       delete ca.currentTaskId;
       ca.updatedAt = Date.now();
@@ -165,7 +166,7 @@ export class CAResourceManager {
 
       await this.eventBus.emit(TASK_EVENTS.CA_RELEASED, {
         caId,
-        taskId: ca.currentTaskId
+        taskId
       });
     }
   }
