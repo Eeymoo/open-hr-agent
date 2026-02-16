@@ -20,5 +20,6 @@ export const DOCKER_CONFIG = {
   NETWORK: process.env.DOCKER_NETWORK ?? 'hr-network',
   SECRET: getDockerCASecret(),
   HR_NETWORK: process.env.HR_NETWORK ?? 'hr-network',
-  NAME_PREFIX: TASK_CONFIG.CA_NAME_PREFIX
+  NAME_PREFIX: TASK_CONFIG.CA_NAME_PREFIX,
+  CA_HOST: process.env.DOCKER_CA_HOST
 } as const;

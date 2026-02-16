@@ -14,6 +14,7 @@ model Issue {
   issueUrl     String
   issueTitle   String
   issueContent String?  @db.Text
+  sessionId    String?  // OpenCode Session ID
   createdAt    Int      @default(-2)
   updatedAt    Int      @default(-2)
   completedAt  Int      @default(-2)
