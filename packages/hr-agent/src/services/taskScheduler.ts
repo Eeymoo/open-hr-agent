@@ -182,6 +182,7 @@ export class TaskScheduler {
         'Scheduler',
         `已从数据库加载 ${queuedTasks.length} 个待执行任务到队列`
       );
+      await this.scheduleNext();
     }
   }
 
