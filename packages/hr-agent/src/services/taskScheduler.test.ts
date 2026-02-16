@@ -248,8 +248,7 @@ describe('TaskScheduler', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      const taskId = await scheduler.addTask('test_task', { param1: 'value1' }, 50);
- 
+       const taskId = await scheduler.addTask('test_task', { param1: 'value1' }, 50);
        await new Promise((resolve) => setTimeout(resolve, 50));
       expect(taskId).toBe(1);
       expect(mockPrisma.task.create).toHaveBeenCalled();
