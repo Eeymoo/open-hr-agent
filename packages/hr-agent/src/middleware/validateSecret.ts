@@ -15,7 +15,7 @@ function shouldSkipAuth(path: string): boolean {
 }
 
 function validateSecretMiddleware(req: Request, res: Response, next: NextFunction): void {
-  if (shouldSkipAuth(req.path)) {
+  if (shouldSkipAuth(req.originalUrl)) {
     next();
     return;
   }
