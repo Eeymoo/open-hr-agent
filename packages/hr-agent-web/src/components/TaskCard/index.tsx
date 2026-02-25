@@ -16,7 +16,6 @@ import {
 } from '../../types/task';
 import { formatTimestamp, formatPriority, getPriorityColor } from '../../utils/formatters';
 import { CA_BASE_URL } from '../../utils/constants';
-import './index.css';
 
 const PROGRESS_QUEUED = 0;
 const PROGRESS_RUNNING = 50;
@@ -81,16 +80,16 @@ function TaskCardContent({
   const progress = getProgressByStatus(task);
 
   return (
-    <div className="task-content">
-      <div className="task-type">
-        <RobotOutlined className="type-icon" />
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        <RobotOutlined style={{ color: '#9333EA' }} />
         <strong>{task.type}</strong>
       </div>
 
       {task.tags && task.tags.length > 0 && (
-        <div className="task-tags">
+        <div style={{ marginBottom: 8 }}>
           {task.tags.map((tag) => (
-            <Tag key={tag} color={TASK_TAG_COLORS[tag] ?? 'default'}>
+            <Tag key={tag} color={TASK_TAG_COLORS[tag] ?? 'default'} style={{ marginRight: 4 }}>
               {TASK_TAG_LABELS[tag] ?? tag}
             </Tag>
           ))}
@@ -98,48 +97,48 @@ function TaskCardContent({
       )}
 
       {isRunning && (
-        <div className="task-progress">
-          <div className="progress-header">
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
             <ClockCircleOutlined />
             <span>处理中</span>
           </div>
           <Progress
             percent={progress}
             size="small"
-            strokeColor="var(--purple-main)"
+            strokeColor="#9333EA"
             showInfo={false}
           />
         </div>
       )}
 
-      <div className="task-links">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
         {task.issue && (
-          <div className="task-link">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <GithubOutlined />
-            <Button type="link" onClick={handleIssueClick} className="link-btn">
+            <Button type="link" onClick={handleIssueClick} style={{ padding: 0, height: 'auto' }}>
               #{task.issue.issueId}
             </Button>
           </div>
         )}
         {task.pullRequest && (
-          <div className="task-link">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <GithubOutlined />
-            <Button type="link" onClick={handlePRClick} className="link-btn">
+            <Button type="link" onClick={handlePRClick} style={{ padding: 0, height: 'auto' }}>
               #{task.pullRequest.prId}
             </Button>
           </div>
         )}
         {task.codingAgent && (
-          <div className="task-link">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <LinkOutlined />
-            <Button type="link" onClick={handleCAUrlClick} className="link-btn">
+            <Button type="link" onClick={handleCAUrlClick} style={{ padding: 0, height: 'auto' }}>
               {task.codingAgent.caName}
             </Button>
           </div>
         )}
       </div>
 
-      <div className="task-meta">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#8c8c8c' }}>
         <ClockCircleOutlined />
         <small>{formatTimestamp(task.createdAt)}</small>
       </div>
@@ -176,16 +175,16 @@ export function TaskCard({ task, onClick, onEdit, onDelete, showActions = true }
 
   return (
     <Card
-      className={`task-card glass-card ${isRunning ? 'task-running' : ''}`}
       hoverable
       onClick={onClick}
+      style={isRunning ? { borderColor: '#faad14' } : undefined}
       title={
         <Space size={8}>
-          <span className="task-id">#{task.id}</span>
-          <Tag color={TASK_STATUS_COLORS[task.status]} className="status-tag">
+          <span>#{task.id}</span>
+          <Tag color={TASK_STATUS_COLORS[task.status]}>
             {TASK_STATUS_LABELS[task.status]}
           </Tag>
-          <Tag color={getPriorityColor(task.priority)} className="priority-tag">
+          <Tag color={getPriorityColor(task.priority)}>
             {formatPriority(task.priority)}
           </Tag>
         </Space>
@@ -199,7 +198,6 @@ export function TaskCard({ task, onClick, onEdit, onDelete, showActions = true }
                 icon={<EditOutlined />}
                 onClick={onEdit}
                 size="small"
-                className="action-btn"
               />
             )}
             {onDelete && (
@@ -209,7 +207,6 @@ export function TaskCard({ task, onClick, onEdit, onDelete, showActions = true }
                 icon={<DeleteOutlined />}
                 onClick={onDelete}
                 size="small"
-                className="action-btn"
               />
             )}
           </Space>

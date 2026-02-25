@@ -17,7 +17,6 @@ import {
   PRIORITY_FILTER_OPTIONS
 } from './columns';
 import { Page } from '../../components/Page';
-import './index.css';
 
 const DEFAULT_FILTER_TAGS = ['requires:ca', 'agent:coding', 'agent:review', 'agent:test'];
 
@@ -83,7 +82,7 @@ export function TaskList() {
 
   return (
     <Page loading={isLoading}>
-      <div className="task-list-page">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <TaskListHeader
           total={data?.pagination?.total || 0}
           searchText={searchText}
@@ -96,7 +95,7 @@ export function TaskList() {
           onFilterTagsChange={setFilterTags}
           onRefresh={refetch}
         />
-        <Card className="task-list-card">
+        <Card>
           <Table
             dataSource={filteredTasks}
             columns={columns}
@@ -112,7 +111,7 @@ export function TaskList() {
             }}
             onChange={handleTableChange}
             rowClassName={(record: Task) =>
-              isRunningStatus(record.status) ? 'task-list-row-running' : ''
+              isRunningStatus(record.status) ? 'row-running' : ''
             }
           />
         </Card>
@@ -147,14 +146,14 @@ function TaskListHeader({
   onRefresh
 }: TaskListHeaderProps) {
   return (
-    <div className="task-list-header">
-      <div className="task-list-header-left">
-        <h2>任务列表</h2>
-        <Space size={16} className="task-list-stats">
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16, padding: 20, border: '1px solid #f0f0f0', borderRadius: 8 }}>
+      <div>
+        <h2 style={{ margin: '0 0 8px 0', fontSize: 20, fontWeight: 600 }}>任务列表</h2>
+        <Space size={16}>
           <Badge status="default" text={`全部: ${total}`} />
         </Space>
       </div>
-      <div className="task-list-header-right">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <Input.Search
           placeholder="搜索 ID、类型或 Issue 标题"
           value={searchText}
@@ -162,8 +161,8 @@ function TaskListHeader({
           style={{ width: 280 }}
           allowClear
         />
-        <div className="filter-container">
-          <FilterOutlined className="filter-icon" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <FilterOutlined />
           <Select
             mode="multiple"
             allowClear
@@ -171,7 +170,7 @@ function TaskListHeader({
             value={filterTags}
             onChange={onFilterTagsChange}
             options={TAG_OPTIONS}
-            className="tag-filter"
+            style={{ minWidth: 200 }}
             maxTagCount="responsive"
           />
         </div>

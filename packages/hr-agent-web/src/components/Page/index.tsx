@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { Spin } from 'antd';
-import './index.css';
 
 interface PageProps {
   children: ReactNode;
@@ -11,13 +10,13 @@ interface PageProps {
 export function Page({ children, loading, className }: PageProps) {
   if (loading) {
     return (
-      <div className={`page-container ${className || ''}`}>
-        <div className="page-loading">
+      <div className={className} style={{ padding: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
           <Spin size="large" tip="加载中..." />
         </div>
       </div>
     );
   }
 
-  return <div className={`page-container ${className || ''}`}>{children}</div>;
+  return <div className={className} style={{ padding: 24 }}>{children}</div>;
 }

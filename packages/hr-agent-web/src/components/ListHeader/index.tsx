@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import { Button, Input, Space } from 'antd';
+import { Button, Input, Space, Typography } from 'antd';
 import type { SearchProps } from 'antd/es/input/Search';
 
-import './index.css';
+const { Title } = Typography;
 
 interface ListHeaderProps {
   title: string;
@@ -30,10 +30,12 @@ export function ListHeader({
   actionButton
 }: ListHeaderProps) {
   return (
-    <div className="list-header">
-      <div className="header-left">
-        <h2>{title}</h2>
-        <span className="list-count">
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <Title level={2} style={{ margin: 0 }}>
+          {title}
+        </Title>
+        <span style={{ color: '#8c8c8c' }}>
           共 {count} {countLabel}
         </span>
       </div>

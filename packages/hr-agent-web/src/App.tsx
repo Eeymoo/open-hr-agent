@@ -26,38 +26,7 @@ function AppContent() {
     <ConfigProvider
       locale={zhCN}
       theme={{
-        algorithm: isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
-        token: {
-          colorPrimary: theme.antd.token.colorPrimary,
-          colorBgContainer: theme.antd.token.colorBgContainer,
-          colorBorder: theme.antd.token.colorBorder,
-          colorBgElevated: theme.antd.token.colorBgElevated,
-          borderRadius: 12,
-          fontFamily:
-            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial'
-        },
-        components: {
-          Button: {
-            colorPrimary: theme.antd.token.colorPrimary,
-            algorithm: true
-          },
-          Card: {
-            colorBgContainer: theme.antd.token.colorBgContainer
-          },
-          Modal: {
-            contentBg: theme.antd.token.colorBgElevated
-          },
-          Table: {
-            headerBg: isDark ? 'rgba(30, 41, 59, 0.85)' : 'rgba(241, 245, 249, 0.95)',
-            rowHoverBg: isDark ? 'rgba(51, 65, 85, 0.6)' : 'rgba(241, 245, 249, 0.9)'
-          },
-          Input: {
-            colorBgContainer: theme.antd.token.colorBgContainer
-          },
-          Select: {
-            colorBgContainer: theme.antd.token.colorBgContainer
-          }
-        }
+        algorithm: isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm
       }}
     >
       <RouterProvider router={router} />

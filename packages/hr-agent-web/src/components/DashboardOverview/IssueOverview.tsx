@@ -1,5 +1,6 @@
 import { AlertOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import type { CSSProperties } from 'react';
 import { useIssues } from '../../hooks/useIssues';
 import { OverviewCard } from './OverviewCard';
 
@@ -9,6 +10,22 @@ interface IssueStats {
   completed: number;
   deleted: number;
 }
+
+const statStyle: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: '8px 0'
+};
+
+const labelStyle: CSSProperties = {
+  color: '#8c8c8c'
+};
+
+const valueStyle: CSSProperties = {
+  fontSize: 16,
+  fontWeight: 600
+};
 
 function useIssueStats(): { stats: IssueStats; isLoading: boolean } {
   const { data, isLoading } = useIssues({ page: 1, pageSize: 100 });
@@ -29,21 +46,21 @@ function useIssueStats(): { stats: IssueStats; isLoading: boolean } {
 function IssueStatsContent({ stats }: { stats: IssueStats }) {
   return (
     <>
-      <div className="overview-stat">
-        <span className="overview-stat-label">总 Issue 数</span>
-        <span className="overview-stat-value">{stats.total}</span>
+      <div style={statStyle}>
+        <span style={labelStyle}>总 Issue 数</span>
+        <span style={valueStyle}>{stats.total}</span>
       </div>
-      <div className="overview-stat">
-        <span className="overview-stat-label">进行中</span>
-        <span className="overview-stat-value running">{stats.inProgress}</span>
+      <div style={statStyle}>
+        <span style={labelStyle}>进行中</span>
+        <span style={{ ...valueStyle, color: '#1890ff' }}>{stats.inProgress}</span>
       </div>
-      <div className="overview-stat">
-        <span className="overview-stat-label">已完成</span>
-        <span className="overview-stat-value success">{stats.completed}</span>
+      <div style={statStyle}>
+        <span style={labelStyle}>已完成</span>
+        <span style={{ ...valueStyle, color: '#52c41a' }}>{stats.completed}</span>
       </div>
-      <div className="overview-stat">
-        <span className="overview-stat-label">已删除</span>
-        <span className="overview-stat-value error">{stats.deleted}</span>
+      <div style={statStyle}>
+        <span style={labelStyle}>已删除</span>
+        <span style={{ ...valueStyle, color: '#ff4d4f' }}>{stats.deleted}</span>
       </div>
     </>
   );

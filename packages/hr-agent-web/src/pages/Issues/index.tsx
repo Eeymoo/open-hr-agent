@@ -8,8 +8,6 @@ import { formatDate, getIssueStatusTag } from '../../utils/formatters';
 import { ListHeader } from '../../components/ListHeader';
 import { Page } from '../../components/Page';
 
-import './index.css';
-
 interface CreateIssueFormData {
   issueId: number;
   issueUrl: string;
@@ -34,7 +32,7 @@ const getIssueColumns = (navigate: (path: string) => void) => [
     key: 'issueId',
     width: 120,
     fixed: 'left' as const,
-    render: (id: number) => <span className="issue-id">#{id}</span>
+    render: (id: number) => <span style={{ fontFamily: 'monospace' }}>#{id}</span>
   },
   {
     title: '标题',
@@ -42,7 +40,7 @@ const getIssueColumns = (navigate: (path: string) => void) => [
     key: 'issueTitle',
     ellipsis: true,
     render: (title: string, record: Issue) => (
-      <a className="issue-title-link" onClick={() => navigate(`/issues/${record.id}`)}>
+      <a onClick={() => navigate(`/issues/${record.id}`)} style={{ cursor: 'pointer' }}>
         {title}
       </a>
     )
@@ -141,7 +139,7 @@ function IssuesListContent({
 
   return (
     <Page loading={isLoading}>
-      <div className="issues-list">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <ListHeader
           title="Issues 列表"
           count={pagination?.total || 0}
@@ -157,7 +155,7 @@ function IssuesListContent({
           }}
         />
 
-        <Card className="issues-card">
+        <Card>
           {filteredIssues.length === 0 ? (
             <Empty description="暂无 Issues" />
           ) : (

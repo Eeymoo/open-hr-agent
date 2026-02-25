@@ -25,8 +25,6 @@ import {
 import { ListHeader } from '../../components/ListHeader';
 import { Page } from '../../components/Page';
 
-import './index.css';
-
 interface CreateCAFormData {
   caName: string;
   status?: string;
@@ -249,7 +247,7 @@ function CAsListContent({
 
   return (
     <Page loading={isLoading}>
-      <div className="cas-list">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <ListHeader
           title="Coding Agents 列表"
           count={pagination?.total || 0}
@@ -265,7 +263,7 @@ function CAsListContent({
           }}
         />
 
-        <Card className="cas-card">
+        <Card>
           {filteredCAs.length === 0 ? (
             <Empty description="暂无 Coding Agents" />
           ) : (
@@ -362,23 +360,35 @@ function CAsListContent({
           }}
         >
           {selectedCA?.logs && selectedCA.logs.length > 0 ? (
-            <div className="ca-logs">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {selectedCA.logs.map((log: CodingAgentLog) => (
-                <div key={log.id} className="ca-log-item">
-                  <div className="log-header">
+                <div
+                  key={log.id}
+                  style={{ padding: 16, border: '1px solid #f0f0f0', borderRadius: 8 }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: 12,
+                      paddingBottom: 12,
+                      borderBottom: '1px solid #f0f0f0'
+                    }}
+                  >
                     <Tag>{log.action}</Tag>
-                    <span className="log-time">{formatDate(log.createdAt)}</span>
+                    <span style={{ fontSize: 12, color: '#999' }}>{formatDate(log.createdAt)}</span>
                   </div>
                   {log.oldValue && (
-                    <div className="log-field">
-                      <span className="field-label">旧值:</span>
-                      <span className="field-value">{log.oldValue}</span>
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 6, fontSize: 13 }}>
+                      <span style={{ fontWeight: 500, color: '#666' }}>旧值:</span>
+                      <span>{log.oldValue}</span>
                     </div>
                   )}
                   {log.newValue && (
-                    <div className="log-field">
-                      <span className="field-label">新值:</span>
-                      <span className="field-value">{log.newValue}</span>
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 6, fontSize: 13 }}>
+                      <span style={{ fontWeight: 500, color: '#666' }}>新值:</span>
+                      <span>{log.newValue}</span>
                     </div>
                   )}
                 </div>

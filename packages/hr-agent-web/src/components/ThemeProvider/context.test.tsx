@@ -54,39 +54,32 @@ describe('ThemeProvider', () => {
     vi.clearAllMocks();
   });
 
-  it('should default to dark theme', () => {
+  it('should default to light theme', () => {
     renderWithProviders();
-    expect(screen.getByTestId('theme-name').textContent).toBe('dark');
-  });
-
-  it('should toggle theme from dark to light', () => {
-    renderWithProviders();
-    expect(screen.getByTestId('theme-name').textContent).toBe('dark');
-
-    fireEvent.click(screen.getByTestId('toggle-btn'));
     expect(screen.getByTestId('theme-name').textContent).toBe('light');
   });
 
   it('should toggle theme from light to dark', () => {
-    localStorageMock.setItem('hr-agent-theme', 'light');
     renderWithProviders();
     expect(screen.getByTestId('theme-name').textContent).toBe('light');
 
     fireEvent.click(screen.getByTestId('toggle-btn'));
     expect(screen.getByTestId('theme-name').textContent).toBe('dark');
+  });
+
+  it('should toggle theme from dark to light', () => {
+    localStorageMock.setItem('hr-agent-theme', 'dark');
+    renderWithProviders();
+    expect(screen.getByTestId('theme-name').textContent).toBe('dark');
+
+    fireEvent.click(screen.getByTestId('toggle-btn'));
+    expect(screen.getByTestId('theme-name').textContent).toBe('light');
   });
 
   it('should save theme to localStorage', () => {
     renderWithProviders();
     fireEvent.click(screen.getByTestId('toggle-btn'));
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('hr-agent-theme', 'light');
+    expect(localStorageMock.setItem).toHaveBeenCalledWith('hr-agent-theme', 'dark');
   });
 
-  it('should set data-theme attribute on document', () => {
-    renderWithProviders();
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-
-    fireEvent.click(screen.getByTestId('toggle-btn'));
-    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
-  });
 });

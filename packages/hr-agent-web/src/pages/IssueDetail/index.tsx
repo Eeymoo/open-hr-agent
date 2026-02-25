@@ -5,7 +5,6 @@ import { ArrowLeftOutlined, EditOutlined, LinkOutlined, DeleteOutlined } from '@
 import { useIssue, useDeleteIssue } from '../../hooks/useIssues';
 import { formatDate, getIssueStatusTag } from '../../utils/formatters';
 import { Page } from '../../components/Page';
-import './index.css';
 
 export function IssueDetail() {
   const { id } = useParams<{ id: string }>();
@@ -34,8 +33,8 @@ export function IssueDetail() {
       {!issue ? (
         <Empty description="Issue 不存在" />
       ) : (
-        <div className="issue-detail">
-          <div className="issue-detail-header">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
             <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/issues')}>
               返回列表
             </Button>
@@ -52,15 +51,15 @@ export function IssueDetail() {
             </Space>
           </div>
 
-          <Card className="issue-card">
-            <div className="issue-card-header">
-              <h1 className="issue-title">
-                <span className="issue-number">#{issue.issueId}</span> {issue.issueTitle}
+          <Card>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, paddingBottom: 20, borderBottom: '1px solid #f0f0f0' }}>
+              <h1 style={{ margin: 0, fontSize: 26, fontWeight: 600 }}>
+                <span style={{ fontFamily: 'monospace' }}>#{issue.issueId}</span> {issue.issueTitle}
               </h1>
-              <div className="issue-status">{getIssueStatusTag(issue)}</div>
+              <div style={{ flexShrink: 0 }}>{getIssueStatusTag(issue)}</div>
             </div>
 
-            <Descriptions column={2} bordered className="issue-descriptions">
+            <Descriptions column={2} bordered style={{ marginBottom: 28 }}>
               <Descriptions.Item label="Issue ID">{issue.issueId}</Descriptions.Item>
               <Descriptions.Item label="状态">{getIssueStatusTag(issue)}</Descriptions.Item>
               <Descriptions.Item label="创建时间">{formatDate(issue.createdAt)}</Descriptions.Item>
@@ -83,9 +82,21 @@ export function IssueDetail() {
             </Descriptions>
 
             {issue.issueContent && (
-              <div className="issue-content">
-                <h3>内容</h3>
-                <div className="issue-content-body">{issue.issueContent}</div>
+              <div style={{ marginTop: 28, paddingTop: 24, borderTop: '1px solid #f0f0f0' }}>
+                <h3 style={{ margin: '0 0 16px 0', fontSize: 16, fontWeight: 600 }}>内容</h3>
+                <div
+                  style={{
+                    padding: 20,
+                    background: '#fafafa',
+                    border: '1px solid #f0f0f0',
+                    borderRadius: 8,
+                    lineHeight: 1.7,
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word'
+                  }}
+                >
+                  {issue.issueContent}
+                </div>
               </div>
             )}
           </Card>

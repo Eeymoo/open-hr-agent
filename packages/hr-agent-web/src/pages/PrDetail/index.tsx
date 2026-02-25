@@ -5,7 +5,6 @@ import { ArrowLeftOutlined, EditOutlined, DeleteOutlined } from '@ant-design/ico
 import { usePR, useDeletePR } from '../../hooks/usePrs';
 import { formatDate, getPRStatusTag } from '../../utils/formatters';
 import { Page } from '../../components/Page';
-import './index.css';
 
 export function PRDetail() {
   const { id } = useParams<{ id: string }>();
@@ -34,8 +33,8 @@ export function PRDetail() {
       {!pr ? (
         <Empty description="Pull Request 不存在" />
       ) : (
-        <div className="pr-detail">
-          <div className="pr-detail-header">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
             <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/prs')}>
               返回列表
             </Button>
@@ -49,15 +48,15 @@ export function PRDetail() {
             </Space>
           </div>
 
-          <Card className="pr-card">
-            <div className="pr-card-header">
-              <h1 className="pr-title">
-                <span className="pr-number">#{pr.prId}</span> {pr.prTitle}
+          <Card>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, paddingBottom: 20, borderBottom: '1px solid #f0f0f0' }}>
+              <h1 style={{ margin: 0, fontSize: 26, fontWeight: 600 }}>
+                <span style={{ fontFamily: 'monospace' }}>#{pr.prId}</span> {pr.prTitle}
               </h1>
-              <div className="pr-status">{getPRStatusTag(pr)}</div>
+              <div style={{ flexShrink: 0 }}>{getPRStatusTag(pr)}</div>
             </div>
 
-            <Descriptions column={2} bordered className="pr-descriptions">
+            <Descriptions column={2} bordered style={{ marginBottom: 28 }}>
               <Descriptions.Item label="PR ID">{pr.prId}</Descriptions.Item>
               <Descriptions.Item label="状态">{getPRStatusTag(pr)}</Descriptions.Item>
               <Descriptions.Item label="创建时间">{formatDate(pr.createdAt)}</Descriptions.Item>
@@ -70,15 +69,27 @@ export function PRDetail() {
               )}
               {pr.issueId && (
                 <Descriptions.Item label="关联 Issue" span={2}>
-                  <span className="issue-link">#{pr.issueId}</span>
+                  <span style={{ fontFamily: 'monospace' }}>#{pr.issueId}</span>
                 </Descriptions.Item>
               )}
             </Descriptions>
 
             {pr.prContent && (
-              <div className="pr-content">
-                <h3>内容</h3>
-                <div className="pr-content-body">{pr.prContent}</div>
+              <div style={{ marginTop: 28, paddingTop: 24, borderTop: '1px solid #f0f0f0' }}>
+                <h3 style={{ margin: '0 0 16px 0', fontSize: 16, fontWeight: 600 }}>内容</h3>
+                <div
+                  style={{
+                    padding: 20,
+                    background: '#fafafa',
+                    border: '1px solid #f0f0f0',
+                    borderRadius: 8,
+                    lineHeight: 1.7,
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word'
+                  }}
+                >
+                  {pr.prContent}
+                </div>
               </div>
             )}
           </Card>

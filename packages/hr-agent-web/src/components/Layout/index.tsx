@@ -15,8 +15,6 @@ import {
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ThemeSwitcher } from '../ThemeSwitcher';
-import './index.css';
-import '../AuthGuard/index.css';
 
 const { Header, Content, Sider } = Layout;
 
@@ -61,7 +59,7 @@ export function AppLayout({ children }: LayoutProps) {
 
   if (isLoading) {
     return (
-      <div className="auth-guard-loading">
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <Spin size="large" tip="加载中..." />
       </div>
     );
@@ -99,25 +97,17 @@ export function AppLayout({ children }: LayoutProps) {
       : location.pathname;
 
   return (
-    <Layout className="app-layout">
+    <Layout style={{ minHeight: '100vh' }}>
       <Sider
-        theme="dark"
+        theme="light"
         width={240}
         collapsedWidth={80}
         collapsed={collapsed}
-        className="app-sider"
         trigger={null}
       >
-        <div className="app-logo">
-          <div className="logo-icon">
-            <RobotOutlined />
-          </div>
-          {!collapsed && (
-            <div className="logo-text">
-              <h2>HR Agent</h2>
-              <span className="logo-badge">AI Powered</span>
-            </div>
-          )}
+        <div style={{ padding: '24px 20px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <RobotOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+          {!collapsed && <h2 style={{ margin: 0, fontSize: '18px' }}>HR Agent</h2>}
         </div>
 
         <Menu
@@ -126,47 +116,34 @@ export function AppLayout({ children }: LayoutProps) {
           selectedKeys={[selectedKey]}
           items={MENU_ITEMS}
           onClick={handleMenuClick}
-          className="app-menu"
+          style={{ borderRight: 0 }}
         />
 
-        <div className="sider-footer">
+        <div style={{ position: 'absolute', bottom: 0, width: '100%', padding: '16px', borderTop: '1px solid #f0f0f0' }}>
           <Button
             type="text"
-            className="collapse-btn"
             onClick={toggleCollapsed}
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            style={{ width: '100%' }}
           />
-          {!collapsed && (
-            <div className="system-status">
-              <span className="status-dot online"></span>
-              <span>系统在线</span>
-            </div>
-          )}
         </div>
       </Sider>
 
       <Layout>
-        <Header className="app-header">
-          <div className="app-header-left">
-            <h1 className="header-title">{getPageTitle()}</h1>
-          </div>
-          <div className="app-header-right">
-            <Space size={16}>
-              <ThemeSwitcher />
-              <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-                <Button type="text" className="user-btn">
-                  <Avatar icon={<UserOutlined />} className="user-avatar" />
-                  <span className="user-name">Admin</span>
-                </Button>
-              </Dropdown>
-            </Space>
-          </div>
+        <Header style={{ background: '#fff', padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1 style={{ margin: 0, fontSize: '20px' }}>{getPageTitle()}</h1>
+          <Space size={16}>
+            <ThemeSwitcher />
+            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+              <Button type="text">
+                <Avatar icon={<UserOutlined />} />
+                <span style={{ marginLeft: 8 }}>Admin</span>
+              </Button>
+            </Dropdown>
+          </Space>
         </Header>
 
-        <Content className="app-content">
-          <div className="content-background">
-            <div className="grid-pattern"></div>
-          </div>
+        <Content style={{ margin: '24px', padding: '24px', background: '#fff', minHeight: 'calc(100vh - 112px)' }}>
           {children}
         </Content>
       </Layout>

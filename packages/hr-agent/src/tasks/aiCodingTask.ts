@@ -104,7 +104,13 @@ export class AiCodingTask extends BaseTask {
   }> {
     const prisma = getPrismaClient();
     const issue = await prisma.issue.findUnique({
-      where: { issueId: issueNumber }
+      where: { issueId: issueNumber },
+      select: {
+        issueId: true,
+        issueTitle: true,
+        issueContent: true,
+        sessionId: true
+      }
     });
 
     if (!issue) {
