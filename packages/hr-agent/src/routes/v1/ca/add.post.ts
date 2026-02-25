@@ -93,9 +93,9 @@ export default async function newCARoute(req: Request, res: Response): Promise<v
       status: 'pending_create',
       dockerConfig: {
         image: DOCKER_CONFIG.IMAGE,
-        network: DOCKER_CONFIG.NETWORK
+        network: DOCKER_CONFIG.NETWORK,
+        repoUrl
       },
-      metadata: repoUrl ? { repoUrl } : undefined,
       createdAt: 0,
       updatedAt: 0,
       completedAt: INACTIVE_TIMESTAMP,
