@@ -1,6 +1,7 @@
-import { Card, Skeleton } from 'antd';
+import { Card, Skeleton, Typography } from 'antd';
 import type { ReactNode } from 'react';
-import './OverviewCard.css';
+
+const { Title } = Typography;
 
 interface OverviewCardProps {
   title: string;
@@ -12,12 +13,14 @@ interface OverviewCardProps {
 
 export function OverviewCard({ title, icon, loading, children, onClick }: OverviewCardProps) {
   return (
-    <Card className="overview-card" hoverable={!!onClick} onClick={onClick}>
-      <div className="overview-card-header">
-        <div className="overview-card-icon">{icon}</div>
-        <h3 className="overview-card-title">{title}</h3>
+    <Card hoverable={!!onClick} onClick={onClick}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+        <div style={{ fontSize: 20, color: '#9333EA' }}>{icon}</div>
+        <Title level={4} style={{ margin: 0 }}>
+          {title}
+        </Title>
       </div>
-      <div className="overview-card-content">
+      <div>
         {loading ? <Skeleton active paragraph={{ rows: 2 }} /> : children}
       </div>
     </Card>

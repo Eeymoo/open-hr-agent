@@ -1,7 +1,24 @@
 import { FileTextOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import type { CSSProperties } from 'react';
 import { useTasks } from '../../hooks/useTasks';
 import { OverviewCard } from './OverviewCard';
+
+const statStyle: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: '8px 0'
+};
+
+const labelStyle: CSSProperties = {
+  color: '#8c8c8c'
+};
+
+const valueStyle: CSSProperties = {
+  fontSize: 16,
+  fontWeight: 600
+};
 
 export function TaskOverview() {
   const navigate = useNavigate();
@@ -24,25 +41,25 @@ export function TaskOverview() {
       loading={isLoading}
       onClick={() => navigate('/tasks')}
     >
-      <div className="overview-stat">
-        <span className="overview-stat-label">总任务数</span>
-        <span className="overview-stat-value">{stats.total}</span>
+      <div style={statStyle}>
+        <span style={labelStyle}>总任务数</span>
+        <span style={valueStyle}>{stats.total}</span>
       </div>
-      <div className="overview-stat">
-        <span className="overview-stat-label">排队中</span>
-        <span className="overview-stat-value warning">{stats.queued}</span>
+      <div style={statStyle}>
+        <span style={labelStyle}>排队中</span>
+        <span style={{ ...valueStyle, color: '#faad14' }}>{stats.queued}</span>
       </div>
-      <div className="overview-stat">
-        <span className="overview-stat-label">运行中</span>
-        <span className="overview-stat-value running">{stats.running}</span>
+      <div style={statStyle}>
+        <span style={labelStyle}>运行中</span>
+        <span style={{ ...valueStyle, color: '#1890ff' }}>{stats.running}</span>
       </div>
-      <div className="overview-stat">
-        <span className="overview-stat-label">已完成</span>
-        <span className="overview-stat-value success">{stats.completed}</span>
+      <div style={statStyle}>
+        <span style={labelStyle}>已完成</span>
+        <span style={{ ...valueStyle, color: '#52c41a' }}>{stats.completed}</span>
       </div>
-      <div className="overview-stat">
-        <span className="overview-stat-label">错误</span>
-        <span className="overview-stat-value error">{stats.error}</span>
+      <div style={statStyle}>
+        <span style={labelStyle}>错误</span>
+        <span style={{ ...valueStyle, color: '#ff4d4f' }}>{stats.error}</span>
       </div>
     </OverviewCard>
   );

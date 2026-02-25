@@ -1,5 +1,6 @@
 import { RobotOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import type { CSSProperties } from 'react';
 import { useCodingAgents, useCAStatus } from '../../hooks/useCas';
 import { OverviewCard } from './OverviewCard';
 
@@ -10,6 +11,22 @@ interface CAStats {
   error: number;
   creating: number;
 }
+
+const statStyle: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: '8px 0'
+};
+
+const labelStyle: CSSProperties = {
+  color: '#8c8c8c'
+};
+
+const valueStyle: CSSProperties = {
+  fontSize: 16,
+  fontWeight: 600
+};
 
 function buildCAStats(
   cas: Array<{ id: number }>,
@@ -41,26 +58,26 @@ function useCAStats(): { stats: CAStats; isLoading: boolean } {
 function CAStatsContent({ stats }: { stats: CAStats }) {
   return (
     <>
-      <div className="overview-stat">
-        <span className="overview-stat-label">总 CA 数</span>
-        <span className="overview-stat-value">{stats.total}</span>
+      <div style={statStyle}>
+        <span style={labelStyle}>总 CA 数</span>
+        <span style={valueStyle}>{stats.total}</span>
       </div>
-      <div className="overview-stat">
-        <span className="overview-stat-label">运行中</span>
-        <span className="overview-stat-value running">{stats.running}</span>
+      <div style={statStyle}>
+        <span style={labelStyle}>运行中</span>
+        <span style={{ ...valueStyle, color: '#1890ff' }}>{stats.running}</span>
       </div>
-      <div className="overview-stat">
-        <span className="overview-stat-label">空闲</span>
-        <span className="overview-stat-value success">{stats.idle}</span>
+      <div style={statStyle}>
+        <span style={labelStyle}>空闲</span>
+        <span style={{ ...valueStyle, color: '#52c41a' }}>{stats.idle}</span>
       </div>
-      <div className="overview-stat">
-        <span className="overview-stat-label">错误</span>
-        <span className="overview-stat-value error">{stats.error}</span>
+      <div style={statStyle}>
+        <span style={labelStyle}>错误</span>
+        <span style={{ ...valueStyle, color: '#ff4d4f' }}>{stats.error}</span>
       </div>
       {stats.creating > 0 && (
-        <div className="overview-stat">
-          <span className="overview-stat-label">创建中</span>
-          <span className="overview-stat-value warning">{stats.creating}</span>
+        <div style={statStyle}>
+          <span style={labelStyle}>创建中</span>
+          <span style={{ ...valueStyle, color: '#faad14' }}>{stats.creating}</span>
         </div>
       )}
     </>

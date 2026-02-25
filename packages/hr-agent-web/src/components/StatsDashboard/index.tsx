@@ -17,7 +17,6 @@ import { useCAStatus } from '../../hooks/useCas';
 import { useIssues } from '../../hooks/useIssues';
 import { usePRs } from '../../hooks/usePrs';
 import { CA_STATUS_LABELS, CA_STATUS_COLORS, type CADetail } from '../../types/ca';
-import './index.css';
 
 const PERCENTAGE_MAX = 100;
 const GRID_GUTTER = 20;
@@ -67,7 +66,7 @@ export function StatsDashboard({ tasks }: StatsDashboardProps) {
     stats.total > 0 ? Math.round((stats.completed / stats.total) * PERCENTAGE_MAX) : 0;
 
   return (
-    <div className="stats-dashboard">
+    <div>
       <TaskStatsCards stats={stats} duration={ANIMATION_DURATION} />
       <Row gutter={[GRID_GUTTER, GRID_GUTTER]} style={{ marginTop: GRID_GUTTER }}>
         <CompletionRateCard completionRate={completionRate} strokeWidth={PROGRESS_STROKE_WIDTH} />
@@ -87,31 +86,31 @@ function TaskStatsCards({ stats, duration }: { stats: Record<string, number>; du
     {
       key: 'total',
       icon: <FileTextOutlined />,
-      className: 'stat-total',
       label: '总任务数',
-      value: stats.total
+      value: stats.total,
+      color: '#1890ff'
     },
     {
       key: 'running',
       icon: <LoadingOutlined spin />,
-      className: 'stat-running',
       label: '进行中',
       value: stats.running,
-      showPulse: stats.running > 0
+      showPulse: stats.running > 0,
+      color: '#faad14'
     },
     {
       key: 'completed',
       icon: <CheckCircleOutlined />,
-      className: 'stat-completed',
       label: '已完成',
-      value: stats.completed
+      value: stats.completed,
+      color: '#52c41a'
     },
     {
       key: 'error',
       icon: <ExclamationCircleOutlined />,
-      className: 'stat-error',
       label: '错误',
-      value: stats.error
+      value: stats.error,
+      color: '#ff4d4f'
     }
   ];
 
@@ -119,15 +118,16 @@ function TaskStatsCards({ stats, duration }: { stats: Record<string, number>; du
     <Row gutter={[GRID_GUTTER, GRID_GUTTER]}>
       {cards.map((card) => (
         <Col key={card.key} xs={24} sm={12} lg={6}>
-          <Card className={`stat-card ${card.className}`}>
-            <div className={`stat-icon ${card.className}`}>{card.icon}</div>
-            <div className="stat-content">
-              <div className="stat-label">{card.label}</div>
-              <div className="stat-value">
-                <CountUp end={card.value} duration={duration} />
+          <Card>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ fontSize: 32, color: card.color }}>{card.icon}</div>
+              <div>
+                <div style={{ color: '#8c8c8c', fontSize: 14 }}>{card.label}</div>
+                <div style={{ fontSize: 24, fontWeight: 600 }}>
+                  <CountUp end={card.value} duration={duration} />
+                </div>
               </div>
             </div>
-            {card.showPulse && <div className="stat-pulse" />}
           </Card>
         </Col>
       ))}
@@ -144,10 +144,10 @@ function CompletionRateCard({
 }) {
   return (
     <Col xs={24} lg={8}>
-      <Card className="progress-card">
-        <div className="progress-header">
-          <span className="progress-label">完成率</span>
-          <span className="progress-value">{completionRate}%</span>
+      <Card>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span>完成率</span>
+          <span style={{ fontWeight: 600 }}>{completionRate}%</span>
         </div>
         <Progress
           percent={completionRate}
@@ -169,25 +169,25 @@ function AISystemCard({
 }) {
   return (
     <Col xs={24} lg={8}>
-      <Card className="ai-status-card">
-        <div className="ai-status-header">
-          <RobotOutlined className="ai-icon" />
-          <span className="ai-status-title">AI 系统状态</span>
+      <Card>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+          <RobotOutlined style={{ fontSize: 20, color: '#9333EA' }} />
+          <span style={{ fontWeight: 600 }}>AI 系统状态</span>
         </div>
-        <div className="ai-status-content">
-          <div className="status-item">
-            <span className="status-label">活跃 Agent</span>
-            <span className="status-value">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#8c8c8c' }}>活跃 Agent</span>
+            <span>
               {caStatus?.busy ?? 0} / {caStatus?.total ?? 0}
             </span>
           </div>
-          <div className="status-item">
-            <span className="status-label">处理队列</span>
-            <span className="status-value">{queuedCount} 个</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#8c8c8c' }}>处理队列</span>
+            <span>{queuedCount} 个</span>
           </div>
-          <div className="status-item">
-            <span className="status-label">空闲 Agent</span>
-            <span className="status-value">{caStatus?.idle ?? 0} 个</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#8c8c8c' }}>空闲 Agent</span>
+            <span>{caStatus?.idle ?? 0} 个</span>
           </div>
         </div>
       </Card>
@@ -213,26 +213,24 @@ function CAResourcePoolCard({
 
   return (
     <Col xs={24} lg={8}>
-      <Card className="ca-pool-card">
-        <div className="ai-status-header">
-          <ApiOutlined className="ai-icon" />
-          <span className="ai-status-title">CA 资源池</span>
+      <Card>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+          <ApiOutlined style={{ fontSize: 20, color: '#9333EA' }} />
+          <span style={{ fontWeight: 600 }}>CA 资源池</span>
         </div>
-        <div className="ca-pool-content">
-          <div className="ca-status-summary">
+        <div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 16 }}>
             {statusSummary.map((item) => (
-              <div key={item.label} className="ca-status-item">
-                <Badge color={item.color} text={`${item.label}: ${item.count}`} />
-              </div>
+              <Badge key={item.label} color={item.color} text={`${item.label}: ${item.count}`} />
             ))}
           </div>
           {caList.length > 0 && (
-            <div className="ca-list">
-              <div className="ca-list-title">CA 列表 ({caList.length})</div>
-              <div className="ca-list-items">
+            <div>
+              <div style={{ color: '#8c8c8c', marginBottom: 8 }}>CA 列表 ({caList.length})</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {caList.slice(0, maxDisplay).map((ca: CADetail) => (
-                  <div key={ca.id} className="ca-list-item">
-                    <div className="ca-item-name">{ca.caName}</div>
+                  <div key={ca.id} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{ca.caName}</span>
                     <Badge
                       status={
                         CA_STATUS_COLORS[ca.status] as
@@ -247,7 +245,7 @@ function CAResourcePoolCard({
                   </div>
                 ))}
                 {caList.length > maxDisplay && (
-                  <div className="ca-list-more">+{caList.length - maxDisplay} 更多</div>
+                  <div style={{ color: '#8c8c8c' }}>+{caList.length - maxDisplay} 更多</div>
                 )}
               </div>
             </div>
@@ -265,23 +263,23 @@ function IssueStatusCard({
 }) {
   return (
     <Col xs={24} lg={12}>
-      <Card className="issue-status-card">
-        <div className="ai-status-header">
-          <IssueOutlined className="ai-icon issue-icon" />
-          <span className="ai-status-title">Issues 状态</span>
+      <Card>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+          <IssueOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+          <span style={{ fontWeight: 600 }}>Issues 状态</span>
         </div>
-        <div className="ai-status-content">
-          <div className="status-item">
-            <span className="status-label">进行中</span>
-            <span className="status-value">{issueStats.inProgress}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#8c8c8c' }}>进行中</span>
+            <span>{issueStats.inProgress}</span>
           </div>
-          <div className="status-item">
-            <span className="status-label">已完成</span>
-            <span className="status-value">{issueStats.completed}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#8c8c8c' }}>已完成</span>
+            <span>{issueStats.completed}</span>
           </div>
-          <div className="status-item">
-            <span className="status-label">已删除</span>
-            <span className="status-value">{issueStats.deleted}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#8c8c8c' }}>已删除</span>
+            <span>{issueStats.deleted}</span>
           </div>
         </div>
       </Card>
@@ -296,23 +294,23 @@ function PRStatusCard({
 }) {
   return (
     <Col xs={24} lg={12}>
-      <Card className="pr-status-card">
-        <div className="ai-status-header">
-          <PROutlined className="ai-icon pr-icon" />
-          <span className="ai-status-title">PRs 状态</span>
+      <Card>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+          <PROutlined style={{ fontSize: 20, color: '#52c41a' }} />
+          <span style={{ fontWeight: 600 }}>PRs 状态</span>
         </div>
-        <div className="ai-status-content">
-          <div className="status-item">
-            <span className="status-label">进行中</span>
-            <span className="status-value">{prStats.inProgress}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#8c8c8c' }}>进行中</span>
+            <span>{prStats.inProgress}</span>
           </div>
-          <div className="status-item">
-            <span className="status-label">已合并</span>
-            <span className="status-value">{prStats.merged}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#8c8c8c' }}>已合并</span>
+            <span>{prStats.merged}</span>
           </div>
-          <div className="status-item">
-            <span className="status-label">已删除</span>
-            <span className="status-value">{prStats.deleted}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#8c8c8c' }}>已删除</span>
+            <span>{prStats.deleted}</span>
           </div>
         </div>
       </Card>

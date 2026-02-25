@@ -4,7 +4,6 @@ import { LockOutlined, RobotOutlined, ApiOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ThemeSwitcher } from '../../components/ThemeSwitcher';
-import './index.css';
 
 const { Title, Text } = Typography;
 
@@ -42,31 +41,43 @@ export function Login() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-background">
-        <div className="grid-pattern"></div>
-      </div>
-
-      <div className="login-content">
-        <div className="login-header">
-          <div className="theme-toggle">
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', maxWidth: 450 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 36, width: '100%' }}>
+          <div style={{ alignSelf: 'flex-end' }}>
             <ThemeSwitcher />
           </div>
-          <div className="login-logo">
-            <div className="logo-icon">
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+            <div
+              style={{
+                width: 88,
+                height: 88,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 48,
+                background: 'rgba(139, 92, 246, 0.1)',
+                borderRadius: '50%',
+                border: '2px solid rgba(139, 92, 246, 0.25)'
+              }}
+            >
               <RobotOutlined />
             </div>
-            <Title level={2} className="login-title">
+            <Title level={2} style={{ margin: 0, fontSize: 36, fontWeight: 700 }}>
               HR Agent
             </Title>
-            <Text className="login-subtitle">AI-Powered Task Orchestration Platform</Text>
-            <Text className="login-subtitle-zh">智能任务编排平台</Text>
+            <Text style={{ color: '#8b5cf6', fontSize: 13, fontWeight: 500, letterSpacing: 1, textTransform: 'uppercase' }}>
+              AI-Powered Task Orchestration Platform
+            </Text>
+            <Text style={{ fontSize: 16 }}>智能任务编排平台</Text>
           </div>
 
-          <div className="login-card">
+          <div style={{ width: '100%', padding: 40, border: '1px solid #f0f0f0', borderRadius: 24 }}>
             <Space direction="vertical" size="large" style={{ width: '100%' }}>
-              <div className="login-form-header">
-                <Title level={4}>欢迎回来</Title>
+              <div>
+                <Title level={4} style={{ margin: '0 0 8px' }}>
+                  欢迎回来
+                </Title>
                 <Text type="secondary">请输入 SECRET 进行身份验证</Text>
               </div>
 
@@ -76,32 +87,20 @@ export function Login() {
                   name="secret"
                   rules={[{ required: true, message: '请输入 SECRET' }]}
                 >
-                  <Input
-                    prefix={<LockOutlined />}
-                    placeholder="请输入 SECRET"
-                    size="large"
-                    className="login-input"
-                  />
+                  <Input prefix={<LockOutlined />} placeholder="请输入 SECRET" size="large" />
                 </Form.Item>
 
                 <Form.Item>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    block
-                    size="large"
-                    loading={loading}
-                    className="login-button"
-                  >
+                  <Button type="primary" htmlType="submit" block size="large" loading={loading}>
                     登录
                   </Button>
                 </Form.Item>
               </Form>
 
-              <div className="login-footer">
+              <div style={{ textAlign: 'center', paddingTop: 24, borderTop: '1px solid #f0f0f0' }}>
                 <Space>
                   <ApiOutlined />
-                  <Text type="secondary" className="footer-text">
+                  <Text type="secondary" style={{ fontSize: 13 }}>
                     Powered by AI Technology
                   </Text>
                 </Space>

@@ -5,7 +5,6 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { TaskCard } from '../TaskCard';
 import { useReorderTasks } from '../../hooks/useTasks';
 import { PRIORITY_LOW, PRIORITY_MEDIUM, PRIORITY_HIGH, type Task } from '../../types/task';
-import './index.css';
 
 interface TaskKanbanProps {
   tasks: Task[];
@@ -29,6 +28,7 @@ const OTHER_COLUMNS = ['error', 'cancelled', 'timeout'];
 const PRIORITY_DIVISOR = 3;
 const PRIORITY_TIER_MULTIPLIER = 2;
 const PRIORITY_OFFSET_MAX = 10;
+const DRAGGING_OPACITY = 0.8;
 
 const calculateNewPriorities = (
   tasks: Task[],
@@ -105,18 +105,17 @@ function KanbanColumn({
     <Col xs={24} sm={12} md={8} lg={6} key={status}>
       <Card
         title={
-          <div className="kanban-column-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span>{title}</span>
-            <span className="task-count">
+            <span style={{ color: '#8c8c8c', fontSize: 14 }}>
               ({columnTasksList.length})
               {isReordering && isDraggable && <LoadingOutlined spin style={{ marginLeft: 8 }} />}
             </span>
           </div>
         }
-        className={`kanban-column ${isReordering && isDraggable ? 'kanban-reordering' : ''}`}
       >
         {loading ? (
-          <div className="kanban-loading">
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}>
             <Spin />
           </div>
         ) : columnTasksList.length === 0 ? (
@@ -124,7 +123,11 @@ function KanbanColumn({
         ) : (
           <Droppable droppableId={status} isDropDisabled={!isDraggable}>
             {(provided) => (
-              <div {...provided.droppableProps} ref={provided.innerRef} className="task-list">
+              <div
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                style={{ display: 'flex', flexDirection: 'column', gap: 12, minHeight: 100 }}
+              >
                 {columnTasksList.map((task, index) => (
                   <Draggable
                     key={task.id}
@@ -137,7 +140,10 @@ function KanbanColumn({
                         ref={draggableProvided.innerRef}
                         {...draggableProvided.draggableProps}
                         {...draggableProvided.dragHandleProps}
-                        className={`task-item ${snapshot.isDragging ? 'dragging' : ''}`}
+                        style={{
+                          ...draggableProvided.draggableProps.style,
+                          opacity: snapshot.isDragging ? DRAGGING_OPACITY : 1
+                        }}
                       >
                         <TaskCard
                           task={task}
@@ -216,7 +222,7 @@ export function TaskKanban({ tasks, loading, onTaskClick, onEdit, onDelete }: Ta
   );
 
   return (
-    <div className="task-kanban">
+    <div>
       <DragDropContext onDragEnd={handleDragEnd}>
         <Row gutter={[16, 16]}>
           {MAIN_COLUMNS.map((status) => (
@@ -255,7 +261,7 @@ export function TaskKanban({ tasks, loading, onTaskClick, onEdit, onDelete }: Ta
         )}
       </DragDropContext>
 
-      <div className="kanban-actions">
+      <div style={{ marginTop: 16 }}>
         <Button
           type="link"
           icon={showOtherColumns ? <DownOutlined /> : <PlusOutlined />}

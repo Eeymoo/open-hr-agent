@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
-import { Row, Col, Select, Space, Empty, Card } from 'antd';
+import { Row, Col, Select, Space, Empty, Card, Typography } from 'antd';
 import { FilterOutlined, DashboardOutlined } from '@ant-design/icons';
 import { TaskKanban } from '../../components/TaskKanban';
 import { useTasks } from '../../hooks/useTasks';
 import { TASK_TAG_LABELS, type Task } from '../../types/task';
 import { TaskOverview, IssueOverview, PrOverview, CaOverview } from '../../components/DashboardOverview';
 import { Page } from '../../components/Page';
-import './index.css';
+
+const { Title } = Typography;
 
 const DEFAULT_FILTER_TAGS = ['requires:ca', 'agent:coding', 'agent:review', 'agent:test'];
 
@@ -33,7 +34,7 @@ export function Dashboard() {
 
   return (
     <Page loading={isLoading}>
-      <div className="dashboard-page">
+      <Space direction="vertical" size={24} style={{ width: '100%' }}>
         <OverviewSection />
         <TaskQueueSection
           tasks={tasks}
@@ -41,17 +42,17 @@ export function Dashboard() {
           onFilterTagsChange={setFilterTags}
           onTaskClick={handleTaskClick}
         />
-      </div>
+      </Space>
     </Page>
   );
 }
 
 function OverviewSection() {
   return (
-    <div className="dashboard-overview-section">
-      <h2 className="dashboard-section-title">
-        <DashboardOutlined /> 系统概览
-      </h2>
+    <Card>
+      <Title level={4} style={{ marginBottom: 16 }}>
+        <DashboardOutlined style={{ marginRight: 8 }} /> 系统概览
+      </Title>
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
           <TaskOverview />
@@ -66,7 +67,7 @@ function OverviewSection() {
           <CaOverview />
         </Col>
       </Row>
-    </div>
+    </Card>
   );
 }
 
@@ -79,12 +80,12 @@ interface TaskQueueSectionProps {
 
 function TaskQueueSection({ tasks, filterTags, onFilterTagsChange }: TaskQueueSectionProps) {
   return (
-    <div className="dashboard-queue-section">
-      <div className="dashboard-queue-header">
-        <h2 className="dashboard-section-title">任务队列</h2>
-        <Space>
-          <div className="filter-container">
-            <FilterOutlined className="filter-icon" />
+    <Space direction="vertical" size={16} style={{ width: '100%' }}>
+      <Card>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Title level={4} style={{ margin: 0 }}>任务队列</Title>
+          <Space>
+            <FilterOutlined />
             <Select
               mode="multiple"
               allowClear
@@ -92,13 +93,13 @@ function TaskQueueSection({ tasks, filterTags, onFilterTagsChange }: TaskQueueSe
               value={filterTags}
               onChange={onFilterTagsChange}
               options={TAG_OPTIONS}
-              className="tag-filter"
+              style={{ minWidth: 200 }}
               maxTagCount="responsive"
             />
-          </div>
-        </Space>
-      </div>
-      <Card className="dashboard-queue-card">
+          </Space>
+        </div>
+      </Card>
+      <Card>
         {tasks.length === 0 ? (
           <Empty description="暂无任务" image={Empty.PRESENTED_IMAGE_SIMPLE} />
         ) : (
@@ -110,6 +111,6 @@ function TaskQueueSection({ tasks, filterTags, onFilterTagsChange }: TaskQueueSe
           />
         )}
       </Card>
-    </div>
+    </Space>
   );
 }

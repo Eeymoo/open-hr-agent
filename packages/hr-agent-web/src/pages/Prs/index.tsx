@@ -8,8 +8,6 @@ import { formatDate, getPRStatusTag } from '../../utils/formatters';
 import { ListHeader } from '../../components/ListHeader';
 import { Page } from '../../components/Page';
 
-import './index.css';
-
 interface CreatePRFormData {
   prId: number;
   prTitle: string;
@@ -34,7 +32,7 @@ const getPRColumns = (navigate: (path: string) => void) => [
     key: 'prId',
     width: 120,
     fixed: 'left' as const,
-    render: (id: number) => <span className="pr-id">#{id}</span>
+    render: (id: number) => <span style={{ fontFamily: 'monospace' }}>#{id}</span>
   },
   {
     title: '标题',
@@ -42,7 +40,7 @@ const getPRColumns = (navigate: (path: string) => void) => [
     key: 'prTitle',
     ellipsis: true,
     render: (title: string, record: PullRequest) => (
-      <a className="pr-title-link" onClick={() => navigate(`/prs/${record.id}`)}>
+      <a onClick={() => navigate(`/prs/${record.id}`)} style={{ cursor: 'pointer' }}>
         {title}
       </a>
     )
@@ -52,8 +50,7 @@ const getPRColumns = (navigate: (path: string) => void) => [
     dataIndex: 'issueId',
     key: 'issueId',
     width: 120,
-    render: (id: number | undefined) =>
-      id ? <span className="issue-id">#{id}</span> : <span className="no-issue">-</span>
+    render: (id: number | undefined) => (id ? <span style={{ fontFamily: 'monospace' }}>#{id}</span> : '-')
   },
   {
     title: '状态',
@@ -141,7 +138,7 @@ function PRsListContent({
 
   return (
     <Page loading={isLoading}>
-      <div className="prs-list">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <ListHeader
           title="Pull Requests 列表"
           count={pagination?.total || 0}
@@ -157,7 +154,7 @@ function PRsListContent({
           }}
         />
 
-        <Card className="prs-card">
+        <Card>
           {filteredPRs.length === 0 ? (
             <Empty description="暂无 Pull Requests" />
           ) : (
