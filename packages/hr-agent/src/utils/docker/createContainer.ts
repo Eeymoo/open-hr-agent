@@ -36,7 +36,7 @@ export async function createContainer(name: string, repoUrl?: string): Promise<s
       `OPENCODE_SERVER_PASSWORD=${DOCKER_CONFIG.SECRET}`
     ];
     if (repoUrl) {
-      envVars.push(`REPO_URL=${repoUrl}`);
+      envVars.push(`GITHUB_REPO_URL=${repoUrl}`);
     }
 
     const container = await docker.createContainer({

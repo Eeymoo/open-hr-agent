@@ -45,7 +45,10 @@ export class ContainerCreateTask extends BaseTask {
         data: { status: 'creating', updatedAt: now }
       });
 
-      const containerId = await createContainer(caName);
+      const dockerConfig = caRecord.dockerConfig as { repoUrl?: string } | null;
+      const repoUrl = dockerConfig?.repoUrl;
+
+      const containerId = await createContainer(caName, repoUrl);
 
       await prisma.codingAgent.update({
         where: { id: caId },
