@@ -1,4 +1,4 @@
-import { Card, Row, Col, Progress, Badge } from 'antd';
+import { Card, Row, Col, Progress, Badge, theme } from 'antd';
 import {
   FileTextOutlined,
   LoadingOutlined,
@@ -82,13 +82,15 @@ export function StatsDashboard({ tasks }: StatsDashboardProps) {
 }
 
 function TaskStatsCards({ stats, duration }: { stats: Record<string, number>; duration: number }) {
+  const { token } = theme.useToken();
+
   const cards = [
     {
       key: 'total',
       icon: <FileTextOutlined />,
       label: '总任务数',
       value: stats.total,
-      color: '#1890ff'
+      color: token.colorPrimary
     },
     {
       key: 'running',
@@ -96,21 +98,21 @@ function TaskStatsCards({ stats, duration }: { stats: Record<string, number>; du
       label: '进行中',
       value: stats.running,
       showPulse: stats.running > 0,
-      color: '#faad14'
+      color: token.colorWarning
     },
     {
       key: 'completed',
       icon: <CheckCircleOutlined />,
       label: '已完成',
       value: stats.completed,
-      color: '#52c41a'
+      color: token.colorSuccess
     },
     {
       key: 'error',
       icon: <ExclamationCircleOutlined />,
       label: '错误',
       value: stats.error,
-      color: '#ff4d4f'
+      color: token.colorError
     }
   ];
 
@@ -122,7 +124,7 @@ function TaskStatsCards({ stats, duration }: { stats: Record<string, number>; du
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{ fontSize: 32, color: card.color }}>{card.icon}</div>
               <div>
-                <div style={{ color: '#8c8c8c', fontSize: 14 }}>{card.label}</div>
+                <div style={{ color: token.colorTextSecondary, fontSize: 14 }}>{card.label}</div>
                 <div style={{ fontSize: 24, fontWeight: 600 }}>
                   <CountUp end={card.value} duration={duration} />
                 </div>
@@ -142,6 +144,8 @@ function CompletionRateCard({
   completionRate: number;
   strokeWidth: number;
 }) {
+  const { token } = theme.useToken();
+
   return (
     <Col xs={24} lg={8}>
       <Card>
@@ -151,7 +155,7 @@ function CompletionRateCard({
         </div>
         <Progress
           percent={completionRate}
-          strokeColor="#9333EA"
+          strokeColor={token.colorPrimary}
           strokeWidth={strokeWidth}
           showInfo={false}
         />
@@ -167,26 +171,28 @@ function AISystemCard({
   caStatus?: { total?: number; busy?: number; idle?: number };
   queuedCount: number;
 }) {
+  const { token } = theme.useToken();
+
   return (
     <Col xs={24} lg={8}>
       <Card>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <RobotOutlined style={{ fontSize: 20, color: '#9333EA' }} />
+          <RobotOutlined style={{ fontSize: 20, color: token.colorPrimary }} />
           <span style={{ fontWeight: 600 }}>AI 系统状态</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#8c8c8c' }}>活跃 Agent</span>
+            <span style={{ color: token.colorTextSecondary }}>活跃 Agent</span>
             <span>
               {caStatus?.busy ?? 0} / {caStatus?.total ?? 0}
             </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#8c8c8c' }}>处理队列</span>
+            <span style={{ color: token.colorTextSecondary }}>处理队列</span>
             <span>{queuedCount} 个</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#8c8c8c' }}>空闲 Agent</span>
+            <span style={{ color: token.colorTextSecondary }}>空闲 Agent</span>
             <span>{caStatus?.idle ?? 0} 个</span>
           </div>
         </div>
@@ -204,18 +210,20 @@ function CAResourcePoolCard({
   caList: CADetail[];
   maxDisplay: number;
 }) {
+  const { token } = theme.useToken();
+
   const statusSummary = [
-    { label: '空闲', count: caStatus?.idle ?? 0, color: '#52c41a' },
-    { label: '忙碌', count: caStatus?.busy ?? 0, color: '#faad14' },
-    { label: '创建中', count: caStatus?.creating ?? 0, color: '#1890ff' },
-    { label: '错误', count: caStatus?.error ?? 0, color: '#ff4d4f' }
+    { label: '空闲', count: caStatus?.idle ?? 0, color: token.colorSuccess },
+    { label: '忙碌', count: caStatus?.busy ?? 0, color: token.colorWarning },
+    { label: '创建中', count: caStatus?.creating ?? 0, color: token.colorPrimary },
+    { label: '错误', count: caStatus?.error ?? 0, color: token.colorError }
   ];
 
   return (
     <Col xs={24} lg={8}>
       <Card>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <ApiOutlined style={{ fontSize: 20, color: '#9333EA' }} />
+          <ApiOutlined style={{ fontSize: 20, color: token.colorPrimary }} />
           <span style={{ fontWeight: 600 }}>CA 资源池</span>
         </div>
         <div>
@@ -226,7 +234,9 @@ function CAResourcePoolCard({
           </div>
           {caList.length > 0 && (
             <div>
-              <div style={{ color: '#8c8c8c', marginBottom: 8 }}>CA 列表 ({caList.length})</div>
+              <div style={{ color: token.colorTextSecondary, marginBottom: 8 }}>
+                CA 列表 ({caList.length})
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {caList.slice(0, maxDisplay).map((ca: CADetail) => (
                   <div key={ca.id} style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -245,7 +255,9 @@ function CAResourcePoolCard({
                   </div>
                 ))}
                 {caList.length > maxDisplay && (
-                  <div style={{ color: '#8c8c8c' }}>+{caList.length - maxDisplay} 更多</div>
+                  <div style={{ color: token.colorTextSecondary }}>
+                    +{caList.length - maxDisplay} 更多
+                  </div>
                 )}
               </div>
             </div>
@@ -261,24 +273,26 @@ function IssueStatusCard({
 }: {
   issueStats: { total: number; inProgress: number; completed: number; deleted: number };
 }) {
+  const { token } = theme.useToken();
+
   return (
     <Col xs={24} lg={12}>
       <Card>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <IssueOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+          <IssueOutlined style={{ fontSize: 20, color: token.colorPrimary }} />
           <span style={{ fontWeight: 600 }}>Issues 状态</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#8c8c8c' }}>进行中</span>
+            <span style={{ color: token.colorTextSecondary }}>进行中</span>
             <span>{issueStats.inProgress}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#8c8c8c' }}>已完成</span>
+            <span style={{ color: token.colorTextSecondary }}>已完成</span>
             <span>{issueStats.completed}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#8c8c8c' }}>已删除</span>
+            <span style={{ color: token.colorTextSecondary }}>已删除</span>
             <span>{issueStats.deleted}</span>
           </div>
         </div>
@@ -292,24 +306,26 @@ function PRStatusCard({
 }: {
   prStats: { total: number; inProgress: number; merged: number; deleted: number };
 }) {
+  const { token } = theme.useToken();
+
   return (
     <Col xs={24} lg={12}>
       <Card>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <PROutlined style={{ fontSize: 20, color: '#52c41a' }} />
+          <PROutlined style={{ fontSize: 20, color: token.colorSuccess }} />
           <span style={{ fontWeight: 600 }}>PRs 状态</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#8c8c8c' }}>进行中</span>
+            <span style={{ color: token.colorTextSecondary }}>进行中</span>
             <span>{prStats.inProgress}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#8c8c8c' }}>已合并</span>
+            <span style={{ color: token.colorTextSecondary }}>已合并</span>
             <span>{prStats.merged}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#8c8c8c' }}>已删除</span>
+            <span style={{ color: token.colorTextSecondary }}>已删除</span>
             <span>{prStats.deleted}</span>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Button, Table, Space, Empty, Input, Modal, Form, message, Tag, Drawer } from 'antd';
+import { Card, Button, Table, Space, Empty, Input, Modal, Form, message, Tag, Drawer, theme } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -135,6 +135,42 @@ const getCAColumns = (
     )
   }
 ];
+
+function CALogItem({ log }: { log: CodingAgentLog }) {
+  const { token } = theme.useToken();
+
+  return (
+    <div
+      style={{ padding: 16, border: `1px solid ${token.colorBorder}`, borderRadius: 8 }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 12,
+          paddingBottom: 12,
+          borderBottom: `1px solid ${token.colorBorder}`
+        }}
+      >
+        <Tag>{log.action}</Tag>
+        <span style={{ fontSize: 12, color: token.colorTextTertiary }}>{formatDate(log.createdAt)}</span>
+      </div>
+      {log.oldValue && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 6, fontSize: 13 }}>
+          <span style={{ fontWeight: 500, color: token.colorTextSecondary }}>旧值:</span>
+          <span>{log.oldValue}</span>
+        </div>
+      )}
+      {log.newValue && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 6, fontSize: 13 }}>
+          <span style={{ fontWeight: 500, color: token.colorTextSecondary }}>新值:</span>
+          <span>{log.newValue}</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // eslint-disable-next-line max-lines-per-function
 function CAsListContent({
@@ -362,36 +398,7 @@ function CAsListContent({
           {selectedCA?.logs && selectedCA.logs.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {selectedCA.logs.map((log: CodingAgentLog) => (
-                <div
-                  key={log.id}
-                  style={{ padding: 16, border: '1px solid #f0f0f0', borderRadius: 8 }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: 12,
-                      paddingBottom: 12,
-                      borderBottom: '1px solid #f0f0f0'
-                    }}
-                  >
-                    <Tag>{log.action}</Tag>
-                    <span style={{ fontSize: 12, color: '#999' }}>{formatDate(log.createdAt)}</span>
-                  </div>
-                  {log.oldValue && (
-                    <div style={{ display: 'flex', gap: 8, marginBottom: 6, fontSize: 13 }}>
-                      <span style={{ fontWeight: 500, color: '#666' }}>旧值:</span>
-                      <span>{log.oldValue}</span>
-                    </div>
-                  )}
-                  {log.newValue && (
-                    <div style={{ display: 'flex', gap: 8, marginBottom: 6, fontSize: 13 }}>
-                      <span style={{ fontWeight: 500, color: '#666' }}>新值:</span>
-                      <span>{log.newValue}</span>
-                    </div>
-                  )}
-                </div>
+                <CALogItem key={log.id} log={log} />
               ))}
             </div>
           ) : (

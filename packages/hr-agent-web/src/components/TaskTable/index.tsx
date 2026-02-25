@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Spin, Tag, Table } from 'antd';
+import { Spin, Tag, Table, theme } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useTasks } from '../../hooks/useTasks';
 import {
@@ -18,6 +18,7 @@ interface TaskTableProps {
 export function TaskTable({ params, onTaskClick }: TaskTableProps) {
   const { data, isLoading } = useTasks(params);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const { token } = theme.useToken();
 
   useEffect(() => {
     if (data?.tasks) {
@@ -114,7 +115,7 @@ export function TaskTable({ params, onTaskClick }: TaskTableProps) {
         pagination={false}
       />
       {data?.pagination && (
-        <div style={{ marginTop: 16, color: '#8c8c8c' }}>
+        <div style={{ marginTop: 16, color: token.colorTextSecondary }}>
           共 {data.pagination.total} 条记录，第 {data.pagination.page} /{' '}
           {data.pagination.totalPages} 页
         </div>

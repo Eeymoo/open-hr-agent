@@ -28,31 +28,6 @@ import { CA_BASE_URL } from '../../utils/constants';
 
 const RUNNING_STATUSES = ['running', 'retrying', 'in_development'];
 const ERROR_STATUSES = ['error', 'timeout'];
-const COLOR_BLUE = '#3b82f6';
-const COLOR_GREEN = '#10b981';
-const COLOR_RED = '#ef4444';
-const COLOR_GRAY = '#6b7280';
-const COLOR_PURPLE = '#9333EA';
-
-const getStatusIcon = (status: TaskStatus) => {
-  switch (status) {
-    case 'running':
-    case 'retrying':
-    case 'creating_ca':
-    case 'connecting_ca':
-    case 'ai_coding':
-    case 'creating_pr':
-      return <LoadingOutlined spin style={{ color: COLOR_BLUE }} />;
-    case 'completed':
-    case 'pr_submitted':
-      return <CheckCircleOutlined style={{ color: COLOR_GREEN }} />;
-    case 'error':
-    case 'timeout':
-      return <ExclamationCircleOutlined style={{ color: COLOR_RED }} />;
-    default:
-      return <ClockCircleOutlined style={{ color: COLOR_GRAY }} />;
-  }
-};
 
 const getProgressByStatus = (status: TaskStatus): number => {
   const progressMap: Record<TaskStatus, number> = {
@@ -165,7 +140,7 @@ export const getTaskListColumns = (onNavigate: (path: string) => void): ColumnsT
     width: 140,
     render: (status: TaskStatus) => (
       <Space size={4}>
-        {getStatusIcon(status)}
+        <StatusIcon status={status} />
         <Tag color={TASK_STATUS_COLORS[status]} className="task-list-status-tag">
           {TASK_STATUS_LABELS[status]}
         </Tag>
@@ -177,22 +152,7 @@ export const getTaskListColumns = (onNavigate: (path: string) => void): ColumnsT
     title: '进度',
     key: 'progress',
     width: 150,
-    render: (_: unknown, record: Task) => {
-      const progress = getProgressByStatus(record.status);
-      const isRunning = isRunningStatus(record.status);
-      return (
-        <div className="task-list-progress">
-          <Progress
-            percent={progress}
-            size="small"
-            strokeColor={isRunning ? COLOR_BLUE : COLOR_PURPLE}
-            showInfo={false}
-            className={isRunning ? 'progress-animated' : ''}
-          />
-          <span className="progress-text">{progress}%</span>
-        </div>
-      );
-    }
+    render: (_: unknown, record: Task) => <ProgressColumn record={record} />
   },
   {
     title: '类型',
@@ -262,6 +222,45 @@ export const getTaskListColumns = (onNavigate: (path: string) => void): ColumnsT
     sorter: (a: Task, b: Task) => a.updatedAt - b.updatedAt
   }
 ];
+
+function StatusIcon({ status }: { status: TaskStatus }) {
+  switch (status) {
+    case 'running':
+    case 'retrying':
+    case 'creating_ca':
+    case 'connecting_ca':
+    case 'ai_coding':
+    case 'creating_pr':
+      return <LoadingOutlined spin style={{ color: 'var(--ant-color-primary)' }} />;
+    case 'completed':
+    case 'pr_submitted':
+      return <CheckCircleOutlined style={{ color: 'var(--ant-color-success)' }} />;
+    case 'error':
+    case 'timeout':
+      return <ExclamationCircleOutlined style={{ color: 'var(--ant-color-error)' }} />;
+    default:
+      return <ClockCircleOutlined style={{ color: 'var(--ant-color-text-secondary)' }} />;
+  }
+}
+
+function ProgressColumn({ record }: { record: Task }) {
+  const progress = getProgressByStatus(record.status);
+  const isRunning = isRunningStatus(record.status);
+  const strokeColor = isRunning ? 'var(--ant-color-primary)' : 'var(--ant-color-primary)';
+
+  return (
+    <div className="task-list-progress">
+      <Progress
+        percent={progress}
+        size="small"
+        strokeColor={strokeColor}
+        showInfo={false}
+        className={isRunning ? 'progress-animated' : ''}
+      />
+      <span className="progress-text">{progress}%</span>
+    </div>
+  );
+}
 
 export const calculateStatusCounts = (tasks: Task[]) => {
   const counts = {

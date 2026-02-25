@@ -1,4 +1,4 @@
-import { Modal, Descriptions, Tag, Tabs, Typography, Button } from 'antd';
+import { Modal, Descriptions, Tag, Tabs, Typography, Button, theme } from 'antd';
 import {
   GithubOutlined,
   LinkOutlined,
@@ -24,6 +24,8 @@ interface TaskModalProps {
 }
 
 export function TaskModal({ open, task, onClose }: TaskModalProps) {
+  const { token } = theme.useToken();
+
   if (!task) {
     return null;
   }
@@ -74,6 +76,21 @@ export function TaskModal({ open, task, onClose }: TaskModalProps) {
     </Descriptions>
   );
 
+  const emptyStateStyle = {
+    textAlign: 'center' as const,
+    padding: '40px 0'
+  };
+
+  const iconStyle = {
+    fontSize: 48,
+    color: token.colorTextDisabled
+  };
+
+  const textStyle = {
+    marginTop: 16,
+    color: token.colorTextSecondary
+  };
+
   const issueTab = task.issue ? (
     <Descriptions column={1} bordered>
       <Descriptions.Item label="Issue ID">#{task.issue.issueId}</Descriptions.Item>
@@ -90,9 +107,9 @@ export function TaskModal({ open, task, onClose }: TaskModalProps) {
       </Descriptions.Item>
     </Descriptions>
   ) : (
-    <div style={{ textAlign: 'center', padding: '40px 0' }}>
-      <CheckCircleOutlined style={{ fontSize: 48, color: '#d9d9d9' }} />
-      <p style={{ marginTop: 16, color: '#8c8c8c' }}>暂无关联的 Issue</p>
+    <div style={emptyStateStyle}>
+      <CheckCircleOutlined style={iconStyle} />
+      <p style={textStyle}>暂无关联的 Issue</p>
     </div>
   );
 
@@ -114,9 +131,9 @@ export function TaskModal({ open, task, onClose }: TaskModalProps) {
       </Descriptions.Item>
     </Descriptions>
   ) : (
-    <div style={{ textAlign: 'center', padding: '40px 0' }}>
-      <ClockCircleOutlined style={{ fontSize: 48, color: '#d9d9d9' }} />
-      <p style={{ marginTop: 16, color: '#8c8c8c' }}>暂无关联的 Pull Request</p>
+    <div style={emptyStateStyle}>
+      <ClockCircleOutlined style={iconStyle} />
+      <p style={textStyle}>暂无关联的 Pull Request</p>
     </div>
   );
 
@@ -142,9 +159,9 @@ export function TaskModal({ open, task, onClose }: TaskModalProps) {
       </Descriptions.Item>
     </Descriptions>
   ) : (
-    <div style={{ textAlign: 'center', padding: '40px 0' }}>
-      <ClockCircleOutlined style={{ fontSize: 48, color: '#d9d9d9' }} />
-      <p style={{ marginTop: 16, color: '#8c8c8c' }}>暂无关联的 Coding Agent</p>
+    <div style={emptyStateStyle}>
+      <ClockCircleOutlined style={iconStyle} />
+      <p style={textStyle}>暂无关联的 Coding Agent</p>
     </div>
   );
 

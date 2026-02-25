@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Button, Descriptions, Space, Empty, Modal, message } from 'antd';
+import { Card, Button, Descriptions, Space, Empty, Modal, message, theme } from 'antd';
 import { ArrowLeftOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { usePR, useDeletePR } from '../../hooks/usePrs';
 import { formatDate, getPRStatusTag } from '../../utils/formatters';
@@ -10,6 +10,7 @@ export function PRDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const { token } = theme.useToken();
 
   const { data, isLoading } = usePR(parseInt(id || '0', 10));
   const deletePR = useDeletePR();
@@ -49,7 +50,7 @@ export function PRDetail() {
           </div>
 
           <Card>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, paddingBottom: 20, borderBottom: '1px solid #f0f0f0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, paddingBottom: 20, borderBottom: `1px solid ${token.colorBorder}` }}>
               <h1 style={{ margin: 0, fontSize: 26, fontWeight: 600 }}>
                 <span style={{ fontFamily: 'monospace' }}>#{pr.prId}</span> {pr.prTitle}
               </h1>
@@ -75,13 +76,13 @@ export function PRDetail() {
             </Descriptions>
 
             {pr.prContent && (
-              <div style={{ marginTop: 28, paddingTop: 24, borderTop: '1px solid #f0f0f0' }}>
+              <div style={{ marginTop: 28, paddingTop: 24, borderTop: `1px solid ${token.colorBorder}` }}>
                 <h3 style={{ margin: '0 0 16px 0', fontSize: 16, fontWeight: 600 }}>内容</h3>
                 <div
                   style={{
                     padding: 20,
-                    background: '#fafafa',
-                    border: '1px solid #f0f0f0',
+                    background: token.colorBgLayout,
+                    border: `1px solid ${token.colorBorder}`,
                     borderRadius: 8,
                     lineHeight: 1.7,
                     whiteSpace: 'pre-wrap',

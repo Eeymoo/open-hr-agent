@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Avatar, Dropdown, Spin, Space } from 'antd';
+import { Layout, Menu, Button, Avatar, Dropdown, Spin, Space, theme } from 'antd';
 import {
   AppstoreOutlined,
   LogoutOutlined,
@@ -56,6 +56,7 @@ export function AppLayout({ children }: LayoutProps) {
   const location = useLocation();
   const { isAuthenticated, isLoading, logout } = useAuth();
   const { collapsed, toggleCollapsed } = useSiderCollapse();
+  const { token } = theme.useToken();
 
   if (isLoading) {
     return (
@@ -105,8 +106,8 @@ export function AppLayout({ children }: LayoutProps) {
         collapsed={collapsed}
         trigger={null}
       >
-        <div style={{ padding: '24px 20px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <RobotOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+        <div style={{ padding: '24px 20px', borderBottom: `1px solid ${token.colorBorder}`, display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <RobotOutlined style={{ fontSize: '24px', color: token.colorPrimary }} />
           {!collapsed && <h2 style={{ margin: 0, fontSize: '18px' }}>HR Agent</h2>}
         </div>
 
@@ -119,7 +120,7 @@ export function AppLayout({ children }: LayoutProps) {
           style={{ borderRight: 0 }}
         />
 
-        <div style={{ position: 'absolute', bottom: 0, width: '100%', padding: '16px', borderTop: '1px solid #f0f0f0' }}>
+        <div style={{ position: 'absolute', bottom: 0, width: '100%', padding: '16px', borderTop: `1px solid ${token.colorBorder}` }}>
           <Button
             type="text"
             onClick={toggleCollapsed}
@@ -130,7 +131,7 @@ export function AppLayout({ children }: LayoutProps) {
       </Sider>
 
       <Layout>
-        <Header style={{ background: '#fff', padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Header style={{ background: token.colorBgContainer, padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 style={{ margin: 0, fontSize: '20px' }}>{getPageTitle()}</h1>
           <Space size={16}>
             <ThemeSwitcher />
@@ -143,7 +144,7 @@ export function AppLayout({ children }: LayoutProps) {
           </Space>
         </Header>
 
-        <Content style={{ margin: '24px', padding: '24px', background: '#fff', minHeight: 'calc(100vh - 112px)' }}>
+        <Content style={{ margin: '24px', padding: '24px', background: token.colorBgContainer, minHeight: 'calc(100vh - 112px)' }}>
           {children}
         </Content>
       </Layout>

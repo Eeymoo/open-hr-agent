@@ -1,6 +1,7 @@
 import { AlertOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import type { CSSProperties } from 'react';
+import { theme } from 'antd';
 import { useIssues } from '../../hooks/useIssues';
 import { OverviewCard } from './OverviewCard';
 
@@ -16,10 +17,6 @@ const statStyle: CSSProperties = {
   justifyContent: 'space-between',
   alignItems: 'center',
   padding: '8px 0'
-};
-
-const labelStyle: CSSProperties = {
-  color: '#8c8c8c'
 };
 
 const valueStyle: CSSProperties = {
@@ -44,6 +41,12 @@ function useIssueStats(): { stats: IssueStats; isLoading: boolean } {
 }
 
 function IssueStatsContent({ stats }: { stats: IssueStats }) {
+  const { token } = theme.useToken();
+
+  const labelStyle: CSSProperties = {
+    color: token.colorTextSecondary
+  };
+
   return (
     <>
       <div style={statStyle}>
@@ -52,15 +55,15 @@ function IssueStatsContent({ stats }: { stats: IssueStats }) {
       </div>
       <div style={statStyle}>
         <span style={labelStyle}>进行中</span>
-        <span style={{ ...valueStyle, color: '#1890ff' }}>{stats.inProgress}</span>
+        <span style={{ ...valueStyle, color: token.colorPrimary }}>{stats.inProgress}</span>
       </div>
       <div style={statStyle}>
         <span style={labelStyle}>已完成</span>
-        <span style={{ ...valueStyle, color: '#52c41a' }}>{stats.completed}</span>
+        <span style={{ ...valueStyle, color: token.colorSuccess }}>{stats.completed}</span>
       </div>
       <div style={statStyle}>
         <span style={labelStyle}>已删除</span>
-        <span style={{ ...valueStyle, color: '#ff4d4f' }}>{stats.deleted}</span>
+        <span style={{ ...valueStyle, color: token.colorError }}>{stats.deleted}</span>
       </div>
     </>
   );

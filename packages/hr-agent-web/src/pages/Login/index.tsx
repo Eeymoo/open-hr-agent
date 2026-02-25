@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Form, Input, Button, Typography, Space, message } from 'antd';
+import { Form, Input, Button, Typography, Space, message, theme } from 'antd';
 import { LockOutlined, RobotOutlined, ApiOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -11,10 +11,21 @@ interface LoginForm {
   secret: string;
 }
 
+const HEX_RADIX = 16;
+const COLOR_START_INDEX = 1;
+const COLOR_R_INDEX_END = 3;
+const COLOR_G_INDEX_START = 3;
+const COLOR_G_INDEX_END = 5;
+const COLOR_B_INDEX_START = 5;
+const COLOR_B_INDEX_END = 7;
+const OPACITY_10 = 0.1;
+const OPACITY_25 = 0.25;
+
 export function Login() {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
+  const { token } = theme.useToken();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -40,6 +51,9 @@ export function Login() {
     }
   };
 
+  const primaryColorRgba10 = `rgba(${parseInt(token.colorPrimary.slice(COLOR_START_INDEX, COLOR_R_INDEX_END), HEX_RADIX)}, ${parseInt(token.colorPrimary.slice(COLOR_G_INDEX_START, COLOR_G_INDEX_END), HEX_RADIX)}, ${parseInt(token.colorPrimary.slice(COLOR_B_INDEX_START, COLOR_B_INDEX_END), HEX_RADIX)}, ${OPACITY_10})`;
+  const primaryColorRgba25 = `rgba(${parseInt(token.colorPrimary.slice(COLOR_START_INDEX, COLOR_R_INDEX_END), HEX_RADIX)}, ${parseInt(token.colorPrimary.slice(COLOR_G_INDEX_START, COLOR_G_INDEX_END), HEX_RADIX)}, ${parseInt(token.colorPrimary.slice(COLOR_B_INDEX_START, COLOR_B_INDEX_END), HEX_RADIX)}, ${OPACITY_25})`;
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', maxWidth: 450 }}>
@@ -56,9 +70,9 @@ export function Login() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: 48,
-                background: 'rgba(139, 92, 246, 0.1)',
+                background: primaryColorRgba10,
                 borderRadius: '50%',
-                border: '2px solid rgba(139, 92, 246, 0.25)'
+                border: `2px solid ${primaryColorRgba25}`
               }}
             >
               <RobotOutlined />
@@ -66,13 +80,13 @@ export function Login() {
             <Title level={2} style={{ margin: 0, fontSize: 36, fontWeight: 700 }}>
               HR Agent
             </Title>
-            <Text style={{ color: '#8b5cf6', fontSize: 13, fontWeight: 500, letterSpacing: 1, textTransform: 'uppercase' }}>
+            <Text style={{ color: token.colorPrimary, fontSize: 13, fontWeight: 500, letterSpacing: 1, textTransform: 'uppercase' }}>
               AI-Powered Task Orchestration Platform
             </Text>
             <Text style={{ fontSize: 16 }}>智能任务编排平台</Text>
           </div>
 
-          <div style={{ width: '100%', padding: 40, border: '1px solid #f0f0f0', borderRadius: 24 }}>
+          <div style={{ width: '100%', padding: 40, border: `1px solid ${token.colorBorder}`, borderRadius: 24 }}>
             <Space direction="vertical" size="large" style={{ width: '100%' }}>
               <div>
                 <Title level={4} style={{ margin: '0 0 8px' }}>
@@ -97,7 +111,7 @@ export function Login() {
                 </Form.Item>
               </Form>
 
-              <div style={{ textAlign: 'center', paddingTop: 24, borderTop: '1px solid #f0f0f0' }}>
+              <div style={{ textAlign: 'center', paddingTop: 24, borderTop: `1px solid ${token.colorBorder}` }}>
                 <Space>
                   <ApiOutlined />
                   <Text type="secondary" style={{ fontSize: 13 }}>
