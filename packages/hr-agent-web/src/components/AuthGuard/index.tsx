@@ -2,7 +2,6 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { Spin } from 'antd';
 import { useAuth } from '../../hooks/useAuth';
-import './index.css';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -13,7 +12,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   if (isLoading) {
     return (
-      <div className="auth-guard-loading">
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <Spin size="large" tip="加载中..." />
       </div>
     );
