@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Card, Col, Row, Button, Empty, Spin, message } from 'antd';
+import { Card, Col, Row, Button, Empty, Spin, message, theme } from 'antd';
 import { PlusOutlined, DownOutlined, LoadingOutlined } from '@ant-design/icons';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { TaskCard } from '../TaskCard';
@@ -99,6 +99,7 @@ function KanbanColumn({
   onEdit,
   onDelete
 }: KanbanColumnProps) {
+  const { token } = theme.useToken();
   const isDraggable = status === 'queued';
 
   return (
@@ -107,7 +108,7 @@ function KanbanColumn({
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span>{title}</span>
-            <span style={{ color: '#8c8c8c', fontSize: 14 }}>
+            <span style={{ color: token.colorTextSecondary, fontSize: 14 }}>
               ({columnTasksList.length})
               {isReordering && isDraggable && <LoadingOutlined spin style={{ marginLeft: 8 }} />}
             </span>

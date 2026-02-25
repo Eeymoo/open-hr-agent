@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Button, Input, Space, Typography } from 'antd';
+import { Button, Input, Space, Typography, theme } from 'antd';
 import type { SearchProps } from 'antd/es/input/Search';
 
 const { Title } = Typography;
@@ -29,13 +29,15 @@ export function ListHeader({
   onSearch,
   actionButton
 }: ListHeaderProps) {
+  const { token } = theme.useToken();
+
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <Title level={2} style={{ margin: 0 }}>
           {title}
         </Title>
-        <span style={{ color: '#8c8c8c' }}>
+        <span style={{ color: token.colorTextSecondary }}>
           共 {count} {countLabel}
         </span>
       </div>

@@ -1,4 +1,4 @@
-import { Card, Skeleton, Typography } from 'antd';
+import { Card, Skeleton, Typography, theme } from 'antd';
 import type { ReactNode } from 'react';
 
 const { Title } = Typography;
@@ -12,10 +12,12 @@ interface OverviewCardProps {
 }
 
 export function OverviewCard({ title, icon, loading, children, onClick }: OverviewCardProps) {
+  const { token } = theme.useToken();
+
   return (
     <Card hoverable={!!onClick} onClick={onClick}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-        <div style={{ fontSize: 20, color: '#9333EA' }}>{icon}</div>
+        <div style={{ fontSize: 20, color: token.colorPrimary }}>{icon}</div>
         <Title level={4} style={{ margin: 0 }}>
           {title}
         </Title>

@@ -1,6 +1,7 @@
 import { RobotOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import type { CSSProperties } from 'react';
+import { theme } from 'antd';
 import { useCodingAgents, useCAStatus } from '../../hooks/useCas';
 import { OverviewCard } from './OverviewCard';
 
@@ -17,10 +18,6 @@ const statStyle: CSSProperties = {
   justifyContent: 'space-between',
   alignItems: 'center',
   padding: '8px 0'
-};
-
-const labelStyle: CSSProperties = {
-  color: '#8c8c8c'
 };
 
 const valueStyle: CSSProperties = {
@@ -56,6 +53,12 @@ function useCAStats(): { stats: CAStats; isLoading: boolean } {
 }
 
 function CAStatsContent({ stats }: { stats: CAStats }) {
+  const { token } = theme.useToken();
+
+  const labelStyle: CSSProperties = {
+    color: token.colorTextSecondary
+  };
+
   return (
     <>
       <div style={statStyle}>
@@ -64,20 +67,20 @@ function CAStatsContent({ stats }: { stats: CAStats }) {
       </div>
       <div style={statStyle}>
         <span style={labelStyle}>运行中</span>
-        <span style={{ ...valueStyle, color: '#1890ff' }}>{stats.running}</span>
+        <span style={{ ...valueStyle, color: token.colorPrimary }}>{stats.running}</span>
       </div>
       <div style={statStyle}>
         <span style={labelStyle}>空闲</span>
-        <span style={{ ...valueStyle, color: '#52c41a' }}>{stats.idle}</span>
+        <span style={{ ...valueStyle, color: token.colorSuccess }}>{stats.idle}</span>
       </div>
       <div style={statStyle}>
         <span style={labelStyle}>错误</span>
-        <span style={{ ...valueStyle, color: '#ff4d4f' }}>{stats.error}</span>
+        <span style={{ ...valueStyle, color: token.colorError }}>{stats.error}</span>
       </div>
       {stats.creating > 0 && (
         <div style={statStyle}>
           <span style={labelStyle}>创建中</span>
-          <span style={{ ...valueStyle, color: '#faad14' }}>{stats.creating}</span>
+          <span style={{ ...valueStyle, color: token.colorWarning }}>{stats.creating}</span>
         </div>
       )}
     </>

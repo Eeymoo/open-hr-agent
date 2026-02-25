@@ -1,4 +1,4 @@
-import { Card, Tag, Button, Space, Progress } from 'antd';
+import { Card, Tag, Button, Space, Progress, theme } from 'antd';
 import {
   GithubOutlined,
   LinkOutlined,
@@ -78,11 +78,12 @@ function TaskCardContent({
   isRunning
 }: TaskCardContentProps) {
   const progress = getProgressByStatus(task);
+  const { token } = theme.useToken();
 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <RobotOutlined style={{ color: '#9333EA' }} />
+        <RobotOutlined style={{ color: token.colorPrimary }} />
         <strong>{task.type}</strong>
       </div>
 
@@ -105,7 +106,7 @@ function TaskCardContent({
           <Progress
             percent={progress}
             size="small"
-            strokeColor="#9333EA"
+            strokeColor={token.colorPrimary}
             showInfo={false}
           />
         </div>
@@ -138,7 +139,7 @@ function TaskCardContent({
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#8c8c8c' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: token.colorTextSecondary }}>
         <ClockCircleOutlined />
         <small>{formatTimestamp(task.createdAt)}</small>
       </div>
@@ -147,6 +148,8 @@ function TaskCardContent({
 }
 
 export function TaskCard({ task, onClick, onEdit, onDelete, showActions = true }: TaskCardProps) {
+  const { token } = theme.useToken();
+
   const handleCAUrlClick = () => {
     if (task.codingAgent) {
       window.open(CA_BASE_URL, '_blank');
@@ -177,7 +180,7 @@ export function TaskCard({ task, onClick, onEdit, onDelete, showActions = true }
     <Card
       hoverable
       onClick={onClick}
-      style={isRunning ? { borderColor: '#faad14' } : undefined}
+      style={isRunning ? { borderColor: token.colorWarning } : undefined}
       title={
         <Space size={8}>
           <span>#{task.id}</span>
